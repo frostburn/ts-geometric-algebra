@@ -250,4 +250,17 @@ describe('Geometric Algebra', () => {
       expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).dual())).toBeTruthy();
     }
   });
+
+  it('can apply weights to the basis vectors', () => {
+    const Cl3 = Algebra(3);
+    const a = randomElement(Cl3);
+    const b = a.applyWeights([0.5, 3, 5]);
+    expect(a.s).toBe(b.s);
+    const va = a.vector();
+    const vb = b.vector();
+    expect(vb[0]).toBeCloseTo(va[0] * 0.5);
+    expect(vb[1]).toBeCloseTo(va[1] * 3);
+    expect(vb[2]).toBeCloseTo(va[2] * 5);
+    expect(b.ps).toBeCloseTo(a.ps * 0.5 * 3 * 5);
+  });
 });

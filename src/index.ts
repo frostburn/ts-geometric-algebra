@@ -39,6 +39,9 @@ export declare class AlgebraElement {
   // Scalar operations
   scale(scalar: number): AlgebraElement;
 
+  // Multi-scalar operations
+  applyWeights(weights: number[]): AlgebraElement;
+
   // Index operations
   negateGrades(...grades: number[]): AlgebraElement;
 
@@ -362,6 +365,19 @@ export default function Algebra(
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
         result[i] = this[i] * scalar;
+      }
+      return result;
+    }
+
+    applyWeights(weights: number[]) {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[i] = this[i];
+        for (let j = 0; j < weights.length; ++j) {
+          if (i & (1 << j)) {
+            result[i] *= weights[j];
+          }
+        }
       }
       return result;
     }
