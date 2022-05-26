@@ -51,6 +51,10 @@ export declare class AlgebraElement {
   wedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
 
+  // Subsets
+  even(): AlgebraElement;
+  grade(grade: number): AlgebraElement;
+
   // Deconstruction
   vector(grade?: number): Float32Array | Float64Array;
   ganja(): Float32Array | Float64Array;
@@ -423,6 +427,26 @@ export default function Algebra(
     }
     set ps(value: number) {
       this[this.length - 1] = value;
+    }
+
+    even() {
+      const result = AlgebraClass.zero();
+      for (let i = 0; i < this.length; ++i) {
+        if (bitCount(i) % 2 === 0) {
+          result[i] = this[i];
+        }
+      }
+      return result;
+    }
+
+    grade(grade: number) {
+      const result = AlgebraClass.zero();
+      for (let i = 0; i < this.length; ++i) {
+        if (bitCount(i) === grade) {
+          result[i] = this[i];
+        }
+      }
+      return result;
     }
 
     vector(grade = 1) {
