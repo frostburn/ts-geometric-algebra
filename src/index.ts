@@ -66,6 +66,15 @@ export declare class AlgebraElement {
   static basisVector(...indices: number[]): AlgebraElement;
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
 
+  // Binary operations using two arguments
+  static add(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static mul(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static div(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static dot(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static wedge(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static vee(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+
   // Algebra information
   static get dimensions(): number;
   static get size(): number;
@@ -509,6 +518,34 @@ export default function Algebra(
         }
       }
       return result;
+    }
+
+    static add(a: AlgebraElement, b: AlgebraElement) {
+      return a.add(b);
+    }
+
+    static sub(a: AlgebraElement, b: AlgebraElement) {
+      return a.sub(b);
+    }
+
+    static mul(a: AlgebraElement, b: AlgebraElement) {
+      return a.mul(b);
+    }
+
+    static div(a: AlgebraElement, b: AlgebraElement) {
+      return a.div(b);
+    }
+
+    static dot(a: AlgebraElement, b: AlgebraElement) {
+      return a.dot(b);
+    }
+
+    static wedge(a: AlgebraElement, b: AlgebraElement) {
+      return a.wedge(b);
+    }
+
+    static vee(a: AlgebraElement, b: AlgebraElement) {
+      return a.vee(b);
     }
 
     static get size() {
