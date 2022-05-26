@@ -149,6 +149,11 @@ export default function Algebra(
     mulTable.push(row);
   }
 
+  // Fast lookup for Hodge dual
+  // We need to instantiate the algebra first to calculate these.
+  const dualIndices: number[] = [];
+  const dualSigns: number[] = [];
+
   // XXX: That `baseType as typeof Float32Array` shouldn't be necessary,
   // but VSCode keeps complaining.
   class AlgebraClass extends (baseType as typeof Float32Array) {
@@ -246,7 +251,11 @@ export default function Algebra(
           'Degenerate metric resistant dualization not implemented'
         );
       }
-      return this.mul(AlgebraClass.pseudoscalar());
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[dualIndices[i]] = dualSigns[i] * this[i];
+      }
+      return result;
     }
 
     undual(): AlgebraElement {
@@ -255,7 +264,11 @@ export default function Algebra(
           'Degenerate metric resistant (un)dualization not implemented'
         );
       }
-      return this.div(AlgebraClass.pseudoscalar());
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[dualIndices[i]] = dualSigns[this.length - 1 - i] * this[i];
+      }
+      return result;
     }
 
     normalize(): AlgebraElement {
@@ -480,6 +493,19 @@ export default function Algebra(
 
     static get dimensions() {
       return dimensions;
+    }
+  }
+
+  const pseudoscalar = AlgebraClass.pseudoscalar();
+  for (let i = 0; i < size; ++i) {
+    const basisVector = AlgebraClass.zero();
+    basisVector[i] = 1;
+    const dual = basisVector.mul(pseudoscalar);
+    for (let j = 0; j < dual.length; ++j) {
+      if (dual[j]) {
+        dualIndices[i] = j;
+        dualSigns[i] = dual[j];
+      }
     }
   }
 

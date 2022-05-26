@@ -178,7 +178,7 @@ describe('Geometric Algebra', () => {
     }
   });
 
-  it('implements the hodge dual on basis vectors', () => {
+  it('implements the hodge dual on basis vectors with a positive metric', () => {
     const Cl3 = Algebra(3);
 
     const scalar = Cl3.basisVector();
@@ -203,8 +203,34 @@ describe('Geometric Algebra', () => {
     expect(pseudoscalar.dual().equals(scalar.neg())).toBeTruthy();
   });
 
+  it('implements the hodge dual on basis vectors with a mixed metric', () => {
+    const Cl3 = Algebra(2, 1);
+
+    const scalar = Cl3.basisVector();
+
+    const e0 = Cl3.basisVector(0);
+    const e1 = Cl3.basisVector(1);
+    const e2 = Cl3.basisVector(2);
+
+    const e01 = Cl3.basisVector(0, 1);
+    const e02 = Cl3.basisVector(0, 2);
+    const e12 = Cl3.basisVector(1, 2);
+
+    const pseudoscalar = Cl3.basisVector(0, 1, 2);
+
+    expect(scalar.dual().equals(pseudoscalar)).toBeTruthy();
+    expect(e0.dual().equals(e12)).toBeTruthy();
+    expect(e1.dual().equals(e02.neg())).toBeTruthy();
+    expect(e2.dual().equals(e01.neg())).toBeTruthy();
+    expect(e01.dual().equals(e2.neg())).toBeTruthy();
+    expect(e02.dual().equals(e1.neg())).toBeTruthy();
+    expect(e12.dual().equals(e0)).toBeTruthy();
+    expect(pseudoscalar.dual().equals(scalar)).toBeTruthy();
+    expect(pseudoscalar.mul(pseudoscalar).s).toBeGreaterThan(0);
+  });
+
   it('satisfies operator definitions on random elements', () => {
-    const dims = 4;
+    const dims = 6;
     const Cl4 = Algebra(dims);
     const pseudoscalar = Cl4.pseudoscalar();
 
