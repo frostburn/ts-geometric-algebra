@@ -359,7 +359,11 @@ describe('Geometric Algebra', () => {
       const u = randomVector(Cl4);
       const v = randomVector(Cl4);
 
-      expect(u.dot(v).closeTo(u.mul(v).add(v.mul(u)).scale(0.5))).toBeTruthy();
+      const inner = u.mul(v).add(v.mul(u)).scale(0.5);
+      expect(u.dot(v).closeTo(inner)).toBeTruthy();
+      expect(u.dotL(v).closeTo(inner)).toBeTruthy();
+      expect(u.dotR(v).closeTo(inner)).toBeTruthy();
+      expect(u.star(v).closeTo(inner)).toBeTruthy();
       expect(
         u.wedge(v).closeTo(u.mul(v).sub(v.mul(u)).scale(0.5))
       ).toBeTruthy();

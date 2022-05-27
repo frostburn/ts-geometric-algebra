@@ -52,11 +52,19 @@ export declare class AlgebraElement {
   mul(other: AlgebraElement): AlgebraElement;
   rmul(other: AlgebraElement): AlgebraElement;
   div(other: AlgebraElement): AlgebraElement;
-  dot(other: AlgebraElement): AlgebraElement;
   wedge(other: AlgebraElement): AlgebraElement;
   rwedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
   rvee(other: AlgebraElement): AlgebraElement;
+  // Contractions
+  contract(
+    other: AlgebraElement,
+    criterion: (r: number, s: number) => number
+  ): AlgebraElement;
+  dot(other: AlgebraElement): AlgebraElement; // Symmetric contraction
+  dotL(other: AlgebraElement): AlgebraElement; // Left contraction
+  dotR(other: AlgebraElement): AlgebraElement; // Right contraction
+  star(other: AlgebraElement): AlgebraElement; // Scalar product
 
   // Subsets
   even(): AlgebraElement;
@@ -79,9 +87,18 @@ export declare class AlgebraElement {
   static sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static mul(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static div(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static dot(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static wedge(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static vee(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  // Contractions
+  static contract(
+    a: AlgebraElement,
+    b: AlgebraElement,
+    criterion: (r: number, s: number) => number
+  ): AlgebraElement;
+  static dot(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static dotL(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static dotR(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static star(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
 
   // Algebra information
   static get dimensions(): number;
@@ -111,6 +128,24 @@ function sortSign(sequence: number[]) {
     }
   }
   return sign;
+}
+
+// Contraction criteria
+function symmetric(r: number, s: number) {
+  return Math.abs(r - s);
+}
+
+function left(r: number, s: number) {
+  return s - r;
+}
+
+function right(r: number, s: number) {
+  return r - s;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function nil(r: number, s: number) {
+  return 0;
 }
 
 export default function Algebra(
@@ -460,17 +495,6 @@ export default function Algebra(
       return this.mul(other.inverse());
     }
 
-    dot(other: AlgebraElement): AlgebraElement {
-      const result = AlgebraClass.zero();
-      for (let i = 0; i < this.length; ++i) {
-        for (let j = 0; j < other.length; ++j) {
-          result[i ^ j] +=
-            this[i] * other[j] * (mulTable[i][j] + mulTable[j][i]) * 0.5;
-        }
-      }
-      return result;
-    }
-
     wedge(other: AlgebraElement): AlgebraElement {
       const result = AlgebraClass.zero();
       for (let i = 0; i < this.length; ++i) {
@@ -507,6 +531,44 @@ export default function Algebra(
 
     rvee(other: AlgebraElement): AlgebraElement {
       return this.dual().rwedge(other.dual()).undual();
+    }
+
+    contract(
+      other: AlgebraElement,
+      criterion: (r: number, s: number) => number
+    ): AlgebraElement {
+      const result = AlgebraClass.zero();
+      for (let i = 0; i < this.length; ++i) {
+        if (!this[i]) {
+          continue;
+        }
+        const gradeI = bitCount(i);
+        for (let j = 0; j < other.length; ++j) {
+          const gradeJ = bitCount(j);
+          const target = i ^ j;
+          const gradeTarget = bitCount(target);
+          if (gradeTarget === criterion(gradeI, gradeJ)) {
+            result[target] += this[i] * other[j] * mulTable[i][j];
+          }
+        }
+      }
+      return result;
+    }
+
+    dot(other: AlgebraElement) {
+      return this.contract(other, symmetric);
+    }
+
+    dotL(other: AlgebraElement) {
+      return this.contract(other, left);
+    }
+
+    dotR(other: AlgebraElement) {
+      return this.contract(other, right);
+    }
+
+    star(other: AlgebraElement) {
+      return this.contract(other, nil);
     }
 
     // Scalar part
@@ -624,16 +686,36 @@ export default function Algebra(
       return a.div(b);
     }
 
-    static dot(a: AlgebraElement, b: AlgebraElement) {
-      return a.dot(b);
-    }
-
     static wedge(a: AlgebraElement, b: AlgebraElement) {
       return a.wedge(b);
     }
 
     static vee(a: AlgebraElement, b: AlgebraElement) {
       return a.vee(b);
+    }
+
+    static contract(
+      a: AlgebraElement,
+      b: AlgebraElement,
+      criterion: (r: number, s: number) => number
+    ) {
+      return a.contract(b, criterion);
+    }
+
+    static dot(a: AlgebraElement, b: AlgebraElement) {
+      return a.dot(b);
+    }
+
+    static dotL(a: AlgebraElement, b: AlgebraElement) {
+      return a.dotL(b);
+    }
+
+    static dotR(a: AlgebraElement, b: AlgebraElement) {
+      return a.dotR(b);
+    }
+
+    static star(a: AlgebraElement, b: AlgebraElement) {
+      return a.star(b);
     }
 
     static get size() {
