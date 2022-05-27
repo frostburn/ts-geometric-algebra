@@ -10,6 +10,14 @@ function randomElement(Ga: typeof AlgebraElement) {
   return new Ga(value);
 }
 
+function randomVector(Ga: typeof AlgebraElement) {
+  const value: number[] = [];
+  while (value.length < Ga.dimensions) {
+    value.push(Math.random() * 4 - 2);
+  }
+  return Ga.fromVector(value);
+}
+
 describe('Geometric Algebra', () => {
   it('supports a positive metric', () => {
     const Cl3 = Algebra(3);
@@ -50,13 +58,16 @@ describe('Geometric Algebra', () => {
     expect(pseudoscalar.mul(pseudoscalar).equals(scalar.neg())).toBeTruthy();
   });
 
-  it('fulfils the axioms of geometric algebra on random elements (positive metric)', () => {
+  it('fulfills the axioms of geometric algebra on random elements (positive metric)', () => {
     const dims = 4;
     const Cl4 = Algebra(dims);
     const scalar = Cl4.basisVector();
     const zero = Cl4.zero();
 
-    function dot(a: number[], b: number[]) {
+    function dot(
+      a: Float32Array | Float64Array,
+      b: Float32Array | Float64Array
+    ) {
       let result = 0;
       for (let i = 0; i < dims; ++i) {
         result += a[i] * b[i];
@@ -93,22 +104,23 @@ describe('Geometric Algebra', () => {
           .closeTo(b.mul(a).add(c.mul(a)))
       ).toBeTruthy();
 
-      const value: number[] = [];
-      while (value.length < dims) {
-        value.push(Math.random() * 4 - 2);
-      }
-      const v = Cl4.fromVector(value);
-      expect(v.mul(v).closeTo(scalar.scale(dot(value, value)))).toBeTruthy();
+      // Inner product
+      const v = randomVector(Cl4);
+      expect(
+        v.mul(v).closeTo(scalar.scale(dot(v.vector(), v.vector())))
+      ).toBeTruthy();
     }
   });
 
-  it('fulfils the axioms of geometric algebra on random elements (mixed metric)', () => {
-    const dims = 4;
+  it('fulfills the axioms of geometric algebra on random elements (mixed metric)', () => {
     const Ga = Algebra(1, 2, 1);
     const scalar = Ga.basisVector();
     const zero = Ga.zero();
 
-    function dot(a: number[], b: number[]) {
+    function dot(
+      a: Float32Array | Float64Array,
+      b: Float32Array | Float64Array
+    ) {
       return a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
     }
 
@@ -141,12 +153,87 @@ describe('Geometric Algebra', () => {
           .closeTo(b.mul(a).add(c.mul(a)))
       ).toBeTruthy();
 
-      const value: number[] = [];
-      while (value.length < dims) {
-        value.push(Math.random() * 4 - 2);
+      // Inner product
+      const v = randomVector(Ga);
+      expect(
+        v.mul(v).closeTo(scalar.scale(dot(v.vector(), v.vector())))
+      ).toBeTruthy();
+    }
+  });
+
+  it('has an outer product that fulfills the axioms of geometric algebra on random elements', () => {
+    const dims = 4;
+    const Cl4 = Algebra(dims);
+    const scalar = Cl4.basisVector();
+    const zero = Cl4.zero();
+
+    for (let i = 0; i < 10; ++i) {
+      const elements: typeof scalar[] = [];
+      for (let j = 0; j < 3; ++j) {
+        elements.push(randomElement(Cl4));
       }
-      const v = Ga.fromVector(value);
-      expect(v.mul(v).closeTo(scalar.scale(dot(value, value)))).toBeTruthy();
+      const [a, b, c] = elements;
+
+      // Closure
+      expect(a.wedge(b).length).toBe(scalar.length);
+
+      // Identity element
+      expect(a.wedge(scalar).equals(a)).toBeTruthy();
+      expect(scalar.wedge(a).equals(a)).toBeTruthy();
+
+      // Associativity
+      expect(a.wedge(b.wedge(c)).closeTo(a.wedge(b).wedge(c))).toBeTruthy();
+
+      // Distributivity
+      expect(
+        a.wedge(b.add(c)).closeTo(a.wedge(b).add(a.wedge(c)))
+      ).toBeTruthy();
+      expect(
+        b
+          .add(c)
+          .wedge(a)
+          .closeTo(b.wedge(a).add(c.wedge(a)))
+      ).toBeTruthy();
+
+      const v = randomVector(Cl4);
+      expect(v.wedge(v).closeTo(zero)).toBeTruthy();
+    }
+  });
+
+  it('has a dual outer product that fulfills the axioms of geometric algebra on random elements', () => {
+    const dims = 4;
+    const Cl4 = Algebra(dims);
+    const pseudoscalar = Cl4.pseudoscalar();
+    const zero = Cl4.zero();
+
+    for (let i = 0; i < 10; ++i) {
+      const elements: typeof pseudoscalar[] = [];
+      for (let j = 0; j < 3; ++j) {
+        elements.push(randomElement(Cl4));
+      }
+      const [a, b, c] = elements;
+
+      // Closure
+      expect(a.vee(b).length).toBe(pseudoscalar.length);
+
+      // Identity element
+      expect(a.vee(pseudoscalar).equals(a)).toBeTruthy();
+      expect(pseudoscalar.vee(a).equals(a)).toBeTruthy();
+
+      // Associativity
+      expect(a.vee(b.vee(c)).closeTo(a.vee(b).vee(c))).toBeTruthy();
+
+      // Distributivity
+      expect(a.vee(b.add(c)).closeTo(a.vee(b).add(a.vee(c)))).toBeTruthy();
+      expect(
+        b
+          .add(c)
+          .vee(a)
+          .closeTo(b.vee(a).add(c.vee(a)))
+      ).toBeTruthy();
+
+      const v = randomVector(Cl4);
+      expect(v.vee(v).closeTo(zero)).toBeTruthy();
     }
   });
 
@@ -235,6 +322,7 @@ describe('Geometric Algebra', () => {
     const pseudoscalar = Cl4.pseudoscalar();
 
     for (let i = 0; i < 10; ++i) {
+      // ---Generic elements---
       const a = randomElement(Cl4);
       const b = randomElement(Cl4);
 
@@ -243,12 +331,19 @@ describe('Geometric Algebra', () => {
       expect(a.dual().undual().equals(a)).toBeTruthy();
 
       // Binary
-      expect(a.dot(b).closeTo(a.mul(b).add(b.mul(a)).scale(0.5))).toBeTruthy();
-      expect(
-        a.wedge(b).closeTo(a.mul(b).sub(b.mul(a)).scale(0.5))
-      ).toBeTruthy();
-      expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).dual())).toBeTruthy();
       expect(a.mul(b).closeTo(b.rmul(a))).toBeTruthy();
+      expect(a.wedge(b).closeTo(b.rwedge(a))).toBeTruthy();
+      expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).dual())).toBeTruthy();
+      expect(a.vee(b).closeTo(b.rvee(a))).toBeTruthy();
+
+      // ---Vector subspace---
+      const u = randomVector(Cl4);
+      const v = randomVector(Cl4);
+
+      expect(u.dot(v).closeTo(u.mul(v).add(v.mul(u)).scale(0.5))).toBeTruthy();
+      expect(
+        u.wedge(v).closeTo(u.mul(v).sub(v.mul(u)).scale(0.5))
+      ).toBeTruthy();
     }
   });
 

@@ -53,7 +53,9 @@ export declare class AlgebraElement {
   div(other: AlgebraElement): AlgebraElement;
   dot(other: AlgebraElement): AlgebraElement;
   wedge(other: AlgebraElement): AlgebraElement;
+  rwedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
+  rvee(other: AlgebraElement): AlgebraElement;
 
   // Subsets
   even(): AlgebraElement;
@@ -129,6 +131,7 @@ export default function Algebra(
   const dimensions = p + q + r;
   const size = 1 << dimensions;
 
+  // Geometric product between basis vectors of index a and b
   function basisMul(a: number, b: number) {
     const aIndices = [];
     const bIndices = [];
@@ -165,6 +168,42 @@ export default function Algebra(
       row.push(basisMul(i, j));
     }
     mulTable.push(row);
+  }
+
+  // Wedge product between basis vectors of index a and b
+  function basisWedge(a: number, b: number) {
+    const aIndices = [];
+    const bIndices = [];
+    for (let i = 0; i < dimensions; ++i) {
+      const p = 1 << i;
+      if (p & a) {
+        aIndices.push(i);
+      }
+      if (p & b) {
+        bIndices.push(i);
+      }
+    }
+    const indices = aIndices.concat(bIndices);
+    // sign incorporates Ex * Ey metric
+    const sign = sortSign(indices);
+    // degenerate Ex * Ex metric
+    let i = 1;
+    while (i < indices.length) {
+      if (indices[i] === indices[i - 1]) {
+        return 0;
+      }
+      i++;
+    }
+    return sign;
+  }
+
+  const wedgeTable: number[][] = [];
+  for (let i = 0; i < size; ++i) {
+    const row: number[] = [];
+    for (let j = 0; j < size; ++j) {
+      row.push(basisWedge(i, j));
+    }
+    wedgeTable.push(row);
   }
 
   // Fast lookup for Hodge dual
@@ -472,9 +511,24 @@ export default function Algebra(
     wedge(other: AlgebraElement): AlgebraElement {
       const result = AlgebraClass.zero();
       for (let i = 0; i < this.length; ++i) {
+        if (!this[i]) {
+          continue;
+        }
         for (let j = 0; j < other.length; ++j) {
-          result[i ^ j] +=
-            this[i] * other[j] * (mulTable[i][j] - mulTable[j][i]) * 0.5;
+          result[i ^ j] += this[i] * other[j] * wedgeTable[i][j];
+        }
+      }
+      return result;
+    }
+
+    rwedge(other: AlgebraElement): AlgebraElement {
+      const result = AlgebraClass.zero();
+      for (let i = 0; i < this.length; ++i) {
+        if (!this[i]) {
+          continue;
+        }
+        for (let j = 0; j < other.length; ++j) {
+          result[i ^ j] += this[i] * other[j] * wedgeTable[j][i];
         }
       }
       return result;
@@ -482,6 +536,10 @@ export default function Algebra(
 
     vee(other: AlgebraElement): AlgebraElement {
       return this.dual().wedge(other.dual()).dual();
+    }
+
+    rvee(other: AlgebraElement): AlgebraElement {
+      return this.dual().rwedge(other.dual()).dual();
     }
 
     // Scalar part
