@@ -260,6 +260,9 @@ describe('Geometric Algebra', () => {
           continue;
         }
         expect(element.mul(inverse).closeTo(one)).toBeTruthy();
+        expect(element.div(element).closeTo(one)).toBeTruthy();
+        expect(element.ldiv(element).closeTo(one)).toBeTruthy();
+        expect(element.ldivs(element).closeTo(one)).toBeTruthy();
         break;
       }
     }

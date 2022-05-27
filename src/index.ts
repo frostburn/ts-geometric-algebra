@@ -52,6 +52,8 @@ export declare class AlgebraElement {
   mul(other: AlgebraElement): AlgebraElement;
   rmul(other: AlgebraElement): AlgebraElement;
   div(other: AlgebraElement): AlgebraElement;
+  ldiv(other: AlgebraElement): AlgebraElement;
+  ldivs(other: AlgebraElement): AlgebraElement;
   wedge(other: AlgebraElement): AlgebraElement;
   rwedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
@@ -87,6 +89,7 @@ export declare class AlgebraElement {
   static sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static mul(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static div(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+  static ldivs(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static wedge(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   static vee(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
   // Contractions
@@ -495,6 +498,14 @@ export default function Algebra(
       return this.mul(other.inverse());
     }
 
+    ldiv(other: AlgebraElement): AlgebraElement {
+      return other.inverse().mul(this);
+    }
+
+    ldivs(other: AlgebraElement): AlgebraElement {
+      return this.inverse().mul(other);
+    }
+
     wedge(other: AlgebraElement): AlgebraElement {
       const result = AlgebraClass.zero();
       for (let i = 0; i < this.length; ++i) {
@@ -684,6 +695,10 @@ export default function Algebra(
 
     static div(a: AlgebraElement, b: AlgebraElement) {
       return a.div(b);
+    }
+
+    static ldivs(a: AlgebraElement, b: AlgebraElement) {
+      return a.ldivs(b);
     }
 
     static wedge(a: AlgebraElement, b: AlgebraElement) {
