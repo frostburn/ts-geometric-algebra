@@ -155,14 +155,14 @@ export default function Algebra(
   baseType: ElementBaseType = Float32Array
 ): typeof AlgebraElement {
   const metric: number[] = [];
+  for (let i = 0; i < r; ++i) {
+    metric.push(0);
+  }
   for (let i = 0; i < p; ++i) {
     metric.push(1);
   }
   for (let i = 0; i < q; ++i) {
     metric.push(-1);
-  }
-  for (let i = 0; i < r; ++i) {
-    metric.push(0);
   }
   const dimensions = p + q + r;
   const size = 1 << dimensions;

@@ -1,6 +1,7 @@
 {
   "extends": "./node_modules/gts/",
   "rules": {
+    "node/no-unpublished-require": 0,
     "no-case-declarations": 0,
     "no-empty": 0,
     "no-constant-condition": 0,
