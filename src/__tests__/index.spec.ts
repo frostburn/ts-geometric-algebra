@@ -370,6 +370,41 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('satisfies some identities on random elements', () => {
+    const Ga = Algebra(3, 2);
+
+    const pseudoscalar = Ga.pseudoscalar();
+
+    for (let i = 0; i < 10; ++i) {
+      const a = randomElement(Ga);
+      const b = randomElement(Ga);
+      const c = randomElement(Ga);
+
+      expect(
+        a.dotL(b).closeTo(a.wedge(b.div(pseudoscalar)).mul(pseudoscalar))
+      ).toBeTruthy();
+      expect(
+        a
+          .dotR(b)
+          .closeTo(pseudoscalar.mul(pseudoscalar.inverse().mul(a).wedge(b)))
+      ).toBeTruthy();
+      expect(
+        a
+          .wedge(b)
+          .star(c)
+          .closeTo(a.star(b.dotL(c)))
+      ).toBeTruthy();
+      expect(c.star(b.wedge(a)).closeTo(c.dotR(b).star(a))).toBeTruthy();
+      expect(a.dotL(b.dotL(c)).closeTo(a.wedge(b).dotL(c))).toBeTruthy();
+      expect(
+        a
+          .dotL(b)
+          .dotR(c)
+          .closeTo(a.dotL(b.dotR(c)))
+      ).toBeTruthy();
+    }
+  });
+
   it('can apply weights to the basis vectors', () => {
     const Cl3 = Algebra(3);
     const a = randomElement(Cl3);
