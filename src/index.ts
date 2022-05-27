@@ -49,6 +49,7 @@ export declare class AlgebraElement {
   add(other: AlgebraElement): AlgebraElement;
   sub(other: AlgebraElement): AlgebraElement;
   mul(other: AlgebraElement): AlgebraElement;
+  rmul(other: AlgebraElement): AlgebraElement;
   div(other: AlgebraElement): AlgebraElement;
   dot(other: AlgebraElement): AlgebraElement;
   wedge(other: AlgebraElement): AlgebraElement;
@@ -430,8 +431,24 @@ export default function Algebra(
     mul(other: AlgebraElement): AlgebraElement {
       const result = AlgebraClass.zero();
       for (let i = 0; i < this.length; ++i) {
+        if (!this[i]) {
+          continue;
+        }
         for (let j = 0; j < other.length; ++j) {
           result[i ^ j] += this[i] * other[j] * mulTable[i][j];
+        }
+      }
+      return result;
+    }
+
+    rmul(other: AlgebraElement): AlgebraElement {
+      const result = AlgebraClass.zero();
+      for (let i = 0; i < this.length; ++i) {
+        if (!this[i]) {
+          continue;
+        }
+        for (let j = 0; j < other.length; ++j) {
+          result[i ^ j] += this[i] * other[j] * mulTable[j][i];
         }
       }
       return result;

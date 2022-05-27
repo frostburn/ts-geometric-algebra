@@ -248,6 +248,7 @@ describe('Geometric Algebra', () => {
         a.wedge(b).closeTo(a.mul(b).sub(b.mul(a)).scale(0.5))
       ).toBeTruthy();
       expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).dual())).toBeTruthy();
+      expect(a.mul(b).closeTo(b.rmul(a))).toBeTruthy();
     }
   });
 
