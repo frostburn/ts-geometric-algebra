@@ -95,6 +95,16 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
             const ganjaA = new Ganja(a.ganja());
             const ganjaB = new Ganja(b.ganja());
 
+            const pseudoscalar = Ga.pseudoscalar();
+
+            if (r) {
+              expect(Ga.fromGanja(ganjaA.Dual).equals(a.dual())).toBeTruthy();
+            } else {
+              expect(
+                Ga.fromGanja(ganjaA.Dual).closeTo(pseudoscalar.mul(a))
+              ).toBeTruthy();
+            }
+
             if (p + q + r > 0) {
               expect(Ga.fromGanja(ganjaA.Inverse).closeTo(a.inverse()));
               // This fails randomly, likely due to floating point and singularity issues.
@@ -121,11 +131,10 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
             expect(
               Ga.fromGanja(ganjaA.LDot(ganjaB)).closeTo(a.dotL(b))
             ).toBeTruthy();
-
-            // The libraries use different definitions for vee and ganja doesn't export UnDual
-            // expect(
-            //   Ga.fromGanja(ganjaA.Dual.Wedge(ganjaB.Dual).UnDual).closeTo(a.vee(b))
-            // ).toBeTruthy();
+            // Well this is somewhat unexpected
+            expect(
+              Ga.fromGanja(ganjaA.Vee(ganjaB)).closeTo(a.rvee(b))
+            ).toBeTruthy();
           }
         }
       }
