@@ -742,5 +742,44 @@ export default function Algebra(
     }
   }
 
+  // === Replace generic code with optimized unrolled versions ===
+
+  let addInner = '';
+  let subInner = '';
+  for (let i = 0; i < size; ++i) {
+    addInner += `res[${i}]=t[${i}]+o[${i}];`;
+    subInner += `res[${i}]=t[${i}]-o[${i}];`;
+  }
+  const mulLines: string[] = [];
+  for (let i = 0; i < size; ++i) {
+    mulLines.push(`res[${i}]=`);
+  }
+  for (let i = 0; i < size; ++i) {
+    for (let j = 0; j < size; ++j) {
+      if (mulTable[i][j] > 0) {
+        mulLines[i ^ j] += `+t[${i}]*o[${j}]`;
+      } else if (mulTable[i][j] < 0) {
+        mulLines[i ^ j] += `-t[${i}]*o[${j}]`;
+      }
+    }
+  }
+  const mulInner = mulLines.join('\n');
+
+  type binaryOp = (other: AlgebraElement) => AlgebraElement;
+  const prelude = 'const res=new this.constructor();\nconst t=this;\n';
+  const finale = '\nreturn res;';
+  AlgebraClass.prototype.add = new Function(
+    'o',
+    prelude + addInner + finale
+  ) as binaryOp;
+  AlgebraClass.prototype.sub = new Function(
+    'o',
+    prelude + subInner + finale
+  ) as binaryOp;
+  AlgebraClass.prototype.mul = new Function(
+    'o',
+    prelude + mulInner + finale
+  ) as binaryOp;
+
   return AlgebraClass;
 }
