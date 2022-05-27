@@ -8,6 +8,7 @@
     "module": "CommonJS"
   },
   "include": [
-    "src/index.ts"
+    "src/index.ts",
+    "src/__benchmarks__/versus.ganja.ts"
   ]
 }
