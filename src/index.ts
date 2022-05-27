@@ -28,6 +28,7 @@ export declare class AlgebraElement {
 
   // Unary operations
   neg(): AlgebraElement;
+  cwAbs(): AlgebraElement;
   involute(): AlgebraElement;
   rev(): AlgebraElement;
   conjugate(): AlgebraElement;
@@ -171,42 +172,6 @@ export default function Algebra(
     mulTable.push(row);
   }
 
-  // Wedge product between basis vectors of index a and b
-  function basisWedge(a: number, b: number) {
-    const aIndices = [];
-    const bIndices = [];
-    for (let i = 0; i < dimensions; ++i) {
-      const p = 1 << i;
-      if (p & a) {
-        aIndices.push(i);
-      }
-      if (p & b) {
-        bIndices.push(i);
-      }
-    }
-    const indices = aIndices.concat(bIndices);
-    // sign incorporates Ex * Ey metric
-    const sign = sortSign(indices);
-    // degenerate Ex * Ex metric
-    let i = 1;
-    while (i < indices.length) {
-      if (indices[i] === indices[i - 1]) {
-        return 0;
-      }
-      i++;
-    }
-    return sign;
-  }
-
-  const wedgeTable: number[][] = [];
-  for (let i = 0; i < size; ++i) {
-    const row: number[] = [];
-    for (let j = 0; j < size; ++j) {
-      row.push(basisWedge(i, j));
-    }
-    wedgeTable.push(row);
-  }
-
   // Mapping from bit-field indices to ganja.js lexicographic order
   const indexString: [number, string][] = [];
   for (let i = 0; i < size; ++i) {
@@ -302,6 +267,14 @@ export default function Algebra(
       return result;
     }
 
+    cwAbs(): AlgebraElement {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[i] = Math.abs(this[i]);
+      }
+      return result;
+    }
+
     rev(): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
@@ -328,12 +301,11 @@ export default function Algebra(
 
     // For all Ex = AlgebraClass.basisVector(...x)
     // Ex.mul(Ex.dual()) === AlgebraClass.pseudoscalar()
-    // Using wedgeTable to signify that this is independent of the metric
     dual(): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
-        result[dualIndex] = this[i] * wedgeTable[i][dualIndex];
+        result[dualIndex] = this[i] * mulTable[i][dualIndex];
       }
       return result;
     }
@@ -342,7 +314,7 @@ export default function Algebra(
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
-        result[dualIndex] = this[i] * wedgeTable[dualIndex][i];
+        result[dualIndex] = this[i] * mulTable[dualIndex][i];
       }
       return result;
     }
@@ -506,7 +478,9 @@ export default function Algebra(
           continue;
         }
         for (let j = 0; j < other.length; ++j) {
-          result[i ^ j] += this[i] * other[j] * wedgeTable[i][j];
+          if (!(i & j)) {
+            result[i ^ j] += this[i] * other[j] * mulTable[i][j];
+          }
         }
       }
       return result;
@@ -519,7 +493,9 @@ export default function Algebra(
           continue;
         }
         for (let j = 0; j < other.length; ++j) {
-          result[i ^ j] += this[i] * other[j] * wedgeTable[j][i];
+          if (!(i & j)) {
+            result[i ^ j] += this[i] * other[j] * mulTable[j][i];
+          }
         }
       }
       return result;
