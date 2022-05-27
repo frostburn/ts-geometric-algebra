@@ -29,6 +29,7 @@ describe('TS-Geometric-Algebra unroll compatibility', () => {
             expect(a.sub(b).equals(rA.sub(rB))).toBeTruthy();
             expect(a.mul(b).closeTo(rA.mul(rB))).toBeTruthy();
             expect(a.wedge(b).closeTo(rA.wedge(rB))).toBeTruthy();
+            expect(a.vee(b).closeTo(rA.vee(rB))).toBeTruthy();
             expect(a.dot(b).closeTo(rA.dot(rB))).toBeTruthy();
             expect(a.dotL(b).closeTo(rA.dotL(rB))).toBeTruthy();
           }

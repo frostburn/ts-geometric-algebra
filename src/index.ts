@@ -762,6 +762,7 @@ export default function Algebra(
     mulLines.push(`res[${i}]=`);
   }
   const wedgeLines = [...mulLines];
+  const veeLines = [...mulLines];
   const dotLines = [...mulLines];
   const dotLeftLines = [...mulLines];
 
@@ -771,11 +772,17 @@ export default function Algebra(
         mulLines[i ^ j] += `+t[${i}]*o[${j}]`;
         if (!(i & j)) {
           wedgeLines[i ^ j] += `+t[${i}]*o[${j}]`;
+          veeLines[indexMask ^ i ^ j] += `+t[${indexMask ^ i}]*o[${
+            indexMask ^ j
+          }]`;
         }
       } else if (mulTable[i][j] < 0) {
         mulLines[i ^ j] += `-t[${i}]*o[${j}]`;
         if (!(i & j)) {
           wedgeLines[i ^ j] += `-t[${i}]*o[${j}]`;
+          veeLines[indexMask ^ i ^ j] += `-t[${indexMask ^ i}]*o[${
+            indexMask ^ j
+          }]`;
         }
       }
     }
@@ -823,6 +830,10 @@ export default function Algebra(
   AlgebraClass.prototype.wedge = new Function(
     'o',
     prelude + wedgeLines.join('\n') + finale
+  ) as binaryOp;
+  AlgebraClass.prototype.vee = new Function(
+    'o',
+    prelude + veeLines.join('\n') + finale
   ) as binaryOp;
   AlgebraClass.prototype.dot = new Function(
     'o',

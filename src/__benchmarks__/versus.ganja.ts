@@ -82,7 +82,6 @@ veeSuite
   })
   .run({async: true});
 
-
 const inverseSuite = new Benchmark.Suite();
 inverseSuite
   .add('ts-geometric-algebra#inverse', () => {
