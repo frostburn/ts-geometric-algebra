@@ -263,4 +263,12 @@ describe('Geometric Algebra', () => {
     expect(vb[2]).toBeCloseTo(va[2] * 5);
     expect(b.ps).toBeCloseTo(a.ps * 0.5 * 3 * 5);
   });
+
+  it('can convert values in ganja order', () => {
+    const Cl4 = Algebra(4);
+    const element = randomElement(Cl4);
+    const ganja = element.ganja();
+    const recovered = Cl4.fromGanja(ganja);
+    expect(element.equals(recovered)).toBeTruthy();
+  });
 });

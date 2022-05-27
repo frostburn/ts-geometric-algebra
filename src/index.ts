@@ -68,6 +68,7 @@ export declare class AlgebraElement {
   static pseudoscalar(magnitude?: number): AlgebraElement;
   static basisVector(...indices: number[]): AlgebraElement;
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
+  static fromGanja(values: Iterable<number>): AlgebraElement;
 
   // Binary operations using two arguments
   static add(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
@@ -169,6 +170,34 @@ export default function Algebra(
   // We need to instantiate the algebra first to calculate these.
   const dualIndices: number[] = [];
   const dualSigns: number[] = [];
+
+  // Mapping from bit-field indices to ganja.js lexicographic order
+  const indexString: [number, string][] = [];
+  for (let i = 0; i < size; ++i) {
+    let str = '';
+    for (let j = 0; j < dimensions; ++j) {
+      if (i & (1 << j)) {
+        str += j.toString();
+      }
+    }
+    indexString.push([i, str]);
+  }
+  function cmp(a: [any, string], b: [any, string]) {
+    if (a[1].length < b[1].length) {
+      return -1;
+    }
+    if (a[1].length > b[1].length) {
+      return 1;
+    }
+    if (a[1] < b[1]) {
+      return -1;
+    }
+    if (a[1] > b[1]) {
+      return 1;
+    }
+    return 0;
+  }
+  indexString.sort(cmp);
 
   // XXX: That `baseType as typeof Float32Array` shouldn't be necessary,
   // but VSCode keeps complaining.
@@ -486,15 +515,7 @@ export default function Algebra(
 
     // Ganja.js compatible representation
     ganja() {
-      const result = [];
-      for (let grade = 0; grade < dimensions; ++grade) {
-        for (let i = 0; i < this.length; ++i) {
-          if (bitCount(i) === grade) {
-            result.push(this[i]);
-          }
-        }
-      }
-      return new baseType(result);
+      return new baseType(indexString.map(g => this[g[0]]));
     }
 
     static zero(): AlgebraElement {
@@ -532,6 +553,15 @@ export default function Algebra(
           }
           i++;
         }
+      }
+      return result;
+    }
+
+    static fromGanja(values: Iterable<number>) {
+      const result = new AlgebraClass();
+      let index = 0;
+      for (const component of values) {
+        result[indexString[index++][0]] = component;
       }
       return result;
     }
