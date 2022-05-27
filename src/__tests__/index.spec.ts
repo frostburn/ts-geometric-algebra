@@ -280,18 +280,29 @@ describe('Geometric Algebra', () => {
 
     const pseudoscalar = Cl3.basisVector(0, 1, 2);
 
+    expect(scalar.mul(scalar.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e0.mul(e0.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e1.mul(e1.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e2.mul(e2.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e01.mul(e01.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e02.mul(e02.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e12.mul(e12.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(
+      pseudoscalar.mul(pseudoscalar.dual()).equals(pseudoscalar)
+    ).toBeTruthy();
+
     expect(scalar.dual().equals(pseudoscalar)).toBeTruthy();
     expect(e0.dual().equals(e12)).toBeTruthy();
     expect(e1.dual().equals(e02.neg())).toBeTruthy();
     expect(e2.dual().equals(e01)).toBeTruthy();
-    expect(e01.dual().equals(e2.neg())).toBeTruthy();
-    expect(e02.dual().equals(e1)).toBeTruthy();
-    expect(e12.dual().equals(e0.neg())).toBeTruthy();
-    expect(pseudoscalar.dual().equals(scalar.neg())).toBeTruthy();
+    expect(e01.dual().equals(e2)).toBeTruthy();
+    expect(e02.dual().equals(e1.neg())).toBeTruthy();
+    expect(e12.dual().equals(e0)).toBeTruthy();
+    expect(pseudoscalar.dual().equals(scalar)).toBeTruthy();
   });
 
   it('implements the hodge dual on basis vectors with a mixed metric', () => {
-    const Cl3 = Algebra(2, 1);
+    const Cl3 = Algebra(1, 1, 1);
 
     const scalar = Cl3.basisVector();
 
@@ -305,21 +316,30 @@ describe('Geometric Algebra', () => {
 
     const pseudoscalar = Cl3.basisVector(0, 1, 2);
 
+    expect(scalar.mul(scalar.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e0.mul(e0.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e1.mul(e1.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e2.mul(e2.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e01.mul(e01.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e02.mul(e02.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(e12.mul(e12.dual()).equals(pseudoscalar)).toBeTruthy();
+    expect(
+      pseudoscalar.mul(pseudoscalar.dual()).equals(pseudoscalar)
+    ).toBeTruthy();
+
     expect(scalar.dual().equals(pseudoscalar)).toBeTruthy();
     expect(e0.dual().equals(e12)).toBeTruthy();
     expect(e1.dual().equals(e02.neg())).toBeTruthy();
-    expect(e2.dual().equals(e01.neg())).toBeTruthy();
-    expect(e01.dual().equals(e2.neg())).toBeTruthy();
+    expect(e2.dual().equals(e01)).toBeTruthy();
+    expect(e01.dual().equals(e2)).toBeTruthy();
     expect(e02.dual().equals(e1.neg())).toBeTruthy();
     expect(e12.dual().equals(e0)).toBeTruthy();
     expect(pseudoscalar.dual().equals(scalar)).toBeTruthy();
-    expect(pseudoscalar.mul(pseudoscalar).s).toBeGreaterThan(0);
   });
 
   it('satisfies operator definitions on random elements', () => {
     const dims = 6;
     const Cl4 = Algebra(dims);
-    const pseudoscalar = Cl4.pseudoscalar();
 
     for (let i = 0; i < 10; ++i) {
       // ---Generic elements---
@@ -327,13 +347,12 @@ describe('Geometric Algebra', () => {
       const b = randomElement(Cl4);
 
       // Unary
-      expect(a.dual().equals(a.mul(pseudoscalar))).toBeTruthy();
       expect(a.dual().undual().equals(a)).toBeTruthy();
 
       // Binary
       expect(a.mul(b).closeTo(b.rmul(a))).toBeTruthy();
       expect(a.wedge(b).closeTo(b.rwedge(a))).toBeTruthy();
-      expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).dual())).toBeTruthy();
+      expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).undual())).toBeTruthy();
       expect(a.vee(b).closeTo(b.rvee(a))).toBeTruthy();
 
       // ---Vector subspace---

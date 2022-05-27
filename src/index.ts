@@ -130,6 +130,7 @@ export default function Algebra(
   }
   const dimensions = p + q + r;
   const size = 1 << dimensions;
+  const indexMask = size - 1;
 
   // Geometric product between basis vectors of index a and b
   function basisMul(a: number, b: number) {
@@ -205,11 +206,6 @@ export default function Algebra(
     }
     wedgeTable.push(row);
   }
-
-  // Fast lookup for Hodge dual
-  // We need to instantiate the algebra first to calculate these.
-  const dualIndices: number[] = [];
-  const dualSigns: number[] = [];
 
   // Mapping from bit-field indices to ganja.js lexicographic order
   const indexString: [number, string][] = [];
@@ -330,28 +326,23 @@ export default function Algebra(
       return result;
     }
 
+    // For all Ex = AlgebraClass.basisVector(...x)
+    // Ex.mul(Ex.dual()) === AlgebraClass.pseudoscalar()
+    // Using wedgeTable to signify that this is independent of the metric
     dual(): AlgebraElement {
-      if (r !== 0) {
-        throw new Error(
-          'Degenerate metric resistant dualization not implemented'
-        );
-      }
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
-        result[dualIndices[i]] = dualSigns[i] * this[i];
+        const dualIndex = indexMask ^ i;
+        result[dualIndex] = this[i] * wedgeTable[i][dualIndex];
       }
       return result;
     }
 
     undual(): AlgebraElement {
-      if (r !== 0) {
-        throw new Error(
-          'Degenerate metric resistant (un)dualization not implemented'
-        );
-      }
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
-        result[dualIndices[i]] = dualSigns[this.length - 1 - i] * this[i];
+        const dualIndex = indexMask ^ i;
+        result[dualIndex] = this[i] * wedgeTable[dualIndex][i];
       }
       return result;
     }
@@ -535,11 +526,11 @@ export default function Algebra(
     }
 
     vee(other: AlgebraElement): AlgebraElement {
-      return this.dual().wedge(other.dual()).dual();
+      return this.dual().wedge(other.dual()).undual();
     }
 
     rvee(other: AlgebraElement): AlgebraElement {
-      return this.dual().rwedge(other.dual()).dual();
+      return this.dual().rwedge(other.dual()).undual();
     }
 
     // Scalar part
@@ -675,19 +666,6 @@ export default function Algebra(
 
     static get dimensions() {
       return dimensions;
-    }
-  }
-
-  const pseudoscalar = AlgebraClass.pseudoscalar();
-  for (let i = 0; i < size; ++i) {
-    const basisVector = AlgebraClass.zero();
-    basisVector[i] = 1;
-    const dual = basisVector.mul(pseudoscalar);
-    for (let j = 0; j < dual.length; ++j) {
-      if (dual[j]) {
-        dualIndices[i] = j;
-        dualSigns[i] = dual[j];
-      }
     }
   }
 
