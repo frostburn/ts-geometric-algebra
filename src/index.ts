@@ -7,6 +7,7 @@ export declare class AlgebraElement {
   // Float32Array methods
   get length(): number;
   fill(fillValue: number): AlgebraElement;
+  [Symbol.iterator](): Iterator<number>;
 
   // Comparisons
   equals(other: AlgebraElement): boolean;
@@ -155,7 +156,8 @@ export default function Algebra(
   p: number,
   q = 0,
   r = 0,
-  baseType: ElementBaseType = Float32Array
+  baseType: ElementBaseType = Float32Array,
+  unroll = true
 ): typeof AlgebraElement {
   const metric: number[] = [];
   for (let i = 0; i < r; ++i) {
@@ -742,6 +744,10 @@ export default function Algebra(
     }
   }
 
+  if (!unroll) {
+    return AlgebraClass;
+  }
+
   // === Replace generic code with optimized unrolled versions ===
 
   let addInner = '';
@@ -750,20 +756,54 @@ export default function Algebra(
     addInner += `res[${i}]=t[${i}]+o[${i}];`;
     subInner += `res[${i}]=t[${i}]-o[${i}];`;
   }
+
   const mulLines: string[] = [];
   for (let i = 0; i < size; ++i) {
     mulLines.push(`res[${i}]=`);
   }
+  const wedgeLines = [...mulLines];
+  const dotLines = [...mulLines];
+  const dotLeftLines = [...mulLines];
+
   for (let i = 0; i < size; ++i) {
     for (let j = 0; j < size; ++j) {
       if (mulTable[i][j] > 0) {
         mulLines[i ^ j] += `+t[${i}]*o[${j}]`;
+        if (!(i & j)) {
+          wedgeLines[i ^ j] += `+t[${i}]*o[${j}]`;
+        }
       } else if (mulTable[i][j] < 0) {
         mulLines[i ^ j] += `-t[${i}]*o[${j}]`;
+        if (!(i & j)) {
+          wedgeLines[i ^ j] += `-t[${i}]*o[${j}]`;
+        }
       }
     }
   }
-  const mulInner = mulLines.join('\n');
+
+  for (let i = 0; i < size; ++i) {
+    const gradeI = bitCount(i);
+    for (let j = 0; j < size; ++j) {
+      const gradeJ = bitCount(j);
+      const target = i ^ j;
+      const gradeTarget = bitCount(target);
+      if (mulTable[i][j] > 0) {
+        if (gradeTarget === symmetric(gradeI, gradeJ)) {
+          dotLines[target] += `+t[${i}]*o[${j}]`;
+        }
+        if (gradeTarget === left(gradeI, gradeJ)) {
+          dotLeftLines[target] += `+t[${i}]*o[${j}]`;
+        }
+      } else if (mulTable[i][j] < 0) {
+        if (gradeTarget === symmetric(gradeI, gradeJ)) {
+          dotLines[target] += `-t[${i}]*o[${j}]`;
+        }
+        if (gradeTarget === left(gradeI, gradeJ)) {
+          dotLeftLines[target] += `-t[${i}]*o[${j}]`;
+        }
+      }
+    }
+  }
 
   type binaryOp = (other: AlgebraElement) => AlgebraElement;
   const prelude = 'const res=new this.constructor();\nconst t=this;\n';
@@ -778,7 +818,19 @@ export default function Algebra(
   ) as binaryOp;
   AlgebraClass.prototype.mul = new Function(
     'o',
-    prelude + mulInner + finale
+    prelude + mulLines.join('\n') + finale
+  ) as binaryOp;
+  AlgebraClass.prototype.wedge = new Function(
+    'o',
+    prelude + wedgeLines.join('\n') + finale
+  ) as binaryOp;
+  AlgebraClass.prototype.dot = new Function(
+    'o',
+    prelude + dotLines.join('\n') + finale
+  ) as binaryOp;
+  AlgebraClass.prototype.dotL = new Function(
+    'o',
+    prelude + dotLeftLines.join('\n') + finale
   ) as binaryOp;
 
   return AlgebraClass;

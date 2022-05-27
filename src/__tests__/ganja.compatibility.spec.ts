@@ -122,9 +122,9 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
               Ga.fromGanja(ganjaA.LDot(ganjaB)).closeTo(a.dotL(b))
             ).toBeTruthy();
 
-            // The libraries use different definitions for vee
+            // The libraries use different definitions for vee and ganja doesn't export UnDual
             // expect(
-            //   Cl3.fromGanja(ganjaA.Vee(ganjaB)).closeTo(a.vee(b))
+            //   Ga.fromGanja(ganjaA.Dual.Wedge(ganjaB.Dual).UnDual).closeTo(a.vee(b))
             // ).toBeTruthy();
           }
         }
