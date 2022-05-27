@@ -539,11 +539,11 @@ export default function Algebra(
     }
 
     vee(other: AlgebraElement): AlgebraElement {
-      return this.dual().wedge(other.dual()).undual();
+      return other.dual().wedge(this.dual()).undual();
     }
 
     rvee(other: AlgebraElement): AlgebraElement {
-      return this.dual().rwedge(other.dual()).undual();
+      return other.dual().rwedge(this.dual()).undual();
     }
 
     contract(

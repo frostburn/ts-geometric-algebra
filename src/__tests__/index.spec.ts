@@ -355,7 +355,7 @@ describe('Geometric Algebra', () => {
       // Binary
       expect(a.mul(b).closeTo(b.rmul(a))).toBeTruthy();
       expect(a.wedge(b).closeTo(b.rwedge(a))).toBeTruthy();
-      expect(a.vee(b).closeTo(a.dual().wedge(b.dual()).undual())).toBeTruthy();
+      expect(a.vee(b).closeTo(b.dual().wedge(a.dual()).undual())).toBeTruthy();
       expect(a.vee(b).closeTo(b.rvee(a))).toBeTruthy();
 
       // ---Vector subspace---

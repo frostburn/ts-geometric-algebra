@@ -131,9 +131,8 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
             expect(
               Ga.fromGanja(ganjaA.LDot(ganjaB)).closeTo(a.dotL(b))
             ).toBeTruthy();
-            // Well this is somewhat unexpected
             expect(
-              Ga.fromGanja(ganjaA.Vee(ganjaB)).closeTo(a.rvee(b))
+              Ga.fromGanja(ganjaA.Vee(ganjaB)).closeTo(a.vee(b))
             ).toBeTruthy();
           }
         }

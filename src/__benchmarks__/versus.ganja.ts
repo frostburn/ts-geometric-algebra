@@ -65,3 +65,36 @@ dotSuite
     console.log('Fastest is ' + dotSuite.filter('fastest').map('name'));
   })
   .run({async: true});
+
+const veeSuite = new Benchmark.Suite();
+veeSuite
+  .add('ts-geometric-algebra#vee', () => {
+    a.vee(b);
+  })
+  .add('ganja.js#Vee', () => {
+    ganjaA.Vee(ganjaB);
+  })
+  .on('cycle', (event: {target: any}) => {
+    console.log(String(event.target));
+  })
+  .on('complete', () => {
+    console.log('Fastest is ' + veeSuite.filter('fastest').map('name'));
+  })
+  .run({async: true});
+
+
+const inverseSuite = new Benchmark.Suite();
+inverseSuite
+  .add('ts-geometric-algebra#inverse', () => {
+    a.inverse();
+  })
+  .add('ganja.js#Inverse', () => {
+    ganjaA.Inverse;
+  })
+  .on('cycle', (event: {target: any}) => {
+    console.log(String(event.target));
+  })
+  .on('complete', () => {
+    console.log('Fastest is ' + inverseSuite.filter('fastest').map('name'));
+  })
+  .run({async: true});
