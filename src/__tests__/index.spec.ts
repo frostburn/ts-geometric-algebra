@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 
-import Algebra, {AlgebraElement} from '../index';
+import Algebra, {AlgebraElement, ElementBaseType} from '../index';
 
 function randomElement(Ga: typeof AlgebraElement) {
   const value: number[] = [];
@@ -64,10 +64,7 @@ describe('Geometric Algebra', () => {
     const scalar = Cl4.basisVector();
     const zero = Cl4.zero();
 
-    function dot(
-      a: Float32Array | Float64Array,
-      b: Float32Array | Float64Array
-    ) {
+    function dot(a: ElementBaseType, b: ElementBaseType) {
       let result = 0;
       for (let i = 0; i < dims; ++i) {
         result += a[i] * b[i];
@@ -117,10 +114,7 @@ describe('Geometric Algebra', () => {
     const scalar = Ga.basisVector();
     const zero = Ga.zero();
 
-    function dot(
-      a: Float32Array | Float64Array,
-      b: Float32Array | Float64Array
-    ) {
+    function dot(a: ElementBaseType, b: ElementBaseType) {
       return a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
     }
 
@@ -471,5 +465,14 @@ describe('Geometric Algebra', () => {
     const ganja = element.ganja();
     const recovered = Cl4.fromGanja(ganja);
     expect(element.equals(recovered)).toBeTruthy();
+  });
+
+  it('supports float64 precision', () => {
+    const Cl3 = Algebra(1, 1, 1, Float64Array);
+    const element = Cl3.zero();
+    element.s = Number.MIN_VALUE;
+    element.ps = Number.MAX_VALUE;
+    expect(element.s).toBe(Number.MIN_VALUE);
+    expect(element.ps).toBe(Number.MAX_VALUE);
   });
 });

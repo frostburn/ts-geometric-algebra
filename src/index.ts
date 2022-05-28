@@ -1,13 +1,14 @@
-export type ElementBaseType = typeof Float32Array | typeof Float64Array;
-
-export declare class AlgebraElement {
-  constructor(values?: Iterable<number>);
+// Float32Array-like
+export declare class ElementBaseType {
+  constructor(values?: number | Iterable<number>);
   [index: number]: number;
-
-  // Float32Array methods
   get length(): number;
-  fill(fillValue: number): AlgebraElement;
+  fill(fillValue: number): ElementBaseType;
   [Symbol.iterator](): Iterator<number>;
+}
+
+export declare class AlgebraElement extends ElementBaseType {
+  fill(fillValue: number): AlgebraElement;
 
   // Comparisons
   equals(other: AlgebraElement): boolean;
@@ -74,8 +75,8 @@ export declare class AlgebraElement {
   grade(grade: number): AlgebraElement;
 
   // Deconstruction
-  vector(grade?: number): Float32Array | Float64Array;
-  ganja(): Float32Array | Float64Array;
+  vector(grade?: number): ElementBaseType;
+  ganja(): ElementBaseType;
 
   // Construction
   static zero(): AlgebraElement;
@@ -158,7 +159,7 @@ export default function Algebra(
   p: number,
   q = 0,
   r = 0,
-  baseType: ElementBaseType = Float32Array,
+  baseType: typeof ElementBaseType = Float32Array,
   unroll = true
 ): typeof AlgebraElement {
   const metric: number[] = [];
@@ -246,15 +247,18 @@ export default function Algebra(
   }
   indexString.sort(cmp);
 
-  // XXX: That `baseType as typeof Float32Array` shouldn't be necessary,
-  // but VSCode keeps complaining.
-  class AlgebraClass extends (baseType as typeof Float32Array) {
+  class AlgebraClass extends baseType {
     constructor(values?: Iterable<number>) {
       if (values === undefined) {
         super(size);
       } else {
         super(values);
       }
+    }
+
+    fill(fillValue: number) {
+      super.fill(fillValue);
+      return this;
     }
 
     equals(other: AlgebraElement) {
