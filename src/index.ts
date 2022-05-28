@@ -43,6 +43,7 @@ export declare class AlgebraElement extends ElementBaseType {
 
   // Scalar operations
   scale(scalar: number): AlgebraElement;
+  pow(scalar: number): AlgebraElement;
 
   // Multi-scalar operations
   applyWeights(weights: number[]): AlgebraElement;
@@ -158,6 +159,9 @@ export function clone(element: AlgebraElement) {
 // Scalar operations
 export function scale(element: AlgebraElement, scalar: number): AlgebraElement {
   return element.scale(scalar);
+}
+export function pow(element: AlgebraElement, power: number): AlgebraElement {
+  return element.pow(power);
 }
 
 // Multi-scalar operations
@@ -593,6 +597,34 @@ export default function Algebra(
         result[i] = this[i] * scalar;
       }
       return result;
+    }
+
+    pow(power: number): AlgebraElement {
+      if (power !== Math.round(power)) {
+        throw new Error("Only integer powers implemented")
+      }
+      if (power === 0) {
+        return AlgebraClass.scalar();
+      }
+      if (power === 1) {
+        return this.clone();
+      }
+      if (power === 2) {
+        return this.mul(this);
+      }
+      if (power > 0) {
+        let result = AlgebraClass.scalar();
+        let powerOfTwo = this.clone();
+        while (power) {
+          if (power & 1) {
+            result = result.mul(powerOfTwo);
+          }
+          powerOfTwo = powerOfTwo.mul(powerOfTwo);
+          power >>= 1;
+        }
+        return result;
+      }
+      return this.inverse().pow(-power);
     }
 
     applyWeights(weights: number[]) {
