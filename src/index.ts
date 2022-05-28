@@ -978,5 +978,16 @@ export default function Algebra(
     prelude + dotLeftLines.join('\n') + finale
   ) as binaryOp;
 
+  // We lose the option to negotiate numeric precision but gain speed
+  AlgebraClass.prototype.rmul = function (other: AlgebraElement) {
+    return other.mul(this);
+  };
+  AlgebraClass.prototype.rwedge = function (other: AlgebraElement) {
+    return other.wedge(this);
+  };
+  AlgebraClass.prototype.rvee = function (other: AlgebraElement) {
+    return other.vee(this);
+  };
+
   return AlgebraClass;
 }
