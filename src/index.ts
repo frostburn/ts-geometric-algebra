@@ -486,49 +486,30 @@ export default function Algebra(
         case 0:
           return AlgebraClass.scalar(1 / this.s);
         case 1:
-          return this.involute().scale(1 / this.mul(this.involute()).s);
+          const involute = this.involute();
+          return involute.scale(1 / this.mul(involute).s);
         case 2:
-          return this.conjugate().scale(1 / this.mul(this.conjugate()).s);
+          const conjugate = this.conjugate();
+          return conjugate.scale(1 / this.mul(conjugate).s);
         case 3:
-          return this.rev()
-            .mul(this.involute())
-            .mul(this.conjugate())
-            .scale(
-              1 /
-                this.mul(this.conjugate()).mul(this.involute()).mul(this.rev())
-                  .s
-            );
+          const reverse = this.rev();
+          const involute3 = this.involute();
+          const conjugate3 = this.conjugate();
+          return reverse
+            .mul(involute3)
+            .mul(conjugate3)
+            .scale(1 / this.mul(conjugate3).mul(involute3).mul(reverse).s);
         case 4:
+          const normSquared = this.mul(this.conjugate());
+          const n34 = normSquared.negateGrades(3, 4);
           return this.conjugate()
-            .mul(this.mul(this.conjugate()).negateGrades(3, 4))
-            .scale(
-              1 /
-                this.mul(this.conjugate()).mul(
-                  this.mul(this.conjugate()).negateGrades(3, 4)
-                ).s
-            );
+            .mul(n34)
+            .scale(1 / normSquared.mul(n34).s);
         case 5:
-          return this.conjugate()
-            .mul(this.involute())
-            .mul(this.rev())
-            .mul(
-              this.mul(this.conjugate())
-                .mul(this.involute())
-                .mul(this.rev())
-                .negateGrades(1, 4)
-            )
-            .scale(
-              1 /
-                this.mul(this.conjugate())
-                  .mul(this.involute())
-                  .mul(this.rev())
-                  .mul(
-                    this.mul(this.conjugate())
-                      .mul(this.involute())
-                      .mul(this.rev())
-                      .negateGrades(1, 4)
-                  ).s
-            );
+          const civ = this.conjugate().mul(this.involute()).mul(this.rev());
+          const tciv = this.mul(civ);
+          const tciv14 = tciv.negateGrades(1, 4);
+          return civ.mul(tciv14).scale(1 / tciv.mul(tciv14).s);
         default:
           // Shirokov inverse
           const N = 1 << (((dimensions + 1) / 2) | 0);
