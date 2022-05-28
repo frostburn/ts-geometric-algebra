@@ -152,6 +152,8 @@ function nil(r: number, s: number) {
   return 0;
 }
 
+const MAX_DIMENSIONS = 36;
+
 export default function Algebra(
   p: number,
   q = 0,
@@ -172,6 +174,10 @@ export default function Algebra(
   const dimensions = p + q + r;
   const size = 1 << dimensions;
   const indexMask = size - 1;
+
+  if (dimensions > MAX_DIMENSIONS) {
+    throw new Error(`Maximum total number of dimensions is ${MAX_DIMENSIONS}`);
+  }
 
   // Geometric product between basis vectors of index a and b
   function basisMul(a: number, b: number) {
@@ -218,7 +224,7 @@ export default function Algebra(
     let str = '';
     for (let j = 0; j < dimensions; ++j) {
       if (i & (1 << j)) {
-        str += j.toString();
+        str += j.toString(MAX_DIMENSIONS);
       }
     }
     indexString.push([i, str]);
@@ -623,8 +629,8 @@ export default function Algebra(
     vector(grade = 1) {
       const result = [];
       for (let i = 0; i < this.length; ++i) {
-        if (bitCount(i) === grade) {
-          result.push(this[i]);
+        if (indexString[i][1].length === grade) {
+          result.push(this[indexString[i][0]]);
         }
       }
       return new baseType(result);
@@ -663,8 +669,8 @@ export default function Algebra(
       let i = 0;
       for (const component of values) {
         while (i < size) {
-          if (bitCount(i) === grade) {
-            result[i] = component;
+          if (indexString[i][1].length === grade) {
+            result[indexString[i][0]] = component;
             i++;
             break;
           }

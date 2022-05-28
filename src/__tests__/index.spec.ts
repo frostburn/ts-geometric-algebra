@@ -421,6 +421,50 @@ describe('Geometric Algebra', () => {
     expect(b.ps).toBeCloseTo(a.ps * 0.5 * 3 * 5);
   });
 
+  it('can read and write values in lexicographical order', () => {
+    const Cl5 = Algebra(5);
+    const scalar = Cl5.basisVector();
+    const e = Array(5)
+      .fill(null)
+      .map((_, i) => Cl5.basisVector(i));
+
+    const seven = Cl5.fromVector([7], 0);
+    expect(seven.star(scalar).s).toBe(7);
+    const bracketSeven = seven.vector(0);
+    expect(bracketSeven.length).toBe(1);
+    expect(bracketSeven[0]).toBe(7);
+
+    const vector = Cl5.fromVector([1, 2, 3, 4, 5]);
+    expect(vector.star(e[0]).s).toBe(1);
+    expect(vector.star(e[1]).s).toBe(2);
+    expect(vector.star(e[2]).s).toBe(3);
+    expect(vector.star(e[3]).s).toBe(4);
+    expect(vector.star(e[4]).s).toBe(5);
+    const recovered = vector.vector();
+    for (let i = 0; i < recovered.length; ++i) {
+      expect(recovered[i]).toBe(i + 1);
+    }
+
+    const bivector = Cl5.fromVector(
+      [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10],
+      2
+    );
+    expect(bivector.star(e[0].wedge(e[1])).s).toBe(1);
+    expect(bivector.star(e[0].wedge(e[2])).s).toBe(2);
+    expect(bivector.star(e[0].wedge(e[3])).s).toBe(3);
+    expect(bivector.star(e[0].wedge(e[4])).s).toBe(4);
+    expect(bivector.star(e[1].wedge(e[2])).s).toBe(5);
+    expect(bivector.star(e[1].wedge(e[3])).s).toBe(6);
+    expect(bivector.star(e[1].wedge(e[4])).s).toBe(7);
+    expect(bivector.star(e[2].wedge(e[3])).s).toBe(8);
+    expect(bivector.star(e[2].wedge(e[4])).s).toBe(9);
+    expect(bivector.star(e[3].wedge(e[4])).s).toBe(10);
+    const birecovered = bivector.vector(2);
+    for (let i = 0; i < birecovered.length; ++i) {
+      expect(birecovered[i]).toBe(-i - 1);
+    }
+  });
+
   it('can convert values in ganja order', () => {
     const Cl4 = Algebra(4);
     const element = randomElement(Cl4);
