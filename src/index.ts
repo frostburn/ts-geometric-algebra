@@ -86,28 +86,126 @@ export declare class AlgebraElement extends ElementBaseType {
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
   static fromGanja(values: Iterable<number>): AlgebraElement;
 
-  // Binary operations using two arguments
-  static add(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static mul(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static div(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static ldivs(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static wedge(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static vee(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  // Contractions
-  static contract(
-    a: AlgebraElement,
-    b: AlgebraElement,
-    criterion: (r: number, s: number) => number
-  ): AlgebraElement;
-  static dot(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static dotL(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static dotR(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-  static star(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-
   // Algebra information
   static get dimensions(): number;
   static get size(): number;
+}
+
+// Comparisons using two arguments
+export function equals(a: AlgebraElement, b: AlgebraElement): boolean {
+  return a.equals(b);
+}
+export function closeTo(a: AlgebraElement, b: AlgebraElement): boolean {
+  return a.closeTo(b);
+}
+
+// Unary scalar operations using one argument
+export function norm(element: AlgebraElement): number {
+  return element.norm();
+}
+export function vnorm(element: AlgebraElement): number {
+  return element.vnorm();
+}
+
+// Unary operations using one argument
+export function neg(element: AlgebraElement): AlgebraElement {
+  return element.neg();
+}
+export function cwAbs(element: AlgebraElement): AlgebraElement {
+  return element.cwAbs();
+}
+export function involute(element: AlgebraElement): AlgebraElement {
+  return element.involute();
+}
+export function rev(element: AlgebraElement): AlgebraElement {
+  return element.rev();
+}
+export function conjugate(element: AlgebraElement): AlgebraElement {
+  return element.conjugate();
+}
+export function dual(element: AlgebraElement): AlgebraElement {
+  return element.dual();
+}
+export function undual(element: AlgebraElement): AlgebraElement {
+  return element.undual();
+}
+export function inverse(element: AlgebraElement): AlgebraElement {
+  return element.inverse();
+}
+export function normalize(element: AlgebraElement): AlgebraElement {
+  return element.normalize();
+}
+
+// Scalar operations
+export function scale(element: AlgebraElement, scalar: number): AlgebraElement {
+  return element.scale(scalar);
+}
+
+// Multi-scalar operations
+export function applyWeights(
+  element: AlgebraElement,
+  weights: number[]
+): AlgebraElement {
+  return element.applyWeights(weights);
+}
+
+// Index operations
+export function negateGrades(
+  element: AlgebraElement,
+  ...grades: number[]
+): AlgebraElement {
+  return element.negateGrades(...grades);
+}
+
+// Binary operations using two arguments
+export function add(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.add(b);
+}
+export function sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.sub(b);
+}
+export function mul(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.mul(b);
+}
+export function div(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.div(b);
+}
+export function ldivs(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.ldivs(b);
+}
+export function wedge(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.wedge(b);
+}
+export function vee(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.vee(b);
+}
+// Contractions
+export function contract(
+  a: AlgebraElement,
+  b: AlgebraElement,
+  criterion: (r: number, s: number) => number
+): AlgebraElement {
+  return a.contract(b, criterion);
+}
+export function dot(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.dot(b);
+}
+export function dotL(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.dotL(b);
+}
+export function dotR(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.dotR(b);
+}
+export function star(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.star(b);
+}
+
+// Subsets
+export function even(element: AlgebraElement): AlgebraElement {
+  return element.even();
+}
+export function grade(element: AlgebraElement, grade: number): AlgebraElement {
+  return element.grade(grade);
 }
 
 // https://stackoverflow.com/a/43122214
@@ -432,6 +530,7 @@ export default function Algebra(
                   ).s
             );
         default:
+          // Shirokov inverse
           const N = 1 << (((dimensions + 1) / 2) | 0);
           let Uk = this.scale(1);
           let adjU: AlgebraElement;
@@ -691,58 +790,6 @@ export default function Algebra(
         result[indexString[index++][0]] = component;
       }
       return result;
-    }
-
-    static add(a: AlgebraElement, b: AlgebraElement) {
-      return a.add(b);
-    }
-
-    static sub(a: AlgebraElement, b: AlgebraElement) {
-      return a.sub(b);
-    }
-
-    static mul(a: AlgebraElement, b: AlgebraElement) {
-      return a.mul(b);
-    }
-
-    static div(a: AlgebraElement, b: AlgebraElement) {
-      return a.div(b);
-    }
-
-    static ldivs(a: AlgebraElement, b: AlgebraElement) {
-      return a.ldivs(b);
-    }
-
-    static wedge(a: AlgebraElement, b: AlgebraElement) {
-      return a.wedge(b);
-    }
-
-    static vee(a: AlgebraElement, b: AlgebraElement) {
-      return a.vee(b);
-    }
-
-    static contract(
-      a: AlgebraElement,
-      b: AlgebraElement,
-      criterion: (r: number, s: number) => number
-    ) {
-      return a.contract(b, criterion);
-    }
-
-    static dot(a: AlgebraElement, b: AlgebraElement) {
-      return a.dot(b);
-    }
-
-    static dotL(a: AlgebraElement, b: AlgebraElement) {
-      return a.dotL(b);
-    }
-
-    static dotR(a: AlgebraElement, b: AlgebraElement) {
-      return a.dotR(b);
-    }
-
-    static star(a: AlgebraElement, b: AlgebraElement) {
-      return a.star(b);
     }
 
     static get size() {
