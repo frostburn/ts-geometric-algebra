@@ -545,9 +545,48 @@ describe('Geometric Algebra', () => {
           ).toBeTruthy();
           // expect(a.mul(b).div(a).exp(true).closeTo(a.mul(b.exp(true)).div(a), 0.1)).toBeTruthy();
 
-          expect(a.add(s).exp().closeTo(a.exp().mul(s.exp()))).toBeTruthy();
+          expect(
+            a.add(s).exp().closeTo(a.exp().mul(s.exp()), 0.1)
+          ).toBeTruthy();
+
+          const d = a.scale(0.25);
+          const e = b.scale(0.25);
+          expect(
+            d
+              .add(e)
+              .exp()
+              .closeTo(
+                d
+                  .scale(1 / 256)
+                  .exp()
+                  .mul(e.scale(1 / 256).exp())
+                  .pow(256),
+                0.1
+              )
+          ).toBeTruthy();
         }
       }
+    }
+  });
+
+  it('can be raised to an integer power', () => {
+    const Ga = Algebra(2, 1, 1);
+    for (let i = 0; i < 10; ++i) {
+      const a = randomElement(Ga);
+      expect(a.pow(0).equals(Ga.scalar())).toBeTruthy();
+      expect(a.pow(1).equals(a)).toBeTruthy();
+      expect(a.pow(-1).equals(a.inverse())).toBeTruthy();
+      expect(a.pow(2).equals(a.mul(a))).toBeTruthy();
+
+      let power = a.mul(a).mul(a);
+      expect(a.pow(3).closeTo(power, 0.01)).toBeTruthy();
+      power = power.mul(a);
+      expect(a.pow(4).closeTo(power, 0.05)).toBeTruthy();
+      power = power.mul(a);
+      expect(a.pow(5).closeTo(power, 0.1)).toBeTruthy();
+      power = power.mul(a);
+      expect(a.pow(6).closeTo(power, 0.1)).toBeTruthy();
+      power = power.mul(a);
     }
   });
 });
