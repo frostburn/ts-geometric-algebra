@@ -2,14 +2,117 @@
 export declare class ElementBaseType {
   constructor(values?: number | Iterable<number>);
   [index: number]: number;
-  get length(): number;
-  fill(fillValue: number): ElementBaseType;
   [Symbol.iterator](): Iterator<number>;
+
+  copyWithin(target: number, start: number, end?: number): this;
+  every(
+    predicate: (
+      value: number,
+      index: number,
+      array: ElementBaseType
+    ) => unknown,
+    thisArg?: any
+  ): boolean;
+  fill(value: number, start?: number, end?: number): this;
+  filter(
+    predicate: (value: number, index: number, array: ElementBaseType) => any,
+    thisArg?: any
+  ): ElementBaseType;
+  find(
+    predicate: (value: number, index: number, obj: ElementBaseType) => boolean,
+    thisArg?: any
+  ): number | undefined;
+  findIndex(
+    predicate: (value: number, index: number, obj: ElementBaseType) => boolean,
+    thisArg?: any
+  ): number;
+  forEach(
+    callbackfn: (value: number, index: number, array: ElementBaseType) => void,
+    thisArg?: any
+  ): void;
+  indexOf(searchElement: number, fromIndex?: number): number;
+  join(separator?: string): string;
+  lastIndexOf(searchElement: number, fromIndex?: number): number;
+  readonly length: number;
+  map(
+    callbackfn: (
+      value: number,
+      index: number,
+      array: ElementBaseType
+    ) => number,
+    thisArg?: any
+  ): ElementBaseType;
+  reduce(
+    callbackfn: (
+      previousValue: number,
+      currentValue: number,
+      currentIndex: number,
+      array: ElementBaseType
+    ) => number
+  ): number;
+  reduce(
+    callbackfn: (
+      previousValue: number,
+      currentValue: number,
+      currentIndex: number,
+      array: ElementBaseType
+    ) => number,
+    initialValue: number
+  ): number;
+  reduce<U>(
+    callbackfn: (
+      previousValue: U,
+      currentValue: number,
+      currentIndex: number,
+      array: ElementBaseType
+    ) => U,
+    initialValue: U
+  ): U;
+  reduceRight(
+    callbackfn: (
+      previousValue: number,
+      currentValue: number,
+      currentIndex: number,
+      array: ElementBaseType
+    ) => number
+  ): number;
+  reduceRight(
+    callbackfn: (
+      previousValue: number,
+      currentValue: number,
+      currentIndex: number,
+      array: ElementBaseType
+    ) => number,
+    initialValue: number
+  ): number;
+  reduceRight<U>(
+    callbackfn: (
+      previousValue: U,
+      currentValue: number,
+      currentIndex: number,
+      array: ElementBaseType
+    ) => U,
+    initialValue: U
+  ): U;
+  reverse(): ElementBaseType;
+  set(array: ArrayLike<number>, offset?: number): void;
+  slice(start?: number, end?: number): ElementBaseType;
+  some(
+    predicate: (
+      value: number,
+      index: number,
+      array: ElementBaseType
+    ) => unknown,
+    thisArg?: any
+  ): boolean;
+  sort(compareFn?: (a: number, b: number) => number): this;
+  subarray(begin?: number, end?: number): ElementBaseType;
+  toLocaleString(): string;
+  toString(): string;
+  valueOf(): ElementBaseType;
 }
 
 export declare class AlgebraElement extends ElementBaseType {
-  fill(fillValue: number): AlgebraElement;
-
   // Comparisons
   equals(other: AlgebraElement): boolean;
   closeTo(other: AlgebraElement, tolerance?: number): boolean;
@@ -375,11 +478,6 @@ export default function Algebra(
       } else {
         super(values);
       }
-    }
-
-    fill(fillValue: number) {
-      super.fill(fillValue);
-      return this;
     }
 
     equals(other: AlgebraElement) {

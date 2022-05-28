@@ -1,6 +1,6 @@
 {
   "name": "ts-geometric-algebra",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "TypeScript Geometric Algebra generator",
   "license": "MIT",
   "author": "Lumi Pakkanen",
