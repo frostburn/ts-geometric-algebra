@@ -525,6 +525,54 @@ export default function Algebra(
           }
         }
       }
+      if (!forceTaylor) {
+        // Lie product formula
+        // https://en.wikipedia.org/wiki/Lie_product_formula
+        const power = 1024;
+        let basisProduct = AlgebraClass.scalar(Math.exp(this.s / power));
+        for (let i = 1; i < size; ++i) {
+          /*
+          if (mulTable[i][i] > 0) {
+            const termS = Math.cosh(this[i] / power);
+            const termI = Math.sinh(this[i] / power);
+            basisProduct[i] = basisProduct.s * termI;
+            for (let j = 0; j < i; ++j) {
+              basisProduct[i^j] += basisProduct[j] * termI * mulTable[i][j];
+              basisProduct[j] *= termS;
+            }
+          } else if (mulTable[i][i] < 0) {
+            const termS = Math.cos(this[i] / power);
+            const termI = Math.sin(this[i] / power);
+            basisProduct[i] = basisProduct.s * termI;
+            for (let j = 0; j < i; ++j) {
+              basisProduct[i^j] += basisProduct[j] * termI * mulTable[i][j];
+              basisProduct[j] *= termS;
+            }
+          } else {
+            const termS = 1
+            const termI = this[i] / power;
+            basisProduct[i] = basisProduct.s * termI;
+            for (let j = 0; j < i; ++j) {
+              basisProduct[i^j] += basisProduct[j] * termI * mulTable[i][j];
+              basisProduct[j] *= termS;
+            }
+          }*/
+          let term;
+          if (mulTable[i][i] > 0) {
+            term = AlgebraClass.scalar(Math.cosh(this[i] / power));
+            term[i] = Math.sinh(this[i] / power);
+          } else if (mulTable[i][i] < 0) {
+            term = AlgebraClass.scalar(Math.cos(this[i] / power));
+            term[i] = Math.sin(this[i] / power);
+          } else {
+            term = AlgebraClass.scalar();
+            term[i] = this[i] / power;
+          }
+          basisProduct = basisProduct.mul(term);
+        }
+        return basisProduct.pow(power);
+      }
+
       // Taylor series
       let result = AlgebraClass.scalar();
       let term = AlgebraClass.scalar();
