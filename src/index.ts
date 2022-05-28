@@ -12,7 +12,7 @@ export declare class AlgebraElement extends ElementBaseType {
 
   // Comparisons
   equals(other: AlgebraElement): boolean;
-  closeTo(other: AlgebraElement): boolean;
+  closeTo(other: AlgebraElement, tolerance?: number): boolean;
 
   // Validation
   hasNaN(): boolean;
@@ -37,7 +37,9 @@ export declare class AlgebraElement extends ElementBaseType {
   dual(): AlgebraElement;
   undual(): AlgebraElement;
   inverse(): AlgebraElement;
-  normalize(): AlgebraElement;
+  normalize(newNorm?: number): AlgebraElement;
+  exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
+  clone(): AlgebraElement;
 
   // Scalar operations
   scale(scalar: number): AlgebraElement;
@@ -95,8 +97,12 @@ export declare class AlgebraElement extends ElementBaseType {
 export function equals(a: AlgebraElement, b: AlgebraElement): boolean {
   return a.equals(b);
 }
-export function closeTo(a: AlgebraElement, b: AlgebraElement): boolean {
-  return a.closeTo(b);
+export function closeTo(
+  a: AlgebraElement,
+  b: AlgebraElement,
+  tolerance?: number
+): boolean {
+  return a.closeTo(b, tolerance);
 }
 
 // Unary scalar operations using one argument
@@ -132,8 +138,21 @@ export function undual(element: AlgebraElement): AlgebraElement {
 export function inverse(element: AlgebraElement): AlgebraElement {
   return element.inverse();
 }
-export function normalize(element: AlgebraElement): AlgebraElement {
-  return element.normalize();
+export function normalize(
+  element: AlgebraElement,
+  newNorm?: number
+): AlgebraElement {
+  return element.normalize(newNorm);
+}
+export function exp(
+  element: AlgebraElement,
+  forceTaylor?: boolean,
+  numTaylorTerms?: number
+): AlgebraElement {
+  return element.exp(forceTaylor, numTaylorTerms);
+}
+export function clone(element: AlgebraElement) {
+  return element.clone();
 }
 
 // Scalar operations
@@ -467,8 +486,53 @@ export default function Algebra(
       return result;
     }
 
-    normalize(): AlgebraElement {
-      return this.scale(1 / this.norm());
+    normalize(newNorm = 1): AlgebraElement {
+      return this.scale(newNorm / this.norm());
+    }
+
+    exp(forceTaylor = false, numTaylorTerms = 32) {
+      if (!forceTaylor) {
+        if (dimensions === 0) {
+          return AlgebraClass.scalar(Math.exp(this.s));
+        } else if (dimensions === 1) {
+          const expS = Math.exp(this.s);
+          if (p) {
+            return new AlgebraClass([
+              expS * Math.cosh(this.ps),
+              expS * Math.sinh(this.ps),
+            ]);
+          } else if (q) {
+            return new AlgebraClass([
+              expS * Math.cos(this.ps),
+              expS * Math.sin(this.ps),
+            ]);
+          } else if (r) {
+            return new AlgebraClass([expS, expS * this.ps]);
+          }
+        } else if (dimensions === 2) {
+          if (q === 2) {
+            const expS = Math.exp(this.s);
+            const imag = this.clone();
+            imag.s = 0;
+            const imagNorm = imag.vnorm();
+            const result = imag.scale((expS * Math.sin(imagNorm)) / imagNorm);
+            result.s = expS * Math.cos(imagNorm);
+            return result;
+          }
+        }
+      }
+      // Taylor series
+      let result = AlgebraClass.scalar();
+      let term = AlgebraClass.scalar();
+      for (let i = 1; i < numTaylorTerms; ++i) {
+        term = term.mul(this.scale(1 / i));
+        result = result.add(term);
+      }
+      return result;
+    }
+
+    clone() {
+      return new AlgebraClass(this);
     }
 
     negateGrades(...grades: number[]): AlgebraElement {
@@ -500,11 +564,11 @@ export default function Algebra(
             .mul(conjugate3)
             .scale(1 / this.mul(conjugate3).mul(involute3).mul(reverse).s);
         case 4:
-          const normSquared = this.mul(this.conjugate());
-          const n34 = normSquared.negateGrades(3, 4);
+          const modulus = this.mul(this.conjugate());
+          const n34 = modulus.negateGrades(3, 4);
           return this.conjugate()
             .mul(n34)
-            .scale(1 / normSquared.mul(n34).s);
+            .scale(1 / modulus.mul(n34).s);
         case 5:
           const civ = this.conjugate().mul(this.involute()).mul(this.rev());
           const tciv = this.mul(civ);

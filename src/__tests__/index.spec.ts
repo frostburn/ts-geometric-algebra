@@ -475,4 +475,79 @@ describe('Geometric Algebra', () => {
     expect(element.s).toBe(Number.MIN_VALUE);
     expect(element.ps).toBe(Number.MAX_VALUE);
   });
+
+  it('implements the exponential function over the complex numbers', () => {
+    const Complex = Algebra(0, 1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Complex);
+      const expZ = z.exp(true);
+      expect(expZ.s).toBeCloseTo(Math.exp(z.s) * Math.cos(z.ps));
+      expect(expZ.ps).toBeCloseTo(Math.exp(z.s) * Math.sin(z.ps));
+      const analytic = z.exp();
+      expect(expZ.closeTo(analytic)).toBeTruthy();
+    }
+  });
+
+  it('implements the exponential function over the quaternions', () => {
+    const H = Algebra(0, 2);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(H);
+      const expZ = z.exp(true);
+      const imagZ = z.sub(z.grade(0));
+      expect(expZ.s).toBeCloseTo(Math.exp(z.s) * Math.cos(imagZ.norm()));
+      const imagExpZ = expZ.sub(expZ.grade(0));
+      expect(
+        imagExpZ.closeTo(
+          imagZ.normalize(Math.exp(z.s) * Math.sin(imagZ.norm()))
+        )
+      ).toBeTruthy();
+      const analytic = z.exp();
+      expect(expZ.closeTo(analytic)).toBeTruthy();
+    }
+  });
+
+  it('implements the exponential function over the hyperbolic numbers', () => {
+    const Hyper = Algebra(1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Hyper);
+      const expZ = z.exp(true);
+      expect(expZ.s).toBeCloseTo(Math.exp(z.s) * Math.cosh(z.ps));
+      expect(expZ.ps).toBeCloseTo(Math.exp(z.s) * Math.sinh(z.ps));
+      const analytic = z.exp();
+      expect(expZ.closeTo(analytic)).toBeTruthy();
+    }
+  });
+
+  it('implements the exponential function over the dual numbers', () => {
+    const Dual = Algebra(0, 0, 1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Dual);
+      const expZ = z.exp(true);
+      expect(expZ.s).toBeCloseTo(Math.exp(z.s));
+      expect(expZ.ps).toBeCloseTo(Math.exp(z.s) * z.ps);
+      const analytic = z.exp();
+      expect(expZ.closeTo(analytic)).toBeTruthy();
+    }
+  });
+
+  it('satisfies identities of the exponential function on random elements', () => {
+    for (let p = 0; p < 3; ++p) {
+      for (let q = 0; q < 3; ++q) {
+        for (let r = 0; r < 2; ++r) {
+          const Ga = Algebra(p, q, r);
+          const a = randomElement(Ga);
+          const b = randomElement(Ga);
+          const c = a.scale(0.25).exp();
+          const s = Ga.scalar(Math.random() * 4 - 2);
+
+          expect(
+            c.mul(b).div(c).exp().closeTo(c.mul(b.exp()).div(c), 0.1)
+          ).toBeTruthy();
+          // expect(a.mul(b).div(a).exp(true).closeTo(a.mul(b.exp(true)).div(a), 0.1)).toBeTruthy();
+
+          expect(a.add(s).exp().closeTo(a.exp().mul(s.exp()))).toBeTruthy();
+        }
+      }
+    }
+  });
 });
