@@ -1,4 +1,28 @@
 {
+  "name": "ts-geometric-algebra",
+  "version": "0.0.1",
+  "description": "TypeScript Geometric Algebra generator",
+  "license": "MIT",
+  "author": "Lumi Pakkanen",
+  "main": "dist/src/index",
+  "files": [
+    "dist"
+  ],
+  "types": "dist/src/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frostburn/ts-geometric-algebra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/frostburn/ts-geometric-algebra/issues"
+  },
+  "homepage": "https://github.com/frostburn/ts-geometric-algebra#readme",
+  "keywords": [
+    "Geometric Algebra",
+    "Math",
+    "Cliffor Algebra",
+    "TypeScript"
+  ],
   "devDependencies": {
     "@types/benchmark": "^2.1.1",
     "@types/node": "^14.11.2",
