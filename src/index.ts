@@ -257,8 +257,7 @@ export default function Algebra(
   p: number,
   q = 0,
   r = 0,
-  baseType: typeof ElementBaseType = Float32Array,
-  unroll = true
+  baseType: typeof ElementBaseType = Float32Array
 ): typeof AlgebraElement {
   const metric: number[] = [];
   for (let i = 0; i < r; ++i) {
@@ -305,16 +304,6 @@ export default function Algebra(
       }
     }
     return sign * weight;
-  }
-
-  // This could be turned into a bit array if memory becomes an issue
-  const mulTable: number[][] = [];
-  for (let i = 0; i < size; ++i) {
-    const row: number[] = [];
-    for (let j = 0; j < size; ++j) {
-      row.push(basisMul(i, j));
-    }
-    mulTable.push(row);
   }
 
   // Mapping from bit-field indices to ganja.js lexicographic order
@@ -453,7 +442,7 @@ export default function Algebra(
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
-        result[dualIndex] = this[i] * mulTable[i][dualIndex];
+        result[dualIndex] = this[i] * basisMul(i, dualIndex);
       }
       return result;
     }
@@ -462,7 +451,7 @@ export default function Algebra(
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
-        result[dualIndex] = this[i] * mulTable[dualIndex][i];
+        result[dualIndex] = this[i] * basisMul(dualIndex, i);
       }
       return result;
     }
@@ -567,7 +556,7 @@ export default function Algebra(
           continue;
         }
         for (let j = 0; j < other.length; ++j) {
-          result[i ^ j] += this[i] * other[j] * mulTable[i][j];
+          result[i ^ j] += this[i] * other[j] * basisMul(i, j);
         }
       }
       return result;
@@ -580,7 +569,7 @@ export default function Algebra(
           continue;
         }
         for (let j = 0; j < other.length; ++j) {
-          result[i ^ j] += this[i] * other[j] * mulTable[j][i];
+          result[i ^ j] += this[i] * other[j] * basisMul(j, i);
         }
       }
       return result;
@@ -606,7 +595,7 @@ export default function Algebra(
         }
         for (let j = 0; j < other.length; ++j) {
           if (!(i & j)) {
-            result[i ^ j] += this[i] * other[j] * mulTable[i][j];
+            result[i ^ j] += this[i] * other[j] * basisMul(i, j);
           }
         }
       }
@@ -621,7 +610,7 @@ export default function Algebra(
         }
         for (let j = 0; j < other.length; ++j) {
           if (!(i & j)) {
-            result[i ^ j] += this[i] * other[j] * mulTable[j][i];
+            result[i ^ j] += this[i] * other[j] * basisMul(j, i);
           }
         }
       }
@@ -651,7 +640,7 @@ export default function Algebra(
           const target = i ^ j;
           const gradeTarget = bitCount(target);
           if (gradeTarget === criterion(gradeI, gradeJ)) {
-            result[target] += this[i] * other[j] * mulTable[i][j];
+            result[target] += this[i] * other[j] * basisMul(i, j);
           }
         }
       }
@@ -781,106 +770,6 @@ export default function Algebra(
       return dimensions;
     }
   }
-
-  if (!unroll) {
-    return AlgebraClass;
-  }
-
-  // === Replace generic code with optimized unrolled versions ===
-
-  let addInner = '';
-  let subInner = '';
-  for (let i = 0; i < size; ++i) {
-    addInner += `res[${i}]=t[${i}]+o[${i}];`;
-    subInner += `res[${i}]=t[${i}]-o[${i}];`;
-  }
-
-  const mulLines: string[] = [];
-  for (let i = 0; i < size; ++i) {
-    mulLines.push(`res[${i}]=`);
-  }
-  const wedgeLines = [...mulLines];
-  const veeLines = [...mulLines];
-  const dotLines = [...mulLines];
-  const dotLeftLines = [...mulLines];
-
-  for (let i = 0; i < size; ++i) {
-    for (let j = 0; j < size; ++j) {
-      if (mulTable[i][j] > 0) {
-        mulLines[i ^ j] += `+t[${i}]*o[${j}]`;
-        if (!(i & j)) {
-          wedgeLines[i ^ j] += `+t[${i}]*o[${j}]`;
-          veeLines[indexMask ^ i ^ j] += `+t[${indexMask ^ i}]*o[${
-            indexMask ^ j
-          }]`;
-        }
-      } else if (mulTable[i][j] < 0) {
-        mulLines[i ^ j] += `-t[${i}]*o[${j}]`;
-        if (!(i & j)) {
-          wedgeLines[i ^ j] += `-t[${i}]*o[${j}]`;
-          veeLines[indexMask ^ i ^ j] += `-t[${indexMask ^ i}]*o[${
-            indexMask ^ j
-          }]`;
-        }
-      }
-    }
-  }
-
-  for (let i = 0; i < size; ++i) {
-    const gradeI = bitCount(i);
-    for (let j = 0; j < size; ++j) {
-      const gradeJ = bitCount(j);
-      const target = i ^ j;
-      const gradeTarget = bitCount(target);
-      if (mulTable[i][j] > 0) {
-        if (gradeTarget === symmetric(gradeI, gradeJ)) {
-          dotLines[target] += `+t[${i}]*o[${j}]`;
-        }
-        if (gradeTarget === left(gradeI, gradeJ)) {
-          dotLeftLines[target] += `+t[${i}]*o[${j}]`;
-        }
-      } else if (mulTable[i][j] < 0) {
-        if (gradeTarget === symmetric(gradeI, gradeJ)) {
-          dotLines[target] += `-t[${i}]*o[${j}]`;
-        }
-        if (gradeTarget === left(gradeI, gradeJ)) {
-          dotLeftLines[target] += `-t[${i}]*o[${j}]`;
-        }
-      }
-    }
-  }
-
-  type binaryOp = (other: AlgebraElement) => AlgebraElement;
-  const prelude = 'const res=new this.constructor();\nconst t=this;\n';
-  const finale = '\nreturn res;';
-  AlgebraClass.prototype.add = new Function(
-    'o',
-    prelude + addInner + finale
-  ) as binaryOp;
-  AlgebraClass.prototype.sub = new Function(
-    'o',
-    prelude + subInner + finale
-  ) as binaryOp;
-  AlgebraClass.prototype.mul = new Function(
-    'o',
-    prelude + mulLines.join('\n') + finale
-  ) as binaryOp;
-  AlgebraClass.prototype.wedge = new Function(
-    'o',
-    prelude + wedgeLines.join('\n') + finale
-  ) as binaryOp;
-  AlgebraClass.prototype.vee = new Function(
-    'o',
-    prelude + veeLines.join('\n') + finale
-  ) as binaryOp;
-  AlgebraClass.prototype.dot = new Function(
-    'o',
-    prelude + dotLines.join('\n') + finale
-  ) as binaryOp;
-  AlgebraClass.prototype.dotL = new Function(
-    'o',
-    prelude + dotLeftLines.join('\n') + finale
-  ) as binaryOp;
 
   return AlgebraClass;
 }

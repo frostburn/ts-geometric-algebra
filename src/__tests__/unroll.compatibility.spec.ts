@@ -10,7 +10,7 @@ function randomElement(Ga: typeof AlgebraElement) {
   return new Ga(value);
 }
 
-describe('TS-Geometric-Algebra unroll compatibility', () => {
+describe.skip('TS-Geometric-Algebra unroll compatibility', () => {
   it('agrees with the unrolled methods using random elements', () => {
     for (let p = 0; p < 3; ++p) {
       for (let q = 0; q < 3; ++q) {
