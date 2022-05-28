@@ -257,7 +257,8 @@ export default function Algebra(
   p: number,
   q = 0,
   r = 0,
-  baseType: typeof ElementBaseType = Float32Array
+  baseType: typeof ElementBaseType = Float32Array,
+  lexicographicSupport = true
 ): typeof AlgebraElement {
   const metric: number[] = [];
   for (let i = 0; i < r; ++i) {
@@ -307,16 +308,6 @@ export default function Algebra(
   }
 
   // Mapping from bit-field indices to ganja.js lexicographic order
-  const indexString: [number, string][] = [];
-  for (let i = 0; i < size; ++i) {
-    let str = '';
-    for (let j = 0; j < dimensions; ++j) {
-      if (i & (1 << j)) {
-        str += j.toString(MAX_DIMENSIONS);
-      }
-    }
-    indexString.push([i, str]);
-  }
   function cmp(a: [any, string], b: [any, string]) {
     if (a[1].length < b[1].length) {
       return -1;
@@ -332,7 +323,19 @@ export default function Algebra(
     }
     return 0;
   }
-  indexString.sort(cmp);
+  const indexString: [number, string][] = [];
+  if (lexicographicSupport) {
+    for (let i = 0; i < size; ++i) {
+      let str = '';
+      for (let j = 0; j < dimensions; ++j) {
+        if (i & (1 << j)) {
+          str += j.toString(MAX_DIMENSIONS);
+        }
+      }
+      indexString.push([i, str]);
+    }
+    indexString.sort(cmp);
+  }
 
   class AlgebraClass extends baseType {
     constructor(values?: Iterable<number>) {
