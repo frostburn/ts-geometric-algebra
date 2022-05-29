@@ -634,7 +634,7 @@ describe('Geometric Algebra', () => {
             if (!d.closeTo(c)) {
               branchIssues++;
             }
-            expect(d.exp().closeTo(c.exp(), 0.1)).toBeTruthy();
+            expect(d.exp().closeTo(c.exp(), 0.11)).toBeTruthy();
           } else {
             failures++;
           }

@@ -679,6 +679,28 @@ export default function Algebra(
           }
         }
       }
+      if (!forceTaylor) {
+        // Closed form exp
+        const grade2 = this.clone();
+        grade2.s = 0;
+        if (grade2.isGrade(2)) {
+          return grade2.split().reduce((total, simple) => {
+            const square = simple.mul(simple).s,
+              len = Math.sqrt(Math.abs(square));
+            if (len <= 1e-5) {
+              simple.s += 1;
+            } else if (square < 0) {
+              simple = simple.scale(Math.sin(len) / len);
+              simple.s += Math.cos(len);
+            } else {
+              simple = simple.scale(Math.sinh(len) / len);
+              simple.s += Math.cosh(len);
+            }
+            return total.mul(simple);
+          }, AlgebraClass.scalar(Math.exp(this.s)));
+        }
+      }
+
       // Taylor series
       let result = AlgebraClass.scalar();
       let term = AlgebraClass.scalar();
