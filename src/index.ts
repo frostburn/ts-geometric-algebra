@@ -1,3 +1,5 @@
+import {eigenValues} from './utils';
+
 // Float32Array-like
 export declare class ElementBaseType {
   constructor(values?: number | Iterable<number>);
@@ -147,6 +149,7 @@ export declare class AlgebraElement extends ElementBaseType {
   inverse(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
+  log(): AlgebraElement;
   clone(): AlgebraElement;
 
   // Scalar operations
@@ -188,6 +191,11 @@ export declare class AlgebraElement extends ElementBaseType {
   // Deconstruction
   vector(grade?: number): ElementBaseType;
   ganja(): ElementBaseType;
+
+  // Misc
+  accumulate(other: AlgebraElement): this;
+  split(iter?: number): AlgebraElement[];
+  factorize(iter?: number): AlgebraElement[];
 
   // Construction
   static zero(): AlgebraElement;
@@ -681,7 +689,7 @@ export default function Algebra(
       return result;
     }
 
-    clone() {
+    clone(): AlgebraElement {
       return new AlgebraClass(this);
     }
 
@@ -1014,6 +1022,100 @@ export default function Algebra(
         }
       }
       return result;
+    }
+
+    accumulate(other: AlgebraElement) {
+      for (let i = 0; i < this.length; ++i) {
+        this[i] += other[i];
+      }
+      return this;
+    }
+
+    // Bivector split - we handle all real cases, still have to add the complex cases for those exception scenarios.
+    split(iter = 50) {
+      const TWT = this.wedge(this);
+      if (TWT.vnorm() < 1e-5) return [this.clone()]; // bivector was simple.
+      const k = Math.floor(dimensions / 2);
+      let B = this.clone();
+      let m = 1;
+      let Wi: AlgebraElement[] = [];
+      for (let i = 0; i < k; ++i) {
+        m = m * (i + 1);
+        Wi.push(B.scale(1 / m));
+        B = B.wedge(this);
+      }
+      let eigen;
+      if (k < 3) {
+        // The quadratic case is easy to solve. (for spaces <6D)
+        const TDT = this.dot(this).s;
+        const D = 0.5 * Math.sqrt(TDT * TDT - TWT.mul(TWT).s);
+        eigen = [0.5 * TDT + D, 0.5 * TDT - D].sort(
+          (a, b) => Math.abs(a) - Math.abs(b)
+        );
+      } else {
+        // For >6D, closed form solutions of the characteristic polyn. are impossible, use eigenvalues of companion matrix.
+        const Wis = Wi.map((W, i) => W.mul(W).s * (-1) ** (k - i + (k % 2)));
+        const matrix: number[][] = [];
+        for (let i = 0; i < k; ++i) {
+          const row: number[] = [];
+          for (let j = 0; j < k; ++j) {
+            if (j === k - 1) {
+              row.push(Wis[k - i - 1]);
+            } else if (i - 1 === j) {
+              row.push(1);
+            } else {
+              row.push(0);
+            }
+          }
+          matrix.push(row);
+        }
+        eigen = eigenValues(matrix, iter).sort(
+          (a, b) => Math.abs(a) - Math.abs(b)
+        );
+      }
+      Wi = [AlgebraClass.scalar(), ...Wi, AlgebraClass.zero()];
+      const sum = AlgebraClass.zero();
+      const k2 = Math.floor(k / 2);
+      const res: AlgebraElement[] = eigen.slice(1).map(v => {
+        const N = AlgebraClass.zero();
+        const DN = AlgebraClass.zero();
+        for (let i = 0; i <= k2; ++i) {
+          N.accumulate(Wi[2 * i + 1].scale(v ** (k2 - i)));
+          DN.accumulate(Wi[2 * i].scale(v ** (k2 - i)));
+        }
+        if (DN.vnorm() === 0) return AlgebraClass.zero();
+        const ret = N.div(DN);
+        sum.accumulate(ret);
+        return ret;
+      });
+      return [this.sub(sum), ...res]; // Smallest eigvalue becomes B-rest
+    }
+
+    // Factorize a motor
+    factorize(iter = 50) {
+      const S = this.grade(2).split(iter);
+      const R = S.slice(0, S.length - 1).map(Mi => {
+        Mi.s += this.s;
+        const scale = Math.sqrt(Mi.rev().mul(Mi).s);
+        return Mi.scale(1 / scale);
+      });
+      R.push(
+        R.reduce((tot, fact) => tot.mul(fact.rev()), AlgebraClass.scalar()).mul(
+          this
+        )
+      );
+      return R;
+    }
+
+    log() {
+      return this.factorize().reduce((sum, bi) => {
+        const [ci, si] = [bi.s, bi.grade(2)];
+        const square = si.mul(si).s;
+        const len = Math.sqrt(Math.abs(square));
+        if (Math.abs(square) < 1e-5) return sum.add(si);
+        if (square < 0) return sum.add(si.scale(Math.acos(ci) / len));
+        return sum.add(si.scale(Math.acosh(ci) / len));
+      }, AlgebraClass.zero());
     }
 
     static fromGanja(values: Iterable<number>) {

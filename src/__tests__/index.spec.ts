@@ -618,4 +618,31 @@ describe('Geometric Algebra', () => {
     expect(element.isGrade(2)).toBeFalsy();
     expect(element.isGrade(3)).toBeFalsy();
   });
+
+  it('can calculate logarithms', () => {
+    let failures = 0;
+    let branchIssues = 0;
+    for (let p = 0; p < 4; ++p) {
+      for (let q = 0; q < 4; ++q) {
+        for (let r = 0; r < 2; ++r) {
+          const Ga = Algebra(p, q, r);
+          const a = randomVector(Ga);
+          const b = randomVector(Ga);
+          const c = a.wedge(b);
+          const d = c.exp().log();
+          if (!d.hasNaN()) {
+            if (!d.closeTo(c)) {
+              branchIssues++;
+            }
+            expect(d.exp().closeTo(c.exp(), 0.1)).toBeTruthy();
+          } else {
+            failures++;
+          }
+        }
+      }
+    }
+    // Monitor issues here
+    expect(failures);
+    expect(branchIssues);
+  });
 });
