@@ -120,12 +120,17 @@ export declare class AlgebraElement extends ElementBaseType {
   // Validation
   hasNaN(): boolean;
   hasInfinity(): boolean;
+  isNil(tolerance?: number): boolean;
+  isGrade(grade: number, tolerance?: number): boolean;
 
   // Getters / setters
   get s(): number; // Scalar part
   set s(value: number);
   get ps(): number; // Pseudoscalar part
   set ps(value: number);
+
+  getAt(...indices: number[] | number[][]): number;
+  setAt(valueOrIndices: number | number[], ...indicesOrValue: number[]): this;
 
   // Unary scalar operations
   norm(): number;
@@ -188,7 +193,7 @@ export declare class AlgebraElement extends ElementBaseType {
   static zero(): AlgebraElement;
   static scalar(magnitude?: number): AlgebraElement;
   static pseudoscalar(magnitude?: number): AlgebraElement;
-  static basisVector(...indices: number[]): AlgebraElement;
+  static basisVector(...indices: number[] | number[][]): AlgebraElement;
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
   static fromGanja(values: Iterable<number>): AlgebraElement;
 
@@ -207,6 +212,24 @@ export function closeTo(
   tolerance?: number
 ): boolean {
   return a.closeTo(b, tolerance);
+}
+
+// Validation
+export function hasNaN(element: AlgebraElement): boolean {
+  return element.hasNaN();
+}
+export function hasInfinity(element: AlgebraElement): boolean {
+  return element.hasInfinity();
+}
+export function isNil(element: AlgebraElement, tolerance?: number): boolean {
+  return element.isNil(tolerance);
+}
+export function isGrade(
+  element: AlgebraElement,
+  grade: number,
+  tolerance?: number
+): boolean {
+  return element.isGrade(grade, tolerance);
 }
 
 // Unary scalar operations using one argument
@@ -377,6 +400,10 @@ function nil(r: number, s: number) {
   return 0;
 }
 
+function reduceIndices(indices: number[]) {
+  return indices.map(i => 1 << i).reduce((a, b) => a | b, 0);
+}
+
 const MAX_DIMENSIONS = 36;
 
 export default function Algebra(
@@ -514,6 +541,24 @@ export default function Algebra(
         }
       }
       return false;
+    }
+
+    isNil(tolerance = 0) {
+      for (let i = 0; i < this.length; ++i) {
+        if (Math.abs(this[i]) > tolerance) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    isGrade(grade: number, tolerance = 0) {
+      for (let i = 0; i < this.length; ++i) {
+        if (bitCount(i) !== grade && Math.abs(this[i]) > tolerance) {
+          return false;
+        }
+      }
+      return true;
     }
 
     norm() {
@@ -884,6 +929,27 @@ export default function Algebra(
       this[this.length - 1] = value;
     }
 
+    getAt(...indices: number[] | number[][]): number {
+      if (!indices.length) {
+        return this[0];
+      }
+      if (Array.isArray(indices[0])) {
+        return this.getAt(...indices[0]);
+      }
+      return this[reduceIndices(indices as number[])];
+    }
+
+    setAt(
+      valueOrIndices: number | number[],
+      ...indicesOrValue: number[]
+    ): this {
+      if (Array.isArray(valueOrIndices)) {
+        return this.setAt(indicesOrValue[0], ...valueOrIndices);
+      }
+      this[reduceIndices(indicesOrValue)] = valueOrIndices;
+      return this;
+    }
+
     even() {
       const result = AlgebraClass.zero();
       for (let i = 0; i < this.length; ++i) {
@@ -935,10 +1001,17 @@ export default function Algebra(
       return result;
     }
 
-    static basisVector(...indices: number[]): AlgebraElement {
+    static basisVector(...indices: number[] | number[][]): AlgebraElement {
+      if (!indices.length) {
+        return AlgebraClass.scalar();
+      }
+      if (Array.isArray(indices[0])) {
+        return AlgebraClass.basisVector(...indices[0]);
+      }
       const result = AlgebraClass.zero();
-      result[indices.map(i => 1 << i).reduce((a, b) => a | b, 0)] =
-        sortSign(indices);
+      result[reduceIndices(indices as number[])] = sortSign(
+        indices as number[]
+      );
       return result;
     }
 
