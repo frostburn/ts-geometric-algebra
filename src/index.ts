@@ -401,7 +401,7 @@ function nil(r: number, s: number) {
 }
 
 function reduceIndices(indices: number[]) {
-  return indices.map(i => 1 << i).reduce((a, b) => a | b, 0);
+  return indices.map(i => 1 << i).reduce((a, b) => a ^ b, 0);
 }
 
 const MAX_DIMENSIONS = 36;
@@ -431,20 +431,8 @@ export default function Algebra(
     throw new Error(`Maximum total number of dimensions is ${MAX_DIMENSIONS}`);
   }
 
-  // Geometric product between basis vectors of index a and b
-  function basisMul(a: number, b: number) {
-    const aIndices = [];
-    const bIndices = [];
-    for (let i = 0; i < dimensions; ++i) {
-      const p = 1 << i;
-      if (p & a) {
-        aIndices.push(i);
-      }
-      if (p & b) {
-        bIndices.push(i);
-      }
-    }
-    const indices = aIndices.concat(bIndices);
+  // Geometric product between basis vectors
+  function basisIndexMul(...indices: number[]) {
     // sign incorporates Ex * Ey metric
     const sign = sortSign(indices);
     // weight incorporates Ex * Ex metric
@@ -458,6 +446,21 @@ export default function Algebra(
       }
     }
     return sign * weight;
+  }
+
+  // Geometric product between bundles of basis vectors using bit field indices
+  function basisMul(...bitFieldIndices: number[]) {
+    const indices: number[] = [];
+
+    bitFieldIndices.forEach(bitFieldIndex => {
+      for (let i = 0; i < dimensions; ++i) {
+        const p = 1 << i;
+        if (p & bitFieldIndex) {
+          indices.push(i);
+        }
+      }
+    });
+    return basisIndexMul(...indices);
   }
 
   // This could be turned into a bit array if memory becomes an issue
@@ -930,12 +933,13 @@ export default function Algebra(
     }
 
     getAt(...indices: number[]): number {
-      return this[reduceIndices(indices)];
+      return this[reduceIndices(indices)] * basisIndexMul(...indices);
     }
 
     setAt(...indicesAndValue: number[]): this {
-      this[reduceIndices(indicesAndValue.slice(0, -1))] =
-        indicesAndValue[indicesAndValue.length - 1];
+      const indices = indicesAndValue.slice(0, -1);
+      const value = indicesAndValue[indicesAndValue.length - 1];
+      this[reduceIndices(indices)] = value / basisIndexMul(...indices);
       return this;
     }
 
@@ -992,7 +996,7 @@ export default function Algebra(
 
     static basisVector(...indices: number[]): AlgebraElement {
       const result = AlgebraClass.zero();
-      result[reduceIndices(indices)] = sortSign(indices);
+      result[reduceIndices(indices)] = 1 / basisIndexMul(...indices);
       return result;
     }
 
