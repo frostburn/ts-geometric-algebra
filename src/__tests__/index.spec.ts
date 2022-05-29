@@ -352,6 +352,15 @@ describe('Geometric Algebra', () => {
       expect(a.vee(b).closeTo(b.dual().wedge(a.dual()).undual())).toBeTruthy();
       expect(a.vee(b).closeTo(b.rvee(a))).toBeTruthy();
 
+      // Grade sign manipulation
+      expect(
+        a.involute().mul(b.involute()).involute().closeTo(a.mul(b))
+      ).toBeTruthy();
+      expect(a.rev().mul(b.rev()).rev().closeTo(a.rmul(b))).toBeTruthy();
+      expect(
+        a.conjugate().mul(b.conjugate()).conjugate().closeTo(a.rmul(b))
+      ).toBeTruthy();
+
       // ---Vector subspace---
       const u = randomVector(Cl4);
       const v = randomVector(Cl4);

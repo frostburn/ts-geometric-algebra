@@ -595,7 +595,7 @@ export default function Algebra(
     rev(): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
-        result[i] = bitCount(i) & 2 ? this[i] : -this[i];
+        result[i] = bitCount(i) & 2 ? -this[i] : this[i];
       }
       return result;
     }
@@ -603,7 +603,7 @@ export default function Algebra(
     involute(): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
-        result[i] = bitCount(i) & 1 ? this[i] : -this[i];
+        result[i] = bitCount(i) & 1 ? -this[i] : this[i];
       }
       return result;
     }
@@ -611,7 +611,7 @@ export default function Algebra(
     conjugate(): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
-        result[i] = (bitCount(i) + 1) & 2 ? this[i] : -this[i];
+        result[i] = (bitCount(i) + 1) & 2 ? -this[i] : this[i];
       }
       return result;
     }

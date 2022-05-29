@@ -114,6 +114,14 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
             }
 
             expect(
+              Ga.fromGanja(ganjaA.Involute).equals(a.involute())
+            ).toBeTruthy();
+            expect(Ga.fromGanja(ganjaA.Reverse).equals(a.rev())).toBeTruthy();
+            expect(
+              Ga.fromGanja(ganjaA.Conjugate).equals(a.conjugate())
+            ).toBeTruthy();
+
+            expect(
               Ga.fromGanja(ganjaA.Add(ganjaB)).equals(a.add(b))
             ).toBeTruthy();
             expect(
