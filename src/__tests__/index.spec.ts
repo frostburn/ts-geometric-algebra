@@ -634,7 +634,7 @@ describe('Geometric Algebra', () => {
             if (!d.closeTo(c)) {
               branchIssues++;
             }
-            expect(d.exp().closeTo(c.exp(), 0.11)).toBeTruthy();
+            expect(d.exp().closeTo(c.exp(), 0.15)).toBeTruthy();
           } else {
             failures++;
           }
@@ -644,5 +644,46 @@ describe('Geometric Algebra', () => {
     // Monitor issues here
     expect(failures);
     expect(branchIssues);
+  });
+
+  it('implements square root over the complex numbers', () => {
+    const Complex = Algebra(0, 1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Complex);
+      expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+    }
+  });
+
+  it('implements square root over the quaternions', () => {
+    const H = Algebra(0, 2);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(H);
+      expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+    }
+  });
+
+  it('implements square root over the hyperbolic numbers', () => {
+    const Hyper = Algebra(1);
+    let failures = 0;
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Hyper);
+      z.s = Math.abs(z.s);
+      const sqrtZ = z.pow(0.5);
+      if (!sqrtZ.hasNaN()) {
+        expect(sqrtZ.pow(2).closeTo(z)).toBeTruthy();
+      } else {
+        failures++;
+      }
+    }
+    // Monitor issues here
+    expect(failures);
+  });
+
+  it('implements square root over the dual numbers', () => {
+    const Dual = Algebra(0, 0, 1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Dual);
+      expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+    }
   });
 });

@@ -711,6 +711,44 @@ export default function Algebra(
       return result;
     }
 
+    log() {
+      if (dimensions === 0) {
+        return AlgebraClass.scalar(Math.log(this.s));
+      } else if (dimensions === 1) {
+        if (p) {
+          const norm = Math.sqrt(this.s ** 2 - this.ps ** 2);
+          return new AlgebraClass([Math.log(norm), Math.asinh(this.ps / norm)]);
+        } else if (q) {
+          const norm = Math.hypot(this.s, this.ps);
+          return new AlgebraClass([
+            Math.log(norm),
+            Math.atan2(this.ps, this.s),
+          ]);
+        } else if (r) {
+          return new AlgebraClass([Math.log(this.s), this.ps / this.s]);
+        }
+      } else if (dimensions === 2) {
+        if (q === 2) {
+          const norm = this.vnorm();
+          const imag = this.clone();
+          imag.s = 0;
+          const imagNorm = imag.vnorm();
+          const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
+          result.s = Math.log(norm);
+          return result;
+        }
+      }
+
+      return this.factorize().reduce((sum, bi) => {
+        const [ci, si] = [bi.s, bi.grade(2)];
+        const square = si.mul(si).s;
+        const len = Math.sqrt(Math.abs(square));
+        if (Math.abs(square) < 1e-5) return sum.add(si);
+        if (square < 0) return sum.add(si.scale(Math.acos(ci) / len));
+        return sum.add(si.scale(Math.acosh(ci) / len));
+      }, AlgebraClass.zero());
+    }
+
     clone(): AlgebraElement {
       return new AlgebraClass(this);
     }
@@ -777,7 +815,7 @@ export default function Algebra(
 
     pow(power: number): AlgebraElement {
       if (power !== Math.round(power)) {
-        throw new Error('Only integer powers implemented');
+        return this.log().scale(power).exp();
       }
       if (power === 0) {
         return AlgebraClass.scalar();
@@ -1008,44 +1046,6 @@ export default function Algebra(
       return new baseType(indexString.map(g => this[g[0]]));
     }
 
-    static zero(): AlgebraElement {
-      return new AlgebraClass().fill(0);
-    }
-
-    static scalar(magnitude = 1): AlgebraElement {
-      const result = AlgebraClass.zero();
-      result[0] = magnitude;
-      return result;
-    }
-
-    static pseudoscalar(magnitude = 1): AlgebraElement {
-      const result = AlgebraClass.zero();
-      result[size - 1] = magnitude;
-      return result;
-    }
-
-    static basisVector(...indices: number[]): AlgebraElement {
-      const result = AlgebraClass.zero();
-      result[reduceIndices(indices)] = 1 / basisIndexMul(...indices);
-      return result;
-    }
-
-    static fromVector(values: Iterable<number>, grade = 1) {
-      const result = AlgebraClass.zero();
-      let i = 0;
-      for (const component of values) {
-        while (i < size) {
-          if (indexString[i][1].length === grade) {
-            result[indexString[i][0]] = component;
-            i++;
-            break;
-          }
-          i++;
-        }
-      }
-      return result;
-    }
-
     accumulate(other: AlgebraElement) {
       for (let i = 0; i < this.length; ++i) {
         this[i] += other[i];
@@ -1129,15 +1129,42 @@ export default function Algebra(
       return R;
     }
 
-    log() {
-      return this.factorize().reduce((sum, bi) => {
-        const [ci, si] = [bi.s, bi.grade(2)];
-        const square = si.mul(si).s;
-        const len = Math.sqrt(Math.abs(square));
-        if (Math.abs(square) < 1e-5) return sum.add(si);
-        if (square < 0) return sum.add(si.scale(Math.acos(ci) / len));
-        return sum.add(si.scale(Math.acosh(ci) / len));
-      }, AlgebraClass.zero());
+    static zero(): AlgebraElement {
+      return new AlgebraClass().fill(0);
+    }
+
+    static scalar(magnitude = 1): AlgebraElement {
+      const result = AlgebraClass.zero();
+      result[0] = magnitude;
+      return result;
+    }
+
+    static pseudoscalar(magnitude = 1): AlgebraElement {
+      const result = AlgebraClass.zero();
+      result[size - 1] = magnitude;
+      return result;
+    }
+
+    static basisVector(...indices: number[]): AlgebraElement {
+      const result = AlgebraClass.zero();
+      result[reduceIndices(indices)] = 1 / basisIndexMul(...indices);
+      return result;
+    }
+
+    static fromVector(values: Iterable<number>, grade = 1) {
+      const result = AlgebraClass.zero();
+      let i = 0;
+      for (const component of values) {
+        while (i < size) {
+          if (indexString[i][1].length === grade) {
+            result[indexString[i][0]] = component;
+            i++;
+            break;
+          }
+          i++;
+        }
+      }
+      return result;
     }
 
     static fromGanja(values: Iterable<number>) {
