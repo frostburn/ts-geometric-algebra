@@ -129,8 +129,8 @@ export declare class AlgebraElement extends ElementBaseType {
   get ps(): number; // Pseudoscalar part
   set ps(value: number);
 
-  getAt(...indices: number[] | number[][]): number;
-  setAt(valueOrIndices: number | number[], ...indicesOrValue: number[]): this;
+  getAt(...indices: number[]): number;
+  setAt(...indicesAndValue: number[]): this;
 
   // Unary scalar operations
   norm(): number;
@@ -193,7 +193,7 @@ export declare class AlgebraElement extends ElementBaseType {
   static zero(): AlgebraElement;
   static scalar(magnitude?: number): AlgebraElement;
   static pseudoscalar(magnitude?: number): AlgebraElement;
-  static basisVector(...indices: number[] | number[][]): AlgebraElement;
+  static basisVector(...indices: number[]): AlgebraElement;
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
   static fromGanja(values: Iterable<number>): AlgebraElement;
 
@@ -929,24 +929,13 @@ export default function Algebra(
       this[this.length - 1] = value;
     }
 
-    getAt(...indices: number[] | number[][]): number {
-      if (!indices.length) {
-        return this[0];
-      }
-      if (Array.isArray(indices[0])) {
-        return this.getAt(...indices[0]);
-      }
-      return this[reduceIndices(indices as number[])];
+    getAt(...indices: number[]): number {
+      return this[reduceIndices(indices)];
     }
 
-    setAt(
-      valueOrIndices: number | number[],
-      ...indicesOrValue: number[]
-    ): this {
-      if (Array.isArray(valueOrIndices)) {
-        return this.setAt(indicesOrValue[0], ...valueOrIndices);
-      }
-      this[reduceIndices(indicesOrValue)] = valueOrIndices;
+    setAt(...indicesAndValue: number[]): this {
+      this[reduceIndices(indicesAndValue.slice(0, -1))] =
+        indicesAndValue[indicesAndValue.length - 1];
       return this;
     }
 
@@ -1001,17 +990,9 @@ export default function Algebra(
       return result;
     }
 
-    static basisVector(...indices: number[] | number[][]): AlgebraElement {
-      if (!indices.length) {
-        return AlgebraClass.scalar();
-      }
-      if (Array.isArray(indices[0])) {
-        return AlgebraClass.basisVector(...indices[0]);
-      }
+    static basisVector(...indices: number[]): AlgebraElement {
       const result = AlgebraClass.zero();
-      result[reduceIndices(indices as number[])] = sortSign(
-        indices as number[]
-      );
+      result[reduceIndices(indices)] = sortSign(indices);
       return result;
     }
 

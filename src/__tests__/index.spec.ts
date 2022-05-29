@@ -589,4 +589,24 @@ describe('Geometric Algebra', () => {
       power = power.mul(a);
     }
   });
+
+  it('can get and set individual incides', () => {
+    const Ga = Algebra(3);
+    const element = Ga.zero();
+    expect(element.isNil()).toBeTruthy();
+    element.setAt(1.25);
+    expect(element.s).toBe(1.25);
+    expect(element.isGrade(0)).toBeTruthy();
+    element.s = 0;
+    element.setAt(1, 0.5);
+    expect(element.getAt(1)).toBe(0.5);
+    expect(element.isGrade(1)).toBeTruthy();
+    element.setAt(0, 2, 1.75);
+    expect(element.getAt(0, 2)).toBe(1.75);
+    expect(element.isNil()).toBeFalsy();
+    expect(element.isGrade(0)).toBeFalsy();
+    expect(element.isGrade(1)).toBeFalsy();
+    expect(element.isGrade(2)).toBeFalsy();
+    expect(element.isGrade(3)).toBeFalsy();
+  });
 });
