@@ -144,13 +144,20 @@ export declare class AlgebraElement extends ElementBaseType {
   involute(): AlgebraElement;
   rev(): AlgebraElement;
   conjugate(): AlgebraElement;
-  dual(): AlgebraElement;
-  undual(): AlgebraElement;
   inverse(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
   log(): AlgebraElement;
   clone(): AlgebraElement;
+  // Dual Zoo
+  dual(): AlgebraElement;
+  undual(): AlgebraElement;
+  podge(): AlgebraElement;
+  unpodge(): AlgebraElement;
+  // See star() for forward implementation
+  unstar(): AlgebraElement;
+  hodge(): AlgebraElement;
+  unhodge(): AlgebraElement;
 
   // Scalar operations
   scale(scalar: number): AlgebraElement;
@@ -182,6 +189,7 @@ export declare class AlgebraElement extends ElementBaseType {
   dot(other: AlgebraElement): AlgebraElement; // Symmetric contraction
   dotL(other: AlgebraElement): AlgebraElement; // Left contraction
   dotR(other: AlgebraElement): AlgebraElement; // Right contraction
+  star(): AlgebraElement; // Dischord dual
   star(other: AlgebraElement): AlgebraElement; // Scalar product
 
   // Subsets
@@ -264,12 +272,6 @@ export function rev(element: AlgebraElement): AlgebraElement {
 export function conjugate(element: AlgebraElement): AlgebraElement {
   return element.conjugate();
 }
-export function dual(element: AlgebraElement): AlgebraElement {
-  return element.dual();
-}
-export function undual(element: AlgebraElement): AlgebraElement {
-  return element.undual();
-}
 export function inverse(element: AlgebraElement): AlgebraElement {
   return element.inverse();
 }
@@ -288,6 +290,29 @@ export function exp(
 }
 export function clone(element: AlgebraElement) {
   return element.clone();
+}
+// Dual Zoo
+export function dual(element: AlgebraElement): AlgebraElement {
+  return element.dual();
+}
+export function undual(element: AlgebraElement): AlgebraElement {
+  return element.undual();
+}
+export function podge(element: AlgebraElement): AlgebraElement {
+  return element.podge();
+}
+export function unpodge(element: AlgebraElement): AlgebraElement {
+  return element.unpodge();
+}
+// See star overload for forward implementation
+export function unstar(element: AlgebraElement): AlgebraElement {
+  return element.unstar();
+}
+export function hodge(element: AlgebraElement): AlgebraElement {
+  return element.hodge();
+}
+export function unhodgel(element: AlgebraElement): AlgebraElement {
+  return element.unhodge();
 }
 
 // Scalar operations
@@ -353,7 +378,12 @@ export function dotL(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
 export function dotR(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
   return a.dotR(b);
 }
-export function star(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+export function star(element: AlgebraElement): AlgebraElement;
+export function star(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+export function star(a: AlgebraElement, b?: AlgebraElement): AlgebraElement {
+  if (b === undefined) {
+    return a.star();
+  }
   return a.star(b);
 }
 
@@ -624,6 +654,8 @@ export default function Algebra(
       return result;
     }
 
+    // === Dual Zoo ===
+
     // For all Ex = AlgebraClass.basisVector(...x)
     // Ex.mul(Ex.dual()) === AlgebraClass.pseudoscalar()
     dual(): AlgebraElement {
@@ -634,12 +666,56 @@ export default function Algebra(
       }
       return result;
     }
-
+    // a.vee(b) === undual(b.dual().wedge(a.dual()))
     undual(): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
         result[dualIndex] = this[i] * mulTable[dualIndex][i];
+      }
+      return result;
+    }
+
+    podge(): AlgebraElement {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] = this[i] * mulTable[i][indexMask];
+      }
+      return result;
+    }
+    unpodge(): AlgebraElement {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] = this[i] / mulTable[indexMask ^ i][indexMask];
+      }
+      return result;
+    }
+
+    // See star() overload for forward implementation
+    unstar(): AlgebraElement {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] =
+          this[i] * (mulTable[indexMask ^ i][indexMask] || 1);
+      }
+      return result;
+    }
+
+    hodge(): AlgebraElement {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        const dualIndex = indexMask ^ i;
+        result[dualIndex] =
+          this[i] * (mulTable[i][indexMask] || mulTable[i][dualIndex]);
+      }
+      return result;
+    }
+    unhodge(): AlgebraElement {
+      const result = new AlgebraClass();
+      for (let i = 0; i < this.length; ++i) {
+        const dualIndex = indexMask ^ i;
+        result[dualIndex] =
+          this[i] * (mulTable[dualIndex][indexMask] || mulTable[dualIndex][i]);
       }
       return result;
     }
@@ -685,8 +761,8 @@ export default function Algebra(
         grade2.s = 0;
         if (grade2.isGrade(2)) {
           return grade2.split().reduce((total, simple) => {
-            const square = simple.mul(simple).s,
-              len = Math.sqrt(Math.abs(square));
+            const square = simple.mul(simple).s;
+            const len = Math.sqrt(Math.abs(square));
             if (len <= 1e-5) {
               simple.s += 1;
             } else if (square < 0) {
@@ -980,8 +1056,15 @@ export default function Algebra(
       return this.contract(other, right);
     }
 
-    star(other: AlgebraElement) {
-      return this.contract(other, nil);
+    star(maybeOther?: AlgebraElement) {
+      if (maybeOther === undefined) {
+        const result = new AlgebraClass();
+        for (let i = 0; i < this.length; ++i) {
+          result[indexMask ^ i] = this[i] * (mulTable[i][indexMask] || 1);
+        }
+        return result;
+      }
+      return this.contract(maybeOther, nil);
     }
 
     // Scalar part
