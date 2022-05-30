@@ -147,7 +147,7 @@ export declare class AlgebraElement extends ElementBaseType {
   inverse(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
-  log(): AlgebraElement;
+  log(forceSeries?: boolean): AlgebraElement;
   clone(): AlgebraElement;
   // Dual Zoo
   dual(): AlgebraElement;
@@ -778,51 +778,82 @@ export default function Algebra(
       }
 
       // Taylor series
-      let result = AlgebraClass.scalar();
+      const result = AlgebraClass.scalar();
       let term = AlgebraClass.scalar();
       for (let i = 1; i < numTaylorTerms; ++i) {
         term = term.mul(this.scale(1 / i));
-        result = result.add(term);
+        result.accumulate(term);
       }
       return result;
     }
 
-    log() {
-      if (dimensions === 0) {
-        return AlgebraClass.scalar(Math.log(this.s));
-      } else if (dimensions === 1) {
-        if (p) {
-          const norm = Math.sqrt(this.s ** 2 - this.ps ** 2);
-          return new AlgebraClass([Math.log(norm), Math.asinh(this.ps / norm)]);
-        } else if (q) {
-          const norm = Math.hypot(this.s, this.ps);
-          return new AlgebraClass([
-            Math.log(norm),
-            Math.atan2(this.ps, this.s),
-          ]);
-        } else if (r) {
-          return new AlgebraClass([Math.log(this.s), this.ps / this.s]);
-        }
-      } else if (dimensions === 2) {
-        if (q === 2) {
-          const norm = this.vnorm();
-          const imag = this.clone();
-          imag.s = 0;
-          const imagNorm = imag.vnorm();
-          const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
-          result.s = Math.log(norm);
-          return result;
-        }
+    logSeries(numSeriesTerms: number) {
+      const result = AlgebraClass.scalar();
+      let power = AlgebraClass.scalar();
+      for (let i = 1; i < numSeriesTerms; ++i) {
+        power = power.mul(this);
+        result.accumulate(power.scale(1 / (2 * i + 1)));
       }
+      return result;
+    }
 
-      return this.factorize().reduce((sum, bi) => {
-        const [ci, si] = [bi.s, bi.grade(2)];
-        const square = si.mul(si).s;
-        const len = Math.sqrt(Math.abs(square));
-        if (Math.abs(square) < 1e-5) return sum.add(si);
-        if (square < 0) return sum.add(si.scale(Math.acos(ci) / len));
-        return sum.add(si.scale(Math.acosh(ci) / len));
-      }, AlgebraClass.zero());
+    log(forceSeries = false, numSeriesTerms = 32) {
+      if (!forceSeries) {
+        if (dimensions === 0) {
+          return AlgebraClass.scalar(Math.log(this.s));
+        } else if (dimensions === 1) {
+          if (p) {
+            const norm = Math.sqrt(this.s ** 2 - this.ps ** 2);
+            return new AlgebraClass([
+              Math.log(norm),
+              Math.asinh(this.ps / norm),
+            ]);
+          } else if (q) {
+            const norm = Math.hypot(this.s, this.ps);
+            return new AlgebraClass([
+              Math.log(norm),
+              Math.atan2(this.ps, this.s),
+            ]);
+          } else if (r) {
+            return new AlgebraClass([Math.log(this.s), this.ps / this.s]);
+          }
+        } else if (dimensions === 2) {
+          if (q === 2) {
+            const norm = this.vnorm();
+            const imag = this.clone();
+            imag.s = 0;
+            const imagNorm = imag.vnorm();
+            const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
+            result.s = Math.log(norm);
+            return result;
+          }
+        }
+
+        return this.factorize().reduce((sum, bi) => {
+          const [ci, si] = [bi.s, bi.grade(2)];
+          const square = si.mul(si).s;
+          const len = Math.sqrt(Math.abs(square));
+          if (Math.abs(square) < 1e-5) return sum.add(si);
+          if (square < 0) return sum.add(si.scale(Math.acos(ci) / len));
+          return sum.add(si.scale(Math.acosh(ci) / len));
+        }, AlgebraClass.zero());
+      }
+      // XXX: Not generic
+      // https://math.stackexchange.com/questions/585154/taylor-series-for-logx/3535630#3535630
+      const n = this.clone();
+      n.s -= 1;
+      const d = this.clone();
+      d.s += 1;
+      const z = n.div(d);
+      if (z.norm() <= 1) {
+        return z
+          .scale(2)
+          .mul((z.mul(z) as AlgebraClass).logSeries(numSeriesTerms));
+      }
+      const result = this.neg().log();
+      const imag = this.clone();
+      imag.s = 0;
+      return result.add(imag.normalize(Math.PI));
     }
 
     clone(): AlgebraElement {

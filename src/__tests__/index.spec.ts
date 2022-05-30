@@ -647,6 +647,14 @@ describe('Geometric Algebra', () => {
     expect(branchIssues);
   });
 
+  it('implements a generic logarithm', () => {
+    const Ga = Algebra(2, 1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Ga);
+      expect(z.log().closeTo(z.log(true))).toBeTruthy();
+    }
+  });
+
   it('implements square root over the complex numbers', () => {
     const Complex = Algebra(0, 1);
     for (let i = 0; i < 10; ++i) {
