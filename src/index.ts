@@ -162,7 +162,7 @@ export declare class AlgebraElement extends ElementBaseType {
 
   // Scalar operations
   scale(scalar: number): AlgebraElement;
-  pow(scalar: number): AlgebraElement;
+  pow(scalar: number, splitStages?: number): AlgebraElement;
 
   // Multi-scalar operations
   applyWeights(weights: number[]): AlgebraElement;
@@ -915,9 +915,26 @@ export default function Algebra(
       return this;
     }
 
-    pow(power: number): AlgebraElement {
+    pow(power: number, splitStages = 8): AlgebraElement {
       if (power !== Math.round(power)) {
-        return this.log().scale(power).exp();
+        if (dimensions === 0) {
+          return AlgebraClass.scalar(Math.pow(this.s, power));
+        } else if (dimensions === 1) {
+          return this.log().scale(power).exp();
+        } else if (dimensions === 2) {
+          if (q === 2) {
+            return this.log().scale(power).exp();
+          }
+        }
+        let epsilon = this.sqrt();
+        power *= 2;
+        let stages = splitStages;
+        while (stages > 0 && power !== Math.round(power)) {
+          epsilon = epsilon.sqrt();
+          power *= 2;
+          stages--;
+        }
+        return epsilon.pow(power);
       }
       if (power === 0) {
         return AlgebraClass.scalar();

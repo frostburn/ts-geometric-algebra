@@ -706,6 +706,28 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('implements exponentiation', () => {
+    for (let p = 2; p < 3; ++p) {
+      for (let q = 0; q < 2; ++q) {
+        for (let r = 0; r < 2; ++r) {
+          const Ga = Algebra(p, q, r);
+          const z = randomElement(Ga);
+          expect(
+            z
+              .pow(1 / 3)
+              .pow(3)
+              .closeTo(z) ||
+              z
+                .neg()
+                .pow(1 / 3)
+                .pow(3)
+                .closeTo(z.neg())
+          );
+        }
+      }
+    }
+  });
+
   it('implements all the duals in the zoo', () => {
     for (let p = 2; p < 4; ++p) {
       for (let q = 0; q < 3; ++q) {
