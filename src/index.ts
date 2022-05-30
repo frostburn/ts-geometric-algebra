@@ -778,11 +778,11 @@ export default function Algebra(
       }
 
       // Taylor series
-      let result = AlgebraClass.scalar();
+      const result = AlgebraClass.scalar();
       let term = AlgebraClass.scalar();
       for (let i = 1; i < numTaylorTerms; ++i) {
         term = term.mul(this.scale(1 / i));
-        result = result.add(term);
+        result.accumulate(term);
       }
       return result;
     }
@@ -815,14 +815,16 @@ export default function Algebra(
         }
       }
 
-      return this.factorize().reduce((sum, bi) => {
+      const sum = AlgebraClass.zero();
+      this.factorize().forEach(bi => {
         const [ci, si] = [bi.s, bi.grade(2)];
         const square = si.mul(si).s;
         const len = Math.sqrt(Math.abs(square));
-        if (Math.abs(square) < 1e-5) return sum.add(si);
-        if (square < 0) return sum.add(si.scale(Math.acos(ci) / len));
-        return sum.add(si.scale(Math.acosh(ci) / len));
-      }, AlgebraClass.zero());
+        if (Math.abs(square) < 1e-5) sum.accumulate(si);
+        if (square < 0) sum.accumulate(si.scale(Math.acos(ci) / len));
+        sum.accumulate(si.scale(Math.acosh(ci) / len));
+      });
+      return sum;
     }
 
     clone(): AlgebraElement {
