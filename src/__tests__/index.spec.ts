@@ -553,7 +553,6 @@ describe('Geometric Algebra', () => {
             c.mul(b).div(c).exp().closeTo(c.mul(b.exp()).div(c), 0.1)
           ).toBeTruthy();
           // expect(a.mul(b).div(a).exp(true).closeTo(a.mul(b.exp(true)).div(a), 0.1)).toBeTruthy();
-
           expect(
             a.add(s).exp().closeTo(a.exp().mul(s.exp()), 0.1)
           ).toBeTruthy();
@@ -652,6 +651,7 @@ describe('Geometric Algebra', () => {
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(Complex);
       expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+      expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
     }
   });
 
@@ -660,6 +660,7 @@ describe('Geometric Algebra', () => {
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(H);
       expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+      expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
     }
   });
 
@@ -672,6 +673,7 @@ describe('Geometric Algebra', () => {
       const sqrtZ = z.pow(0.5);
       if (!sqrtZ.hasNaN()) {
         expect(sqrtZ.pow(2).closeTo(z)).toBeTruthy();
+        expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
       } else {
         failures++;
       }
@@ -684,7 +686,23 @@ describe('Geometric Algebra', () => {
     const Dual = Algebra(0, 0, 1);
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(Dual);
+      z.s = Math.abs(z.s);
       expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+      expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
+    }
+  });
+
+  it('implements square root', () => {
+    for (let p = 2; p < 4; ++p) {
+      for (let q = 0; q < 3; ++q) {
+        for (let r = 0; r < 2; ++r) {
+          const Ga = Algebra(p, q, r);
+          const z = randomElement(Ga);
+          expect(
+            z.sqrt().pow(2).closeTo(z) || z.neg().sqrt().pow(2).closeTo(z.neg())
+          );
+        }
+      }
     }
   });
 

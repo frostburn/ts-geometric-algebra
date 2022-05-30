@@ -146,6 +146,7 @@ export declare class AlgebraElement extends ElementBaseType {
   conjugate(): AlgebraElement;
   inverse(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
+  sqrt(numIter?: number): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
   log(): AlgebraElement;
   clone(): AlgebraElement;
@@ -201,6 +202,7 @@ export declare class AlgebraElement extends ElementBaseType {
   ganja(): ElementBaseType;
 
   // Misc
+  rescale(scalar: number): this;
   accumulate(other: AlgebraElement): this;
   split(iter?: number): AlgebraElement[];
   factorize(iter?: number): AlgebraElement[];
@@ -559,7 +561,8 @@ export default function Algebra(
 
     closeTo(other: AlgebraElement, tolerance = 1e-4) {
       for (let i = 0; i < this.length; ++i) {
-        if (Math.abs(this[i] - other[i]) > tolerance) {
+        const error = Math.abs(this[i] - other[i]);
+        if (error > tolerance || isNaN(error)) {
           return false;
         }
       }
@@ -724,6 +727,16 @@ export default function Algebra(
       return this.scale(newNorm / this.norm());
     }
 
+    // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
+    sqrt(numIter = 16): AlgebraElement {
+      const root = this.clone();
+      root.s += 1;
+      for (let i = 1; i < numIter; ++i) {
+        root.accumulate(this.div(root)).rescale(0.5);
+      }
+      return root;
+    }
+
     exp(forceTaylor = false, numTaylorTerms = 32) {
       if (!forceTaylor) {
         if (dimensions === 0) {
@@ -746,10 +759,14 @@ export default function Algebra(
         } else if (dimensions === 2) {
           if (q === 2) {
             const expS = Math.exp(this.s);
-            const imag = this.clone();
-            imag.s = 0;
-            const imagNorm = imag.vnorm();
-            const result = imag.scale((expS * Math.sin(imagNorm)) / imagNorm);
+            const result = this.clone();
+            result.s = 0;
+            const imagNorm = result.vnorm();
+            if (imagNorm < 1e-5) {
+              result.rescale(expS);
+            } else {
+              result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
+            }
             result.s = expS * Math.cos(imagNorm);
             return result;
           }
@@ -889,6 +906,13 @@ export default function Algebra(
         result[i] = this[i] * scalar;
       }
       return result;
+    }
+
+    rescale(scalar: number): AlgebraElement {
+      for (let i = 0; i < this.length; ++i) {
+        this[i] *= scalar;
+      }
+      return this;
     }
 
     pow(power: number): AlgebraElement {
