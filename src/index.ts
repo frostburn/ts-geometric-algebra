@@ -145,6 +145,7 @@ export declare class AlgebraElement extends ElementBaseType {
   rev(): AlgebraElement;
   conjugate(): AlgebraElement;
   inverse(): AlgebraElement;
+  square(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
   sqrt(numIter?: number): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
@@ -778,7 +779,7 @@ export default function Algebra(
         grade2.s = 0;
         if (grade2.isGrade(2)) {
           return grade2.split().reduce((total, simple) => {
-            const square = simple.mul(simple).s;
+            const square = simple.square().s;
             const len = Math.sqrt(Math.abs(square));
             if (len <= 1e-5) {
               simple.s += 1;
@@ -835,7 +836,7 @@ export default function Algebra(
       const sum = AlgebraClass.zero();
       this.factorize().forEach(bi => {
         const [ci, si] = [bi.s, bi.grade(2)];
-        const square = si.mul(si).s;
+        const square = si.square().s;
         const len = Math.sqrt(Math.abs(square));
         if (Math.abs(square) < 1e-5) sum.accumulate(si);
         if (square < 0) sum.accumulate(si.scale(Math.acos(ci) / len));
@@ -900,6 +901,10 @@ export default function Algebra(
       }
     }
 
+    square(): AlgebraElement {
+      return this.mul(this);
+    }
+
     scale(scalar: number): AlgebraElement {
       const result = new AlgebraClass();
       for (let i = 0; i < this.length; ++i) {
@@ -943,7 +948,7 @@ export default function Algebra(
         return this.clone();
       }
       if (power === 2) {
-        return this.mul(this);
+        return this.square();
       }
       if (power > 0) {
         let result = AlgebraClass.scalar();
@@ -952,7 +957,7 @@ export default function Algebra(
           if (power & 1) {
             result = result.mul(powerOfTwo);
           }
-          powerOfTwo = powerOfTwo.mul(powerOfTwo);
+          powerOfTwo = powerOfTwo.square();
           power >>= 1;
         }
         return result;
@@ -1196,13 +1201,13 @@ export default function Algebra(
       if (k < 3) {
         // The quadratic case is easy to solve. (for spaces <6D)
         const TDT = this.dot(this).s;
-        const D = 0.5 * Math.sqrt(TDT * TDT - TWT.mul(TWT).s);
+        const D = 0.5 * Math.sqrt(TDT * TDT - TWT.square().s);
         eigen = [0.5 * TDT + D, 0.5 * TDT - D].sort(
           (a, b) => Math.abs(a) - Math.abs(b)
         );
       } else {
         // For >6D, closed form solutions of the characteristic polyn. are impossible, use eigenvalues of companion matrix.
-        const Wis = Wi.map((W, i) => W.mul(W).s * (-1) ** (k - i + (k % 2)));
+        const Wis = Wi.map((W, i) => W.square().s * (-1) ** (k - i + (k % 2)));
         const matrix: number[][] = [];
         for (let i = 0; i < k; ++i) {
           const row: number[] = [];
@@ -1379,6 +1384,59 @@ export default function Algebra(
     }
   }
 
+  const squareTerms: Map<string, number>[] = [];
+  for (let i = 0; i < size; ++i) {
+    squareTerms.push(new Map());
+  }
+
+  for (let i = 0; i < size; ++i) {
+    for (let j = 0; j < size; ++j) {
+      const terms = squareTerms[i ^ j];
+      const key = i < j ? `t[${i}]*t[${j}]` : `t[${j}]*t[${i}]`;
+      if (terms.has(key)) {
+        terms.set(key, terms.get(key)! + mulTable[i][j]);
+      } else {
+        terms.set(key, mulTable[i][j]);
+      }
+    }
+  }
+  const squareLines: string[] = [];
+  for (let i = 0; i < size; ++i) {
+    let ones = '';
+    let twos = '';
+    for (const [key, value] of squareTerms[i].entries()) {
+      switch (value) {
+        case 0:
+          break;
+        case 1:
+          ones += '+' + key;
+          break;
+        case -1:
+          ones += '-' + key;
+          break;
+        case 2:
+          twos += '+' + key;
+          break;
+        case -2:
+          twos += '-' + key;
+          break;
+        default:
+          throw new Error('Inconsistent squaring table');
+      }
+    }
+    let line = `res[${i}]=`;
+    if (twos.length) {
+      if (ones.length) {
+        line += `${ones}+2*(${twos})`;
+      } else {
+        line += `2*(${twos})`;
+      }
+      squareLines.push(line);
+    } else if (ones.length) {
+      squareLines.push(line + ones);
+    }
+  }
+
   type binaryOp = (other: AlgebraElement) => AlgebraElement;
   const prelude = 'const res=new this.constructor();\nconst t=this;\n';
   const finale = '\nreturn res;';
@@ -1410,6 +1468,11 @@ export default function Algebra(
     'o',
     prelude + dotLeftLines.join('\n') + finale
   ) as binaryOp;
+
+  AlgebraClass.prototype.square = new Function(
+    '',
+    prelude + squareLines.join('\n') + finale
+  ) as () => AlgebraElement;
 
   // We lose the option to negotiate numeric precision but gain speed
   AlgebraClass.prototype.rmul = function (other: AlgebraElement) {
