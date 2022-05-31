@@ -660,7 +660,7 @@ describe('Geometric Algebra', () => {
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(H);
       expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
-      expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
+      expect(z.sqrt().pow(2).closeTo(z, 0.01)).toBeTruthy();
     }
   });
 
@@ -688,19 +688,19 @@ describe('Geometric Algebra', () => {
       const z = randomElement(Dual);
       z.s = Math.abs(z.s);
       expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
-      expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
+      expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy(); 
     }
   });
 
   // Broken
-  it.skip('implements square root', () => {
+  it('implements square root', () => {
     for (let p = 2; p < 4; ++p) {
       for (let q = 0; q < 3; ++q) {
         for (let r = 0; r < 2; ++r) {
           const Ga = Algebra(p, q, r);
           const z = randomElement(Ga);
           expect(
-            z.sqrt().pow(2).closeTo(z) || z.neg().sqrt().pow(2).closeTo(z.neg())
+            z.sqrt().pow(2).closeTo(z, 0.01) || z.neg().sqrt().pow(2).closeTo(z.neg(), 0.01)
           ).toBeTruthy();
         }
       }

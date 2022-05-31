@@ -136,6 +136,7 @@ export declare class AlgebraElement extends ElementBaseType {
 
   // Unary scalar operations
   norm(): number;
+  vnorm2(): number;
   vnorm(): number;
 
   // Unary operations
@@ -161,6 +162,7 @@ export declare class AlgebraElement extends ElementBaseType {
   unhodge(): AlgebraElement;
 
   // Scalar operations
+  plus(scalar: number): AlgebraElement;
   scale(scalar: number): AlgebraElement;
   pow(scalar: number, splitStages?: number): AlgebraElement;
 
@@ -609,12 +611,16 @@ export default function Algebra(
       return Math.sqrt(Math.abs(this.mul(this.conjugate()).s));
     }
 
-    vnorm() {
+    vnorm2() {
       let result = 0;
       for (let i = 0; i < this.length; ++i) {
         result += this[i] * this[i];
       }
-      return Math.sqrt(result);
+      return result;
+    }
+
+    vnorm() {
+      return Math.sqrt(this.vnorm2());
     }
 
     neg(): AlgebraElement {
@@ -727,13 +733,32 @@ export default function Algebra(
       return this.scale(newNorm / this.norm());
     }
 
-    // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-    sqrt(numIter = 16): AlgebraElement {
-      const root = this.clone();
-      root.s += 1;
+    sqrt(numIter = 64): AlgebraElement {
+      let root = this.plus(1).rescale(0.5);
+      let error = root.mul(root).sub(this).vnorm2();
+      console.log("start", error);
       for (let i = 1; i < numIter; ++i) {
-        root.accumulate(this.div(root)).rescale(0.5);
+        const candidate = root.clone();
+        const jiggleScale = Math.sqrt(error);
+        for (let j = 0; j < candidate.length; ++j) {
+          candidate[j] += Math.random() * jiggleScale - 0.5 * jiggleScale;
+        }
+        let newError = candidate.mul(candidate).sub(this).vnorm2();
+        if (newError < error) {
+          root = candidate;
+          error = newError;
+          // console.log("jiggle", error);
+        }
+        // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
+        const babylon = root.add(this.div(root)).rescale(0.5);
+        newError = babylon.mul(babylon).sub(this).vnorm2();
+        if (newError < error) {
+          root = babylon;
+          error = newError;
+          // console.log("babylon", error);
+        }
       }
+      console.log("end", error);
       return root;
     }
 
@@ -898,6 +923,12 @@ export default function Algebra(
           }
           return Uk.s === 0 ? AlgebraClass.zero() : adjU!.scale(1 / Uk.s);
       }
+    }
+
+    plus(scalar: number) {
+      const result = this.clone();
+      result[0] += scalar;
+      return result;
     }
 
     scale(scalar: number): AlgebraElement {
@@ -1172,7 +1203,11 @@ export default function Algebra(
       return new baseType(indexString.map(g => this[g[0]]));
     }
 
-    accumulate(other: AlgebraElement) {
+    accumulate(other: AlgebraElement | number) {
+      if (typeof(other) === "number") {
+        this[0] += other;
+        return this;
+      }
       for (let i = 0; i < this.length; ++i) {
         this[i] += other[i];
       }
