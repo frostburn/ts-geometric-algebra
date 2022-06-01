@@ -147,7 +147,9 @@ export declare class AlgebraElement extends ElementBaseType {
   inverse(): AlgebraElement;
   square(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
+  rotorNormalize(): AlgebraElement;
   sqrt(forceBabylon?: boolean, numIter?: number): AlgebraElement;
+  rotorSqrt(): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
   log(): AlgebraElement;
   clone(): AlgebraElement;
@@ -200,6 +202,7 @@ export declare class AlgebraElement extends ElementBaseType {
 
   // Deconstruction
   vector(grade?: number): ElementBaseType;
+  rotor(): ElementBaseType;
   ganja(): ElementBaseType;
 
   // Misc
@@ -214,6 +217,7 @@ export declare class AlgebraElement extends ElementBaseType {
   static pseudoscalar(magnitude?: number): AlgebraElement;
   static basisVector(...indices: number[]): AlgebraElement;
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
+  static fromRotor(values: Iterable<number>): AlgebraElement;
   static fromGanja(values: Iterable<number>): AlgebraElement;
 
   // Algebra information
@@ -728,6 +732,250 @@ export default function Algebra(
       return this.scale(newNorm / this.norm());
     }
 
+    // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
+    rotorNormalize(): AlgebraElement {
+      const X = this.rotor();
+      // STA/Hyperbolic PGA R3,1. e1*e1 = e2*e2 = e3*e3 = 1, e4*e4 = -1
+      // Normalize an even element X on the basis [1,e12,e13,e14,e23,e24,e34,e1234]
+      if (p === 3 && q === 1 && r === 0) {
+        const S =
+          X[0] * X[0] +
+          X[1] * X[1] +
+          X[2] * X[2] -
+          X[3] * X[3] +
+          X[4] * X[4] -
+          X[5] * X[5] -
+          X[6] * X[6] -
+          X[7] * X[7];
+        const T = 2 * (X[0] * X[7] - X[1] * X[6] + X[2] * X[5] - X[3] * X[4]);
+        const N = ((S * S + T * T) ** 0.5 + S) ** 0.5,
+          N2 = N * N;
+        const M = (2 ** 0.5 * N) / (N2 * N2 + T * T);
+        const A = N2 * M,
+          B = -T * M;
+        return AlgebraClass.fromRotor([
+          A * X[0] - B * X[7],
+          A * X[1] + B * X[6],
+          A * X[2] - B * X[5],
+          A * X[3] - B * X[4],
+          A * X[4] + B * X[3],
+          A * X[5] + B * X[2],
+          A * X[6] - B * X[1],
+          A * X[7] + B * X[0],
+        ]);
+      }
+      // 3D PGA. e1*e1 = e2*e2 = e3*e3 = 1, e0*e0 = 0
+      // Normalize an even element X on the basis [1,e01,e02,e03,e12,e31,e23,e0123]
+      if (p === 3 && q === 0 && r === 1) {
+        const A =
+          1 / (X[0] * X[0] + X[4] * X[4] + X[5] * X[5] + X[6] * X[6]) ** 0.5;
+        const B =
+          (X[7] * X[0] - (X[1] * X[6] + X[2] * X[5] + X[3] * X[4])) * A * A * A;
+        return AlgebraClass.fromRotor([
+          A * X[0],
+          A * X[1] + B * X[6],
+          A * X[2] + B * X[5],
+          A * X[3] + B * X[4],
+          A * X[4],
+          A * X[5],
+          A * X[6],
+          A * X[7] - B * X[0],
+        ]);
+      }
+      // Elliptic/Spherical PGA. e1*e1 = e2*e2 = e3*e3 = e4*e4 = 1
+      // Normalize an even element X on the basis [1,e12,e13,e14,e23,e24,e34,e1234]
+      if (p === 4 && q === 0 && r === 0) {
+        const S =
+          X[0] * X[0] +
+          X[1] * X[1] +
+          X[2] * X[2] +
+          X[3] * X[3] +
+          X[4] * X[4] +
+          X[5] * X[5] +
+          X[6] * X[6] +
+          X[7] * X[7];
+        const T = 2 * (X[0] * X[7] - X[1] * X[6] + X[2] * X[5] - X[3] * X[4]);
+        const N = ((S * S - T * T) ** 0.5 + S) ** 0.5,
+          N2 = N * N;
+        const M = (2 ** 0.5 * N) / (N2 * N2 - T * T);
+        const A = N2 * M,
+          B = -T * M;
+        return AlgebraClass.fromRotor([
+          A * X[0] + B * X[7],
+          A * X[1] - B * X[6],
+          A * X[2] + B * X[5],
+          A * X[3] - B * X[4],
+          A * X[4] - B * X[3],
+          A * X[5] + B * X[2],
+          A * X[6] - B * X[1],
+          A * X[7] + B * X[0],
+        ]);
+      }
+
+      // CGA R4,1. e1*e1 = e2*e2 = e3*e3 = e4*4 = 1, e5*e5 = -1
+      // Normalize an even element X = [1,e12,e13,e14,e15,e23,e24,e25,e34,e35,e45,e1234,e1235,e1245,e1345,e2345]
+      if (p === 4 && q === 1 && r === 0) {
+        const S =
+          X[0] * X[0] -
+          X[10] * X[10] +
+          X[11] * X[11] -
+          X[12] * X[12] -
+          X[13] * X[13] -
+          X[14] * X[14] -
+          X[15] * X[15] +
+          X[1] * X[1] +
+          X[2] * X[2] +
+          X[3] * X[3] -
+          X[4] * X[4] +
+          X[5] * X[5] +
+          X[6] * X[6] -
+          X[7] * X[7] +
+          X[8] * X[8] -
+          X[9] * X[9];
+        const T1 =
+          2 *
+          (X[0] * X[11] -
+            X[10] * X[12] +
+            X[13] * X[9] -
+            X[14] * X[7] +
+            X[15] * X[4] -
+            X[1] * X[8] +
+            X[2] * X[6] -
+            X[3] * X[5]);
+        const T2 =
+          2 *
+          (X[0] * X[12] -
+            X[10] * X[11] +
+            X[13] * X[8] -
+            X[14] * X[6] +
+            X[15] * X[3] -
+            X[1] * X[9] +
+            X[2] * X[7] -
+            X[4] * X[5]);
+        const T3 =
+          2 *
+          (X[0] * X[13] -
+            X[10] * X[1] +
+            X[11] * X[9] -
+            X[12] * X[8] +
+            X[14] * X[5] -
+            X[15] * X[2] +
+            X[3] * X[7] -
+            X[4] * X[6]);
+        const T4 =
+          2 *
+          (X[0] * X[14] -
+            X[10] * X[2] -
+            X[11] * X[7] +
+            X[12] * X[6] -
+            X[13] * X[5] +
+            X[15] * X[1] +
+            X[3] * X[9] -
+            X[4] * X[8]);
+        const T5 =
+          2 *
+          (X[0] * X[15] -
+            X[10] * X[5] +
+            X[11] * X[4] -
+            X[12] * X[3] +
+            X[13] * X[2] -
+            X[14] * X[1] +
+            X[6] * X[9] -
+            X[7] * X[8]);
+        const TT = -T1 * T1 + T2 * T2 + T3 * T3 + T4 * T4 + T5 * T5;
+        const N = ((S * S + TT) ** 0.5 + S) ** 0.5,
+          N2 = N * N;
+        const M = (2 ** 0.5 * N) / (N2 * N2 + TT);
+        const A = N2 * M,
+          [B1, B2, B3, B4, B5] = [-T1 * M, -T2 * M, -T3 * M, -T4 * M, -T5 * M];
+        return AlgebraClass.fromRotor([
+          A * X[0] +
+            B1 * X[11] -
+            B2 * X[12] -
+            B3 * X[13] -
+            B4 * X[14] -
+            B5 * X[15],
+          A * X[1] -
+            B1 * X[8] +
+            B2 * X[9] +
+            B3 * X[10] -
+            B4 * X[15] +
+            B5 * X[14],
+          A * X[2] +
+            B1 * X[6] -
+            B2 * X[7] +
+            B3 * X[15] +
+            B4 * X[10] -
+            B5 * X[13],
+          A * X[3] -
+            B1 * X[5] -
+            B2 * X[15] -
+            B3 * X[7] -
+            B4 * X[9] +
+            B5 * X[12],
+          A * X[4] -
+            B1 * X[15] -
+            B2 * X[5] -
+            B3 * X[6] -
+            B4 * X[8] +
+            B5 * X[11],
+          A * X[5] -
+            B1 * X[3] +
+            B2 * X[4] -
+            B3 * X[14] +
+            B4 * X[13] +
+            B5 * X[10],
+          A * X[6] +
+            B1 * X[2] +
+            B2 * X[14] +
+            B3 * X[4] -
+            B4 * X[12] -
+            B5 * X[9],
+          A * X[7] +
+            B1 * X[14] +
+            B2 * X[2] +
+            B3 * X[3] -
+            B4 * X[11] -
+            B5 * X[8],
+          A * X[8] -
+            B1 * X[1] -
+            B2 * X[13] +
+            B3 * X[12] +
+            B4 * X[4] +
+            B5 * X[7],
+          A * X[9] -
+            B1 * X[13] -
+            B2 * X[1] +
+            B3 * X[11] +
+            B4 * X[3] +
+            B5 * X[6],
+          A * X[10] +
+            B1 * X[12] -
+            B2 * X[11] -
+            B3 * X[1] -
+            B4 * X[2] -
+            B5 * X[5],
+          A * X[11] +
+            B1 * X[0] +
+            B2 * X[10] -
+            B3 * X[9] +
+            B4 * X[7] -
+            B5 * X[4],
+          A * X[12] +
+            B1 * X[10] +
+            B2 * X[0] -
+            B3 * X[8] +
+            B4 * X[6] -
+            B5 * X[3],
+          A * X[13] - B1 * X[9] + B2 * X[8] + B3 * X[0] - B4 * X[5] + B5 * X[2],
+          A * X[14] + B1 * X[7] - B2 * X[6] + B3 * X[5] + B4 * X[0] - B5 * X[1],
+          A * X[15] - B1 * X[4] + B2 * X[3] - B3 * X[2] + B4 * X[1] + B5 * X[0],
+        ]);
+      }
+
+      throw new Error('Do not know how to normalize a rotor in this algebra');
+    }
+
     sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
       if (!forceBabylon) {
         if (dimensions === 0) {
@@ -763,7 +1011,6 @@ export default function Algebra(
           }
         }
       }
-
       // Not quaranteed to converge. Barely better than nothing.
       // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
       const root = this.clone();
@@ -772,6 +1019,12 @@ export default function Algebra(
         root.accumulate(this.div(root)).rescale(0.5);
       }
       return root;
+    }
+
+    rotorSqrt(): AlgebraElement {
+      const root = this.clone();
+      root.s += 1;
+      return root.rotorNormalize();
     }
 
     exp(forceTaylor = false, numTaylorTerms = 32) {
@@ -1208,6 +1461,16 @@ export default function Algebra(
       return new baseType(result);
     }
 
+    rotor() {
+      const result = [];
+      for (let i = 0; i < this.length; ++i) {
+        if (indexString[i][1].length % 2 === 0) {
+          result.push(this[indexString[i][0]]);
+        }
+      }
+      return new baseType(result);
+    }
+
     // Ganja.js compatible representation
     ganja() {
       return new baseType(indexString.map(g => this[g[0]]));
@@ -1324,6 +1587,22 @@ export default function Algebra(
       for (const component of values) {
         while (i < size) {
           if (indexString[i][1].length === grade) {
+            result[indexString[i][0]] = component;
+            i++;
+            break;
+          }
+          i++;
+        }
+      }
+      return result;
+    }
+
+    static fromRotor(values: Iterable<number>) {
+      const result = AlgebraClass.zero();
+      let i = 0;
+      for (const component of values) {
+        while (i < size) {
+          if (indexString[i][1].length % 2 === 0) {
             result[indexString[i][0]] = component;
             i++;
             break;

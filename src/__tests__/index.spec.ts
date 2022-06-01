@@ -18,6 +18,25 @@ function randomVector(Ga: typeof AlgebraElement) {
   return Ga.fromVector(value);
 }
 
+function randomRotor(Ga: typeof AlgebraElement) {
+  let a: AlgebraElement;
+  let signA: number;
+  while (true) {
+    a = randomVector(Ga).normalize();
+    signA = a.square().s;
+    if (signA > 0) {
+      break;
+    }
+  }
+  let b: AlgebraElement;
+  while (true) {
+    b = randomVector(Ga).normalize();
+    if (b.square().s * signA > 0) {
+      return a.mul(b);
+    }
+  }
+}
+
 describe('Geometric Algebra', () => {
   it('supports a positive metric', () => {
     const Cl3 = Algebra(3);
@@ -692,41 +711,47 @@ describe('Geometric Algebra', () => {
     }
   });
 
-  // Broken
-  it.skip('implements square root', () => {
-    for (let p = 2; p < 4; ++p) {
-      for (let q = 0; q < 3; ++q) {
-        for (let r = 0; r < 2; ++r) {
-          const Ga = Algebra(p, q, r);
-          const z = randomElement(Ga);
-          expect(
-            z.sqrt().pow(2).closeTo(z) || z.neg().sqrt().pow(2).closeTo(z.neg())
-          ).toBeTruthy();
-        }
-      }
+  it.skip('implements rotor square root in hyperbolic PGA R3,1', () => {
+    const Ga = Algebra(3, 1, 0, Float64Array);
+    for (let i = 0; i < 10; ++i) {
+      const ab = randomRotor(Ga);
+      expect(ab.mul(ab.rev()).closeTo(Ga.scalar())).toBeTruthy();
+
+      const sqrt = ab.rotorSqrt();
+      expect(sqrt.square().closeTo(ab, 0.1)).toBeTruthy();
     }
   });
 
-  // Broken
-  it.skip('implements exponentiation', () => {
-    for (let p = 2; p < 3; ++p) {
-      for (let q = 0; q < 2; ++q) {
-        for (let r = 0; r < 2; ++r) {
-          const Ga = Algebra(p, q, r);
-          const z = randomElement(Ga);
-          expect(
-            z
-              .pow(1 / 3)
-              .pow(3)
-              .closeTo(z) ||
-              z
-                .neg()
-                .pow(1 / 3)
-                .pow(3)
-                .closeTo(z.neg())
-          ).toBeTruthy();
-        }
-      }
+  it.skip('implements rotor square root in 3D PGA', () => {
+    const Ga = Algebra(3, 0, 1, Float64Array);
+    for (let i = 0; i < 10; ++i) {
+      const ab = randomRotor(Ga);
+      expect(ab.mul(ab.rev()).closeTo(Ga.scalar())).toBeTruthy();
+
+      const sqrt = ab.rotorSqrt();
+      expect(sqrt.square().closeTo(ab, 0.1)).toBeTruthy();
+    }
+  });
+
+  it('implements rotor square root in 3D Elliptic PGA', () => {
+    const Ga = Algebra(4, 0, 0, Float64Array);
+    for (let i = 0; i < 10; ++i) {
+      const ab = randomRotor(Ga);
+      expect(ab.mul(ab.rev()).closeTo(Ga.scalar())).toBeTruthy();
+
+      const sqrt = ab.rotorSqrt();
+      expect(sqrt.square().closeTo(ab, 0.1)).toBeTruthy();
+    }
+  });
+
+  it.skip('implements rotor square root in 3D Conformal GA', () => {
+    const Ga = Algebra(4, 1, 0, Float64Array);
+    for (let i = 0; i < 10; ++i) {
+      const ab = randomRotor(Ga);
+      expect(ab.mul(ab.rev()).closeTo(Ga.scalar())).toBeTruthy();
+
+      const sqrt = ab.rotorSqrt();
+      expect(sqrt.square().closeTo(ab, 0.1)).toBeTruthy();
     }
   });
 
