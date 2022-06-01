@@ -73,3 +73,17 @@ export function eigenValues(matrix: number[][], numIter = 50) {
   }
   return matrix.map((x, i) => x[i]);
 }
+
+export function copysign(x: number, y: number) {
+  if (y > 0) {
+    return Math.abs(x);
+  }
+  return -Math.abs(x);
+}
+
+export function complexSqrt(x: number, y: number) {
+  const r = Math.hypot(x, y);
+  const sx = Math.sqrt((r + x) * 0.5);
+  const sy = copysign(Math.sqrt((r - x) * 0.5), y);
+  return [sx, sy];
+}

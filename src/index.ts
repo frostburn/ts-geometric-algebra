@@ -1,4 +1,4 @@
-import {eigenValues} from './utils';
+import {complexSqrt, copysign, eigenValues} from './utils';
 
 // Float32Array-like
 export declare class ElementBaseType {
@@ -147,7 +147,7 @@ export declare class AlgebraElement extends ElementBaseType {
   inverse(): AlgebraElement;
   square(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
-  sqrt(numIter?: number): AlgebraElement;
+  sqrt(forceBabylon?: boolean, numIter?: number): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
   log(): AlgebraElement;
   clone(): AlgebraElement;
@@ -728,8 +728,44 @@ export default function Algebra(
       return this.scale(newNorm / this.norm());
     }
 
-    // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-    sqrt(numIter = 16): AlgebraElement {
+    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+      if (!forceBabylon) {
+        if (dimensions === 0) {
+          return AlgebraClass.scalar(Math.sqrt(this.s));
+        } else if (dimensions === 1) {
+          if (p) {
+            const x = this.s;
+            const y = this.ps;
+            const r = Math.sqrt(x * x - y * y);
+            return new AlgebraClass([
+              Math.sqrt((x + r) * 0.5),
+              copysign(Math.sqrt((x - r) * 0.5), y),
+            ]);
+          } else if (q) {
+            return new AlgebraClass(complexSqrt(this.s, this.ps));
+          } else if (r) {
+            const s = Math.sqrt(this.s);
+            return new AlgebraClass([s, (0.5 * this.ps) / s]);
+          }
+        } else if (dimensions === 2) {
+          if (q === 2) {
+            const result = this.clone();
+            result.s = 0;
+            const imagNorm = result.vnorm();
+            const [x, y] = complexSqrt(this.s, imagNorm);
+            if (imagNorm < 1e-5) {
+              result.rescale(0.5);
+            } else {
+              result.rescale(y / imagNorm);
+            }
+            result.s = x;
+            return result;
+          }
+        }
+      }
+
+      // Not quaranteed to converge. Barely better than nothing.
+      // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
       const root = this.clone();
       root.s += 1;
       for (let i = 1; i < numIter; ++i) {
