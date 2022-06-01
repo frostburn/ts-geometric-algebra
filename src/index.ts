@@ -728,13 +728,41 @@ export default function Algebra(
       return this.scale(newNorm / this.norm());
     }
 
-    // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-    sqrt(numIter = 16): AlgebraElement {
+    sqrt(numIter = 64, numBabylon = 0): AlgebraElement {
       const root = this.clone();
       root.s += 1;
-      for (let i = 1; i < numIter; ++i) {
+      root.rescale(0.5);
+
+      const noiseScale = root.vnorm() * 0.01;
+      for (let i = 0; i < root.length; ++i) {
+        root[i] += (Math.random() - 0.5) * noiseScale
+      }
+
+      for (let k = 0; k < numIter; ++k) {
+        const difference = root.square().sub(this);
+        const error = difference.vnorm();
+        // console.log("descent", error);
+        difference.rescale(1 / (1 + error));
+        const gradient = AlgebraClass.zero();
+        for (let i = 0; i < gradient.length; ++i) {
+          const x = AlgebraClass.zero();
+          x[i] = 1;
+          const dx = root.mul(x).add(x.mul(root));
+          for (let j = 0; j < difference.length; ++j) {
+            gradient[i] -= 0.05 * dx[j] * difference[j];
+          }
+        }
+        root.accumulate(gradient);
+      }
+
+      // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
+      for (let i = 1; i < numBabylon; ++i) {
         root.accumulate(this.div(root)).rescale(0.5);
       }
+
+      const difference = root.square().sub(this);
+      // console.log("final", difference.vnorm());
+
       return root;
     }
 
