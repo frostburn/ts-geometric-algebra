@@ -736,6 +736,17 @@ describe('Geometric Algebra', () => {
         for (let r = 0; r < 2; ++r) {
           const Ga = Algebra(p, q, r);
           const pseudoscalar = Ga.pseudoscalar();
+          for (let i = 0; i < Ga.dimensions; ++i) {
+            const ei = Ga.basisVector(i);
+            for (let j = 0; j < Ga.dimensions; ++j) {
+              const ej = Ga.basisVector(j);
+              if (r === 0) {
+                expect(
+                  ei.wedge(ej.hodge()).equals(ei.dot(ej).mul(pseudoscalar))
+                ).toBeTruthy();
+              }
+            }
+          }
           for (let i = 0; i < Ga.size; ++i) {
             const basis = Ga.zero();
             basis[i] = 1;
