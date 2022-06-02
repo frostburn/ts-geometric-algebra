@@ -185,6 +185,7 @@ export declare class AlgebraElement extends ElementBaseType {
   rwedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
   rvee(other: AlgebraElement): AlgebraElement;
+  rotorMean(other: AlgebraElement): AlgebraElement;
   // Contractions
   contract(
     other: AlgebraElement,
@@ -1357,6 +1358,10 @@ export default function Algebra(
 
     rvee(other: AlgebraElement): AlgebraElement {
       return other.dual().rwedge(this.dual()).undual();
+    }
+
+    rotorMean(other: AlgebraElement) {
+      return this.add(other).rotorNormalize();
     }
 
     contract(

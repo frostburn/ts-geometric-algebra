@@ -755,6 +755,17 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('implements rotor mean in 3D Elliptic PGA', () => {
+    const Ga = Algebra(4, 0, 0, Float64Array);
+    for (let i = 0; i < 10; ++i) {
+      const ab = randomRotor(Ga);
+      const cd = randomRotor(Ga);
+
+      const mean = ab.rotorMean(cd);
+      expect(mean.mul(mean.rev()).closeTo(Ga.scalar())).toBeTruthy();
+    }
+  });
+
   it('implements all the duals in the zoo', () => {
     for (let p = 2; p < 4; ++p) {
       for (let q = 0; q < 3; ++q) {
