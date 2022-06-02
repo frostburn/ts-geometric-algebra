@@ -1,232 +1,8 @@
 import {complexSqrt, copysign, eigenValues} from './utils';
+import {type ElementBaseType, type AlgebraElement} from './element';
+import {pqrMixin} from './pqr';
 
-// Float32Array-like
-export declare class ElementBaseType {
-  constructor(values?: number | Iterable<number>);
-  [index: number]: number;
-  [Symbol.iterator](): Iterator<number>;
-
-  copyWithin(target: number, start: number, end?: number): this;
-  every(
-    predicate: (
-      value: number,
-      index: number,
-      array: ElementBaseType
-    ) => unknown,
-    thisArg?: any
-  ): boolean;
-  fill(value: number, start?: number, end?: number): this;
-  filter(
-    predicate: (value: number, index: number, array: ElementBaseType) => any,
-    thisArg?: any
-  ): ElementBaseType;
-  find(
-    predicate: (value: number, index: number, obj: ElementBaseType) => boolean,
-    thisArg?: any
-  ): number | undefined;
-  findIndex(
-    predicate: (value: number, index: number, obj: ElementBaseType) => boolean,
-    thisArg?: any
-  ): number;
-  forEach(
-    callbackfn: (value: number, index: number, array: ElementBaseType) => void,
-    thisArg?: any
-  ): void;
-  indexOf(searchElement: number, fromIndex?: number): number;
-  join(separator?: string): string;
-  lastIndexOf(searchElement: number, fromIndex?: number): number;
-  readonly length: number;
-  map(
-    callbackfn: (
-      value: number,
-      index: number,
-      array: ElementBaseType
-    ) => number,
-    thisArg?: any
-  ): ElementBaseType;
-  reduce(
-    callbackfn: (
-      previousValue: number,
-      currentValue: number,
-      currentIndex: number,
-      array: ElementBaseType
-    ) => number
-  ): number;
-  reduce(
-    callbackfn: (
-      previousValue: number,
-      currentValue: number,
-      currentIndex: number,
-      array: ElementBaseType
-    ) => number,
-    initialValue: number
-  ): number;
-  reduce<U>(
-    callbackfn: (
-      previousValue: U,
-      currentValue: number,
-      currentIndex: number,
-      array: ElementBaseType
-    ) => U,
-    initialValue: U
-  ): U;
-  reduceRight(
-    callbackfn: (
-      previousValue: number,
-      currentValue: number,
-      currentIndex: number,
-      array: ElementBaseType
-    ) => number
-  ): number;
-  reduceRight(
-    callbackfn: (
-      previousValue: number,
-      currentValue: number,
-      currentIndex: number,
-      array: ElementBaseType
-    ) => number,
-    initialValue: number
-  ): number;
-  reduceRight<U>(
-    callbackfn: (
-      previousValue: U,
-      currentValue: number,
-      currentIndex: number,
-      array: ElementBaseType
-    ) => U,
-    initialValue: U
-  ): U;
-  reverse(): ElementBaseType;
-  set(array: ArrayLike<number>, offset?: number): void;
-  slice(start?: number, end?: number): ElementBaseType;
-  some(
-    predicate: (
-      value: number,
-      index: number,
-      array: ElementBaseType
-    ) => unknown,
-    thisArg?: any
-  ): boolean;
-  sort(compareFn?: (a: number, b: number) => number): this;
-  subarray(begin?: number, end?: number): ElementBaseType;
-  toLocaleString(): string;
-  toString(): string;
-  valueOf(): ElementBaseType;
-}
-
-export declare class AlgebraElement extends ElementBaseType {
-  // Comparisons
-  equals(other: AlgebraElement): boolean;
-  closeTo(other: AlgebraElement, tolerance?: number): boolean;
-
-  // Validation
-  hasNaN(): boolean;
-  hasInfinity(): boolean;
-  isNil(tolerance?: number): boolean;
-  isGrade(grade: number, tolerance?: number): boolean;
-
-  // Getters / setters
-  get s(): number; // Scalar part
-  set s(value: number);
-  get ps(): number; // Pseudoscalar part
-  set ps(value: number);
-
-  getAt(...indices: number[]): number;
-  setAt(...indicesAndValue: number[]): this;
-
-  // Unary scalar operations
-  norm(): number;
-  vnorm(): number;
-
-  // Unary operations
-  neg(): AlgebraElement;
-  cwAbs(): AlgebraElement;
-  involute(): AlgebraElement;
-  rev(): AlgebraElement;
-  conjugate(): AlgebraElement;
-  inverse(): AlgebraElement;
-  square(): AlgebraElement;
-  normalize(newNorm?: number): AlgebraElement;
-  rotorNormalize(): AlgebraElement;
-  sqrt(forceBabylon?: boolean, numIter?: number): AlgebraElement;
-  rotorSqrt(): AlgebraElement;
-  exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
-  bivectorExp(): AlgebraElement;
-  log(): AlgebraElement;
-  rotorLog(): AlgebraElement;
-  clone(): AlgebraElement;
-  // Dual Zoo
-  dual(): AlgebraElement;
-  undual(): AlgebraElement;
-  podge(): AlgebraElement;
-  unpodge(): AlgebraElement;
-  // See star() for forward implementation
-  unstar(): AlgebraElement;
-  hodge(): AlgebraElement;
-  unhodge(): AlgebraElement;
-
-  // Scalar operations
-  scale(scalar: number): AlgebraElement;
-  pow(scalar: number, splitStages?: number): AlgebraElement;
-
-  // Multi-scalar operations
-  applyWeights(weights: number[]): AlgebraElement;
-
-  // Index operations
-  negateGrades(...grades: number[]): AlgebraElement;
-
-  // Binary operations
-  add(other: AlgebraElement): AlgebraElement;
-  sub(other: AlgebraElement): AlgebraElement;
-  mul(other: AlgebraElement): AlgebraElement;
-  rmul(other: AlgebraElement): AlgebraElement;
-  div(other: AlgebraElement): AlgebraElement;
-  ldiv(other: AlgebraElement): AlgebraElement;
-  ldivs(other: AlgebraElement): AlgebraElement;
-  wedge(other: AlgebraElement): AlgebraElement;
-  rwedge(other: AlgebraElement): AlgebraElement;
-  vee(other: AlgebraElement): AlgebraElement;
-  rvee(other: AlgebraElement): AlgebraElement;
-  rotorMean(other: AlgebraElement): AlgebraElement;
-  // Contractions
-  contract(
-    other: AlgebraElement,
-    criterion: (r: number, s: number) => number
-  ): AlgebraElement;
-  dot(other: AlgebraElement): AlgebraElement; // Symmetric contraction
-  dotL(other: AlgebraElement): AlgebraElement; // Left contraction
-  dotR(other: AlgebraElement): AlgebraElement; // Right contraction
-  star(): AlgebraElement; // Dischord dual
-  star(other: AlgebraElement): AlgebraElement; // Scalar product
-
-  // Subsets
-  even(): AlgebraElement;
-  grade(grade: number): AlgebraElement;
-
-  // Deconstruction
-  vector(grade?: number): ElementBaseType;
-  rotor(): ElementBaseType;
-  ganja(): ElementBaseType;
-
-  // Misc
-  rescale(scalar: number): this;
-  accumulate(other: AlgebraElement): this;
-  split(iter?: number): AlgebraElement[];
-  factorize(iter?: number): AlgebraElement[];
-
-  // Construction
-  static zero(): AlgebraElement;
-  static scalar(magnitude?: number): AlgebraElement;
-  static pseudoscalar(magnitude?: number): AlgebraElement;
-  static basisVector(...indices: number[]): AlgebraElement;
-  static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
-  static fromRotor(values: Iterable<number>): AlgebraElement;
-  static fromGanja(values: Iterable<number>): AlgebraElement;
-
-  // Algebra information
-  static get dimensions(): number;
-  static get size(): number;
-}
+export * from './element';
 
 // Comparisons using two arguments
 export function equals(a: AlgebraElement, b: AlgebraElement): boolean {
@@ -558,6 +334,18 @@ export default function Algebra(
       }
     }
 
+    cls() {
+      return AlgebraClass;
+    }
+
+    empty() {
+      return new (this.cls())();
+    }
+
+    zeroed() {
+      return this.cls().zero();
+    }
+
     equals(other: AlgebraElement) {
       for (let i = 0; i < this.length; ++i) {
         if (this[i] !== other[i]) {
@@ -626,7 +414,7 @@ export default function Algebra(
     }
 
     neg(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = -this[i];
       }
@@ -634,7 +422,7 @@ export default function Algebra(
     }
 
     cwAbs(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = Math.abs(this[i]);
       }
@@ -642,7 +430,7 @@ export default function Algebra(
     }
 
     rev(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = bitCount(i) & 2 ? -this[i] : this[i];
       }
@@ -650,7 +438,7 @@ export default function Algebra(
     }
 
     involute(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = bitCount(i) & 1 ? -this[i] : this[i];
       }
@@ -658,7 +446,7 @@ export default function Algebra(
     }
 
     conjugate(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = (bitCount(i) + 1) & 2 ? -this[i] : this[i];
       }
@@ -670,7 +458,7 @@ export default function Algebra(
     // For all Ex = AlgebraClass.basisVector(...x)
     // Ex.mul(Ex.dual()) === AlgebraClass.pseudoscalar()
     dual(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
         result[dualIndex] = this[i] * mulTable[i][dualIndex];
@@ -679,7 +467,7 @@ export default function Algebra(
     }
     // a.vee(b) === undual(b.dual().wedge(a.dual()))
     undual(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
         result[dualIndex] = this[i] * mulTable[dualIndex][i];
@@ -688,14 +476,14 @@ export default function Algebra(
     }
 
     podge(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[indexMask ^ i] = this[i] * mulTable[i][indexMask];
       }
       return result;
     }
     unpodge(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[indexMask ^ i] = this[i] / mulTable[indexMask ^ i][indexMask];
       }
@@ -704,7 +492,7 @@ export default function Algebra(
 
     // See star() overload for forward implementation
     unstar(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[indexMask ^ i] =
           this[i] * (mulTable[indexMask ^ i][indexMask] || 1);
@@ -713,7 +501,7 @@ export default function Algebra(
     }
 
     hodge(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
         result[dualIndex] =
@@ -722,7 +510,7 @@ export default function Algebra(
       return result;
     }
     unhodge(): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         const dualIndex = indexMask ^ i;
         result[dualIndex] =
@@ -735,250 +523,11 @@ export default function Algebra(
       return this.scale(newNorm / this.norm());
     }
 
-    // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
     rotorNormalize(): AlgebraElement {
-      const X = this.rotor();
-      // STA/Hyperbolic PGA R3,1. e1*e1 = e2*e2 = e3*e3 = 1, e4*e4 = -1
-      // Normalize an even element X on the basis [1,e12,e13,e14,e23,e24,e34,e1234]
-      if (p === 3 && q === 1 && r === 0) {
-        const S =
-          X[0] * X[0] +
-          X[1] * X[1] +
-          X[2] * X[2] -
-          X[3] * X[3] +
-          X[4] * X[4] -
-          X[5] * X[5] -
-          X[6] * X[6] -
-          X[7] * X[7];
-        const T = 2 * (X[0] * X[7] - X[1] * X[6] + X[2] * X[5] - X[3] * X[4]);
-        const N = ((S * S + T * T) ** 0.5 + S) ** 0.5,
-          N2 = N * N;
-        const M = (2 ** 0.5 * N) / (N2 * N2 + T * T);
-        const A = N2 * M,
-          B = -T * M;
-        return AlgebraClass.fromRotor([
-          A * X[0] - B * X[7],
-          A * X[1] + B * X[6],
-          A * X[2] - B * X[5],
-          A * X[3] - B * X[4],
-          A * X[4] + B * X[3],
-          A * X[5] + B * X[2],
-          A * X[6] - B * X[1],
-          A * X[7] + B * X[0],
-        ]);
-      }
-      // 3D PGA. e1*e1 = e2*e2 = e3*e3 = 1, e0*e0 = 0
-      // Normalize an even element X on the basis [1,e01,e02,e03,e12,e31,e23,e0123]
-      if (p === 3 && q === 0 && r === 1) {
-        const A =
-          1 / (X[0] * X[0] + X[4] * X[4] + X[5] * X[5] + X[6] * X[6]) ** 0.5;
-        const B =
-          (X[7] * X[0] - (X[1] * X[6] + X[2] * X[5] + X[3] * X[4])) * A * A * A;
-        return AlgebraClass.fromRotor([
-          A * X[0],
-          A * X[1] + B * X[6],
-          A * X[2] + B * X[5],
-          A * X[3] + B * X[4],
-          A * X[4],
-          A * X[5],
-          A * X[6],
-          A * X[7] - B * X[0],
-        ]);
-      }
-      // Elliptic/Spherical PGA. e1*e1 = e2*e2 = e3*e3 = e4*e4 = 1
-      // Normalize an even element X on the basis [1,e12,e13,e14,e23,e24,e34,e1234]
-      if (p === 4 && q === 0 && r === 0) {
-        const S =
-          X[0] * X[0] +
-          X[1] * X[1] +
-          X[2] * X[2] +
-          X[3] * X[3] +
-          X[4] * X[4] +
-          X[5] * X[5] +
-          X[6] * X[6] +
-          X[7] * X[7];
-        const T = 2 * (X[0] * X[7] - X[1] * X[6] + X[2] * X[5] - X[3] * X[4]);
-        const N = ((S * S - T * T) ** 0.5 + S) ** 0.5,
-          N2 = N * N;
-        const M = (2 ** 0.5 * N) / (N2 * N2 - T * T);
-        const A = N2 * M,
-          B = -T * M;
-        return AlgebraClass.fromRotor([
-          A * X[0] + B * X[7],
-          A * X[1] - B * X[6],
-          A * X[2] + B * X[5],
-          A * X[3] - B * X[4],
-          A * X[4] - B * X[3],
-          A * X[5] + B * X[2],
-          A * X[6] - B * X[1],
-          A * X[7] + B * X[0],
-        ]);
-      }
-
-      // CGA R4,1. e1*e1 = e2*e2 = e3*e3 = e4*4 = 1, e5*e5 = -1
-      // Normalize an even element X = [1,e12,e13,e14,e15,e23,e24,e25,e34,e35,e45,e1234,e1235,e1245,e1345,e2345]
-      if (p === 4 && q === 1 && r === 0) {
-        const S =
-          X[0] * X[0] -
-          X[10] * X[10] +
-          X[11] * X[11] -
-          X[12] * X[12] -
-          X[13] * X[13] -
-          X[14] * X[14] -
-          X[15] * X[15] +
-          X[1] * X[1] +
-          X[2] * X[2] +
-          X[3] * X[3] -
-          X[4] * X[4] +
-          X[5] * X[5] +
-          X[6] * X[6] -
-          X[7] * X[7] +
-          X[8] * X[8] -
-          X[9] * X[9];
-        const T1 =
-          2 *
-          (X[0] * X[11] -
-            X[10] * X[12] +
-            X[13] * X[9] -
-            X[14] * X[7] +
-            X[15] * X[4] -
-            X[1] * X[8] +
-            X[2] * X[6] -
-            X[3] * X[5]);
-        const T2 =
-          2 *
-          (X[0] * X[12] -
-            X[10] * X[11] +
-            X[13] * X[8] -
-            X[14] * X[6] +
-            X[15] * X[3] -
-            X[1] * X[9] +
-            X[2] * X[7] -
-            X[4] * X[5]);
-        const T3 =
-          2 *
-          (X[0] * X[13] -
-            X[10] * X[1] +
-            X[11] * X[9] -
-            X[12] * X[8] +
-            X[14] * X[5] -
-            X[15] * X[2] +
-            X[3] * X[7] -
-            X[4] * X[6]);
-        const T4 =
-          2 *
-          (X[0] * X[14] -
-            X[10] * X[2] -
-            X[11] * X[7] +
-            X[12] * X[6] -
-            X[13] * X[5] +
-            X[15] * X[1] +
-            X[3] * X[9] -
-            X[4] * X[8]);
-        const T5 =
-          2 *
-          (X[0] * X[15] -
-            X[10] * X[5] +
-            X[11] * X[4] -
-            X[12] * X[3] +
-            X[13] * X[2] -
-            X[14] * X[1] +
-            X[6] * X[9] -
-            X[7] * X[8]);
-        const TT = -T1 * T1 + T2 * T2 + T3 * T3 + T4 * T4 + T5 * T5;
-        const N = ((S * S + TT) ** 0.5 + S) ** 0.5,
-          N2 = N * N;
-        const M = (2 ** 0.5 * N) / (N2 * N2 + TT);
-        const A = N2 * M,
-          [B1, B2, B3, B4, B5] = [-T1 * M, -T2 * M, -T3 * M, -T4 * M, -T5 * M];
-        return AlgebraClass.fromRotor([
-          A * X[0] +
-            B1 * X[11] -
-            B2 * X[12] -
-            B3 * X[13] -
-            B4 * X[14] -
-            B5 * X[15],
-          A * X[1] -
-            B1 * X[8] +
-            B2 * X[9] +
-            B3 * X[10] -
-            B4 * X[15] +
-            B5 * X[14],
-          A * X[2] +
-            B1 * X[6] -
-            B2 * X[7] +
-            B3 * X[15] +
-            B4 * X[10] -
-            B5 * X[13],
-          A * X[3] -
-            B1 * X[5] -
-            B2 * X[15] -
-            B3 * X[7] -
-            B4 * X[9] +
-            B5 * X[12],
-          A * X[4] -
-            B1 * X[15] -
-            B2 * X[5] -
-            B3 * X[6] -
-            B4 * X[8] +
-            B5 * X[11],
-          A * X[5] -
-            B1 * X[3] +
-            B2 * X[4] -
-            B3 * X[14] +
-            B4 * X[13] +
-            B5 * X[10],
-          A * X[6] +
-            B1 * X[2] +
-            B2 * X[14] +
-            B3 * X[4] -
-            B4 * X[12] -
-            B5 * X[9],
-          A * X[7] +
-            B1 * X[14] +
-            B2 * X[2] +
-            B3 * X[3] -
-            B4 * X[11] -
-            B5 * X[8],
-          A * X[8] -
-            B1 * X[1] -
-            B2 * X[13] +
-            B3 * X[12] +
-            B4 * X[4] +
-            B5 * X[7],
-          A * X[9] -
-            B1 * X[13] -
-            B2 * X[1] +
-            B3 * X[11] +
-            B4 * X[3] +
-            B5 * X[6],
-          A * X[10] +
-            B1 * X[12] -
-            B2 * X[11] -
-            B3 * X[1] -
-            B4 * X[2] -
-            B5 * X[5],
-          A * X[11] +
-            B1 * X[0] +
-            B2 * X[10] -
-            B3 * X[9] +
-            B4 * X[7] -
-            B5 * X[4],
-          A * X[12] +
-            B1 * X[10] +
-            B2 * X[0] -
-            B3 * X[8] +
-            B4 * X[6] -
-            B5 * X[3],
-          A * X[13] - B1 * X[9] + B2 * X[8] + B3 * X[0] - B4 * X[5] + B5 * X[2],
-          A * X[14] + B1 * X[7] - B2 * X[6] + B3 * X[5] + B4 * X[0] - B5 * X[1],
-          A * X[15] - B1 * X[4] + B2 * X[3] - B3 * X[2] + B4 * X[1] + B5 * X[0],
-        ]);
-      }
-
       throw new Error('Do not know how to normalize a rotor in this algebra');
     }
 
+    // TODO: Move to pqr.ts
     sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
       if (!forceBabylon) {
         if (dimensions === 0) {
@@ -1030,6 +579,7 @@ export default function Algebra(
       return root.rotorNormalize();
     }
 
+    // TODO: Move to pqr.ts
     exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
       if (!forceTaylor) {
         if (dimensions === 0) {
@@ -1083,13 +633,13 @@ export default function Algebra(
               simple.s += Math.cosh(len);
             }
             return total.mul(simple);
-          }, AlgebraClass.scalar(Math.exp(this.s)));
+          }, this.cls().scalar(Math.exp(this.s)));
         }
       }
 
       // Taylor series
-      const result = AlgebraClass.scalar();
-      let term = AlgebraClass.scalar();
+      const result = this.cls().scalar();
+      let term = this.cls().scalar();
       for (let i = 1; i < numTaylorTerms; ++i) {
         term = term.mul(this.scale(1 / i));
         result.accumulate(term);
@@ -1098,31 +648,10 @@ export default function Algebra(
     }
 
     bivectorExp() {
-      const B = this.vector(2);
-      // Exponential of a bivector B (17 mul, 8 add, 2 div, 1 sincos, 1 sqrt)
-      if (p === 3 && q === 0 && r === 1) {
-        const l = B[3] * B[3] + B[4] * B[4] + B[5] * B[5];
-        if (l === 0)
-          return AlgebraClass.fromRotor([1, B[0], B[1], B[2], 0, 0, 0, 0]);
-        const m = B[0] * B[5] + B[1] * B[4] + B[2] * B[3],
-          a = Math.sqrt(l),
-          c = Math.cos(a),
-          s = Math.sin(a) / a,
-          t = (m / l) * (c - s);
-        return AlgebraClass.fromRotor([
-          c,
-          s * B[0] + t * B[5],
-          s * B[1] + t * B[4],
-          s * B[2] + t * B[3],
-          s * B[3],
-          s * B[4],
-          s * B[5],
-          m * s,
-        ]);
-      }
       return this.exp();
     }
 
+    // TODO: Move to pqr.ts
     log(): AlgebraElement {
       if (dimensions === 0) {
         return AlgebraClass.scalar(Math.log(this.s));
@@ -1151,7 +680,7 @@ export default function Algebra(
         }
       }
 
-      const sum = AlgebraClass.zero();
+      const sum = this.zeroed();
       this.factorize().forEach(bi => {
         const [ci, si] = [bi.s, bi.grade(2)];
         const square = si.square().s;
@@ -1164,35 +693,15 @@ export default function Algebra(
     }
 
     rotorLog() {
-      const R = this.rotor();
-      // Logarithm of a rotor R (14 mul, 5 add, 1 div, 1 acos, 1 sqrt)
-      if (p === 3 && q === 0 && r === 1) {
-        if (R[0] === 1)
-          return AlgebraClass.fromVector([R[1], R[2], R[3], 0, 0, 0], 2);
-        const a = 1 / (1 - R[0] * R[0]);
-        const b = Math.acos(R[0]) * Math.sqrt(a);
-        const c = a * R[7] * (1 - R[0] * b);
-        return AlgebraClass.fromVector(
-          [
-            c * R[6] + b * R[1],
-            c * R[5] + b * R[2],
-            c * R[4] + b * R[3],
-            b * R[4],
-            b * R[5],
-            b * R[6],
-          ],
-          2
-        );
-      }
       return this.log();
     }
 
     clone(): AlgebraElement {
-      return new AlgebraClass(this);
+      return new (this.cls())(this);
     }
 
     negateGrades(...grades: number[]): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = grades.includes(bitCount(i)) ? -this[i] : this[i];
       }
@@ -1204,7 +713,7 @@ export default function Algebra(
       // http://repository.essex.ac.uk/17282/1/TechReport_CES-534.pdf
       switch (dimensions) {
         case 0:
-          return AlgebraClass.scalar(1 / this.s);
+          return this.cls().scalar(1 / this.s);
         case 1:
           const involute = this.involute();
           return involute.scale(1 / this.mul(involute).s);
@@ -1236,10 +745,11 @@ export default function Algebra(
           let Uk = this.scale(1);
           let adjU: AlgebraElement;
           for (let k = 1; k < N; ++k) {
-            adjU = Uk.sub(AlgebraClass.scalar((N / k) * Uk.s));
+            adjU = Uk.clone();
+            adjU.s -= (N / k) * Uk.s;
             Uk = this.mul(adjU);
           }
-          return Uk.s === 0 ? AlgebraClass.zero() : adjU!.scale(1 / Uk.s);
+          return Uk.s === 0 ? this.zeroed() : adjU!.scale(1 / Uk.s);
       }
     }
 
@@ -1248,11 +758,7 @@ export default function Algebra(
     }
 
     scale(scalar: number): AlgebraElement {
-      const result = new AlgebraClass();
-      for (let i = 0; i < this.length; ++i) {
-        result[i] = this[i] * scalar;
-      }
-      return result;
+      return this.clone().rescale(scalar);
     }
 
     rescale(scalar: number): AlgebraElement {
@@ -1265,7 +771,7 @@ export default function Algebra(
     pow(power: number, splitStages = 8): AlgebraElement {
       if (power !== Math.round(power)) {
         if (dimensions === 0) {
-          return AlgebraClass.scalar(Math.pow(this.s, power));
+          return this.cls().scalar(Math.pow(this.s, power));
         } else if (dimensions === 1) {
           return this.log().scale(power).exp();
         } else if (dimensions === 2) {
@@ -1284,7 +790,7 @@ export default function Algebra(
         return epsilon.pow(power);
       }
       if (power === 0) {
-        return AlgebraClass.scalar();
+        return this.cls().scalar();
       }
       if (power === 1) {
         return this.clone();
@@ -1293,7 +799,7 @@ export default function Algebra(
         return this.square();
       }
       if (power > 0) {
-        let result = AlgebraClass.scalar();
+        let result = this.cls().scalar();
         let powerOfTwo = this.clone();
         while (power) {
           if (power & 1) {
@@ -1308,9 +814,8 @@ export default function Algebra(
     }
 
     applyWeights(weights: number[]) {
-      const result = new AlgebraClass();
+      const result = this.clone();
       for (let i = 0; i < this.length; ++i) {
-        result[i] = this[i];
         for (let j = 0; j < weights.length; ++j) {
           if (i & (1 << j)) {
             result[i] *= weights[j];
@@ -1321,7 +826,7 @@ export default function Algebra(
     }
 
     add(other: AlgebraElement): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = this[i] + other[i];
       }
@@ -1329,7 +834,7 @@ export default function Algebra(
     }
 
     sub(other: AlgebraElement): AlgebraElement {
-      const result = new AlgebraClass();
+      const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
         result[i] = this[i] - other[i];
       }
@@ -1337,7 +842,7 @@ export default function Algebra(
     }
 
     mul(other: AlgebraElement): AlgebraElement {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
           continue;
@@ -1350,7 +855,7 @@ export default function Algebra(
     }
 
     rmul(other: AlgebraElement): AlgebraElement {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
           continue;
@@ -1375,7 +880,7 @@ export default function Algebra(
     }
 
     wedge(other: AlgebraElement): AlgebraElement {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
           continue;
@@ -1390,7 +895,7 @@ export default function Algebra(
     }
 
     rwedge(other: AlgebraElement): AlgebraElement {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
           continue;
@@ -1420,7 +925,7 @@ export default function Algebra(
       other: AlgebraElement,
       criterion: (r: number, s: number) => number
     ): AlgebraElement {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
           continue;
@@ -1452,7 +957,7 @@ export default function Algebra(
 
     star(maybeOther?: AlgebraElement) {
       if (maybeOther === undefined) {
-        const result = new AlgebraClass();
+        const result = this.empty();
         for (let i = 0; i < this.length; ++i) {
           result[indexMask ^ i] = this[i] * (mulTable[i][indexMask] || 1);
         }
@@ -1489,7 +994,7 @@ export default function Algebra(
     }
 
     even() {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!(bitCount(i) & 1)) {
           result[i] = this[i];
@@ -1499,7 +1004,7 @@ export default function Algebra(
     }
 
     grade(grade: number) {
-      const result = AlgebraClass.zero();
+      const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (bitCount(i) === grade) {
           result[i] = this[i];
@@ -1582,17 +1087,17 @@ export default function Algebra(
           (a, b) => Math.abs(a) - Math.abs(b)
         );
       }
-      Wi = [AlgebraClass.scalar(), ...Wi, AlgebraClass.zero()];
-      const sum = AlgebraClass.zero();
+      Wi = [this.cls().scalar(), ...Wi, this.zeroed()];
+      const sum = this.zeroed();
       const k2 = Math.floor(k / 2);
       const res: AlgebraElement[] = eigen.slice(1).map(v => {
-        const N = AlgebraClass.zero();
-        const DN = AlgebraClass.zero();
+        const N = this.zeroed();
+        const DN = this.zeroed();
         for (let i = 0; i <= k2; ++i) {
           N.accumulate(Wi[2 * i + 1].scale(v ** (k2 - i)));
           DN.accumulate(Wi[2 * i].scale(v ** (k2 - i)));
         }
-        if (DN.vnorm() === 0) return AlgebraClass.zero();
+        if (DN.vnorm() === 0) return this.zeroed();
         const ret = N.div(DN);
         sum.accumulate(ret);
         return ret;
@@ -1609,7 +1114,7 @@ export default function Algebra(
         return Mi.scale(1 / scale);
       });
       R.push(
-        R.reduce((tot, fact) => tot.mul(fact.rev()), AlgebraClass.scalar()).mul(
+        R.reduce((tot, fact) => tot.mul(fact.rev()), this.cls().scalar()).mul(
           this
         )
       );
@@ -1688,8 +1193,10 @@ export default function Algebra(
     }
   }
 
+  const Result = pqrMixin(p, q, r, AlgebraClass);
+
   if (!unroll) {
-    return AlgebraClass;
+    return Result;
   }
 
   // === Replace generic code with optimized unrolled versions ===
@@ -1812,50 +1319,50 @@ export default function Algebra(
   type binaryOp = (other: AlgebraElement) => AlgebraElement;
   const prelude = 'const res=new this.constructor();\nconst t=this;\n';
   const finale = '\nreturn res;';
-  AlgebraClass.prototype.add = new Function(
+  Result.prototype.add = new Function(
     'o',
     prelude + addInner + finale
   ) as binaryOp;
-  AlgebraClass.prototype.sub = new Function(
+  Result.prototype.sub = new Function(
     'o',
     prelude + subInner + finale
   ) as binaryOp;
-  AlgebraClass.prototype.mul = new Function(
+  Result.prototype.mul = new Function(
     'o',
     prelude + mulLines.join('\n') + finale
   ) as binaryOp;
-  AlgebraClass.prototype.wedge = new Function(
+  Result.prototype.wedge = new Function(
     'o',
     prelude + wedgeLines.join('\n') + finale
   ) as binaryOp;
-  AlgebraClass.prototype.vee = new Function(
+  Result.prototype.vee = new Function(
     'o',
     prelude + veeLines.join('\n') + finale
   ) as binaryOp;
-  AlgebraClass.prototype.dot = new Function(
+  Result.prototype.dot = new Function(
     'o',
     prelude + dotLines.join('\n') + finale
   ) as binaryOp;
-  AlgebraClass.prototype.dotL = new Function(
+  Result.prototype.dotL = new Function(
     'o',
     prelude + dotLeftLines.join('\n') + finale
   ) as binaryOp;
 
-  AlgebraClass.prototype.square = new Function(
+  Result.prototype.square = new Function(
     '',
     prelude + squareLines.join('\n') + finale
   ) as () => AlgebraElement;
 
   // We lose the option to negotiate numeric precision but gain speed
-  AlgebraClass.prototype.rmul = function (other: AlgebraElement) {
+  Result.prototype.rmul = function (other: AlgebraElement) {
     return other.mul(this);
   };
-  AlgebraClass.prototype.rwedge = function (other: AlgebraElement) {
+  Result.prototype.rwedge = function (other: AlgebraElement) {
     return other.wedge(this);
   };
-  AlgebraClass.prototype.rvee = function (other: AlgebraElement) {
+  Result.prototype.rvee = function (other: AlgebraElement) {
     return other.vee(this);
   };
 
-  return AlgebraClass;
+  return Result;
 }
