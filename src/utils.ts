@@ -83,7 +83,10 @@ export function copysign(x: number, y: number) {
 
 export function complexSqrt(x: number, y: number) {
   const r = Math.hypot(x, y);
-  const sx = Math.sqrt((r + x) * 0.5);
-  const sy = copysign(Math.sqrt((r - x) * 0.5), y);
-  return [sx, sy];
+  return [Math.sqrt((r + x) * 0.5), copysign(Math.sqrt((r - x) * 0.5), y)];
+}
+
+export function splitComplexSqrt(x: number, y: number) {
+  const r = Math.sqrt(x * x - y * y);
+  return [Math.sqrt((x + r) * 0.5), copysign(Math.sqrt((x - r) * 0.5), y)];
 }

@@ -1,4 +1,4 @@
-import {complexSqrt, copysign, eigenValues} from './utils';
+import {complexSqrt, eigenValues} from './utils';
 import {type ElementBaseType, type AlgebraElement} from './element';
 import {pqrMixin} from './pqr';
 
@@ -530,37 +530,18 @@ export default function Algebra(
     // TODO: Move to pqr.ts
     sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
       if (!forceBabylon) {
-        if (dimensions === 0) {
-          return AlgebraClass.scalar(Math.sqrt(this.s));
-        } else if (dimensions === 1) {
-          if (p) {
-            const x = this.s;
-            const y = this.ps;
-            const r = Math.sqrt(x * x - y * y);
-            return new AlgebraClass([
-              Math.sqrt((x + r) * 0.5),
-              copysign(Math.sqrt((x - r) * 0.5), y),
-            ]);
-          } else if (q) {
-            return new AlgebraClass(complexSqrt(this.s, this.ps));
-          } else if (r) {
-            const s = Math.sqrt(this.s);
-            return new AlgebraClass([s, (0.5 * this.ps) / s]);
+        if (p === 0 && q === 2 && r === 0) {
+          const result = this.clone();
+          result.s = 0;
+          const imagNorm = result.vnorm();
+          const [x, y] = complexSqrt(this.s, imagNorm);
+          if (imagNorm < 1e-5) {
+            result.rescale(0.5);
+          } else {
+            result.rescale(y / imagNorm);
           }
-        } else if (dimensions === 2) {
-          if (q === 2) {
-            const result = this.clone();
-            result.s = 0;
-            const imagNorm = result.vnorm();
-            const [x, y] = complexSqrt(this.s, imagNorm);
-            if (imagNorm < 1e-5) {
-              result.rescale(0.5);
-            } else {
-              result.rescale(y / imagNorm);
-            }
-            result.s = x;
-            return result;
-          }
+          result.s = x;
+          return result;
         }
       }
       // Not quaranteed to converge. Barely better than nothing.
@@ -582,37 +563,18 @@ export default function Algebra(
     // TODO: Move to pqr.ts
     exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
       if (!forceTaylor) {
-        if (dimensions === 0) {
-          return AlgebraClass.scalar(Math.exp(this.s));
-        } else if (dimensions === 1) {
+        if (p === 0 && q === 2 && r === 0) {
           const expS = Math.exp(this.s);
-          if (p) {
-            return new AlgebraClass([
-              expS * Math.cosh(this.ps),
-              expS * Math.sinh(this.ps),
-            ]);
-          } else if (q) {
-            return new AlgebraClass([
-              expS * Math.cos(this.ps),
-              expS * Math.sin(this.ps),
-            ]);
-          } else if (r) {
-            return new AlgebraClass([expS, expS * this.ps]);
+          const result = this.clone();
+          result.s = 0;
+          const imagNorm = result.vnorm();
+          if (imagNorm < 1e-5) {
+            result.rescale(expS);
+          } else {
+            result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
           }
-        } else if (dimensions === 2) {
-          if (q === 2) {
-            const expS = Math.exp(this.s);
-            const result = this.clone();
-            result.s = 0;
-            const imagNorm = result.vnorm();
-            if (imagNorm < 1e-5) {
-              result.rescale(expS);
-            } else {
-              result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
-            }
-            result.s = expS * Math.cos(imagNorm);
-            return result;
-          }
+          result.s = expS * Math.cos(imagNorm);
+          return result;
         }
       }
       if (!forceTaylor) {
@@ -653,31 +615,14 @@ export default function Algebra(
 
     // TODO: Move to pqr.ts
     log(): AlgebraElement {
-      if (dimensions === 0) {
-        return AlgebraClass.scalar(Math.log(this.s));
-      } else if (dimensions === 1) {
-        if (p) {
-          const norm = Math.sqrt(this.s ** 2 - this.ps ** 2);
-          return new AlgebraClass([Math.log(norm), Math.asinh(this.ps / norm)]);
-        } else if (q) {
-          const norm = Math.hypot(this.s, this.ps);
-          return new AlgebraClass([
-            Math.log(norm),
-            Math.atan2(this.ps, this.s),
-          ]);
-        } else if (r) {
-          return new AlgebraClass([Math.log(this.s), this.ps / this.s]);
-        }
-      } else if (dimensions === 2) {
-        if (q === 2) {
-          const norm = this.vnorm();
-          const imag = this.clone();
-          imag.s = 0;
-          const imagNorm = imag.vnorm();
-          const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
-          result.s = Math.log(norm);
-          return result;
-        }
+      if (p === 0 && q === 2 && r === 0) {
+        const norm = this.vnorm();
+        const imag = this.clone();
+        imag.s = 0;
+        const imagNorm = imag.vnorm();
+        const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
+        result.s = Math.log(norm);
+        return result;
       }
 
       const sum = this.zeroed();
@@ -712,11 +657,7 @@ export default function Algebra(
       // Matrix-free inverses up to 5D
       // http://repository.essex.ac.uk/17282/1/TechReport_CES-534.pdf
       switch (dimensions) {
-        case 0:
-          return this.cls().scalar(1 / this.s);
-        case 1:
-          const involute = this.involute();
-          return involute.scale(1 / this.mul(involute).s);
+        // cases 0 and 1 completely covered by pqr.ts
         case 2:
           const conjugate = this.conjugate();
           return conjugate.scale(1 / this.mul(conjugate).s);

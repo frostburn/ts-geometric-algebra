@@ -1,6 +1,7 @@
 // Specialized implementations for particular metrics
 
 import {AlgebraElement} from './element';
+import {complexSqrt, splitComplexSqrt} from './utils';
 
 // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
 export function pqrMixin(
@@ -9,6 +10,241 @@ export function pqrMixin(
   r: number,
   baseClass: typeof AlgebraElement
 ): typeof AlgebraElement {
+  if (p === 0 && q === 0 && r === 0) {
+    class Scalar extends baseClass {
+      cls() {
+        return Scalar;
+      }
+
+      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+        if (forceBabylon) {
+          return super.sqrt(forceBabylon, numIter);
+        }
+        return this.cls().scalar(Math.sqrt(this.s));
+      }
+
+      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+        if (forceTaylor) {
+          return super.exp(forceTaylor, numTaylorTerms);
+        }
+        return this.cls().scalar(Math.exp(this.s));
+      }
+
+      log(): AlgebraElement {
+        return this.cls().scalar(Math.log(this.s));
+      }
+
+      inverse(): AlgebraElement {
+        return this.cls().scalar(1 / this.s);
+      }
+
+      static zero() {
+        return new Scalar().fill(0);
+      }
+      static scalar(magnitude = 1): AlgebraElement {
+        return new Scalar(baseClass.scalar(magnitude));
+      }
+      static pseudoscalar(magnitude = 1): AlgebraElement {
+        return new Scalar(baseClass.pseudoscalar(magnitude));
+      }
+      static basisVector(...indices: number[]): AlgebraElement {
+        return new Scalar(baseClass.basisVector(...indices));
+      }
+      static fromVector(
+        values: Iterable<number>,
+        grade?: number
+      ): AlgebraElement {
+        return new Scalar(baseClass.fromVector(values, grade));
+      }
+      static fromRotor(values: Iterable<number>): AlgebraElement {
+        return new Scalar(baseClass.fromRotor(values));
+      }
+      static fromGanja(values: Iterable<number>) {
+        return new Scalar(baseClass.fromGanja(values));
+      }
+    }
+    return Scalar;
+  }
+  if (p === 1 && q === 0 && r === 0) {
+    class SplitComplex extends baseClass {
+      cls() {
+        return SplitComplex;
+      }
+
+      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+        if (forceBabylon) {
+          return super.sqrt(forceBabylon, numIter);
+        }
+        return new (this.cls())(splitComplexSqrt(this.s, this.ps));
+      }
+
+      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+        if (forceTaylor) {
+          return super.exp(forceTaylor, numTaylorTerms);
+        }
+        const expS = Math.exp(this.s);
+        return new (this.cls())([
+          expS * Math.cosh(this.ps),
+          expS * Math.sinh(this.ps),
+        ]);
+      }
+
+      log(): AlgebraElement {
+        const norm = Math.sqrt(this.s ** 2 - this.ps ** 2);
+        return new (this.cls())([Math.log(norm), Math.asinh(this.ps / norm)]);
+      }
+
+      inverse(): AlgebraElement {
+        const involute = this.involute();
+        return involute.scale(1 / this.mul(involute).s);
+      }
+
+      static zero() {
+        return new SplitComplex().fill(0);
+      }
+      static scalar(magnitude = 1): AlgebraElement {
+        return new SplitComplex(baseClass.scalar(magnitude));
+      }
+      static pseudoscalar(magnitude = 1): AlgebraElement {
+        return new SplitComplex(baseClass.pseudoscalar(magnitude));
+      }
+      static basisVector(...indices: number[]): AlgebraElement {
+        return new SplitComplex(baseClass.basisVector(...indices));
+      }
+      static fromVector(
+        values: Iterable<number>,
+        grade?: number
+      ): AlgebraElement {
+        return new SplitComplex(baseClass.fromVector(values, grade));
+      }
+      static fromRotor(values: Iterable<number>): AlgebraElement {
+        return new SplitComplex(baseClass.fromRotor(values));
+      }
+      static fromGanja(values: Iterable<number>) {
+        return new SplitComplex(baseClass.fromGanja(values));
+      }
+    }
+    return SplitComplex;
+  }
+  if (p === 0 && q === 1 && r === 0) {
+    class Complex extends baseClass {
+      cls() {
+        return Complex;
+      }
+
+      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+        if (forceBabylon) {
+          return super.sqrt(forceBabylon, numIter);
+        }
+        return new (this.cls())(complexSqrt(this.s, this.ps));
+      }
+
+      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+        if (forceTaylor) {
+          return super.exp(forceTaylor, numTaylorTerms);
+        }
+        const expS = Math.exp(this.s);
+        return new (this.cls())([
+          expS * Math.cos(this.ps),
+          expS * Math.sin(this.ps),
+        ]);
+      }
+
+      log(): AlgebraElement {
+        const norm = Math.hypot(this.s, this.ps);
+        return new (this.cls())([Math.log(norm), Math.atan2(this.ps, this.s)]);
+      }
+
+      inverse(): AlgebraElement {
+        const involute = this.involute();
+        return involute.scale(1 / this.mul(involute).s);
+      }
+
+      static zero() {
+        return new Complex().fill(0);
+      }
+      static scalar(magnitude = 1): AlgebraElement {
+        return new Complex(baseClass.scalar(magnitude));
+      }
+      static pseudoscalar(magnitude = 1): AlgebraElement {
+        return new Complex(baseClass.pseudoscalar(magnitude));
+      }
+      static basisVector(...indices: number[]): AlgebraElement {
+        return new Complex(baseClass.basisVector(...indices));
+      }
+      static fromVector(
+        values: Iterable<number>,
+        grade?: number
+      ): AlgebraElement {
+        return new Complex(baseClass.fromVector(values, grade));
+      }
+      static fromRotor(values: Iterable<number>): AlgebraElement {
+        return new Complex(baseClass.fromRotor(values));
+      }
+      static fromGanja(values: Iterable<number>) {
+        return new Complex(baseClass.fromGanja(values));
+      }
+    }
+    return Complex;
+  }
+  if (p === 0 && q === 0 && r === 1) {
+    class Dual extends baseClass {
+      cls() {
+        return Dual;
+      }
+
+      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+        if (forceBabylon) {
+          return super.sqrt(forceBabylon, numIter);
+        }
+        const s = Math.sqrt(this.s);
+        return new (this.cls())([s, (0.5 * this.ps) / s]);
+      }
+
+      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+        if (forceTaylor) {
+          return super.exp(forceTaylor, numTaylorTerms);
+        }
+        const expS = Math.exp(this.s);
+        return new (this.cls())([expS, expS * this.ps]);
+      }
+
+      log(): AlgebraElement {
+        return new (this.cls())([Math.log(this.s), this.ps / this.s]);
+      }
+
+      inverse(): AlgebraElement {
+        const involute = this.involute();
+        return involute.scale(1 / this.mul(involute).s);
+      }
+
+      static zero() {
+        return new Dual().fill(0);
+      }
+      static scalar(magnitude = 1): AlgebraElement {
+        return new Dual(baseClass.scalar(magnitude));
+      }
+      static pseudoscalar(magnitude = 1): AlgebraElement {
+        return new Dual(baseClass.pseudoscalar(magnitude));
+      }
+      static basisVector(...indices: number[]): AlgebraElement {
+        return new Dual(baseClass.basisVector(...indices));
+      }
+      static fromVector(
+        values: Iterable<number>,
+        grade?: number
+      ): AlgebraElement {
+        return new Dual(baseClass.fromVector(values, grade));
+      }
+      static fromRotor(values: Iterable<number>): AlgebraElement {
+        return new Dual(baseClass.fromRotor(values));
+      }
+      static fromGanja(values: Iterable<number>) {
+        return new Dual(baseClass.fromGanja(values));
+      }
+    }
+    return Dual;
+  }
   if (p === 4 && q === 0 && r === 0) {
     class Elliptic3DPGA extends baseClass {
       cls() {
@@ -35,7 +271,7 @@ export function pqrMixin(
         const M = (2 ** 0.5 * N) / (N2 * N2 - T * T);
         const A = N2 * M,
           B = -T * M;
-        return Elliptic3DPGA.fromRotor([
+        return this.cls().fromRotor([
           A * X[0] + B * X[7],
           A * X[1] - B * X[6],
           A * X[2] + B * X[5],
@@ -99,7 +335,7 @@ export function pqrMixin(
         const M = (2 ** 0.5 * N) / (N2 * N2 + T * T);
         const A = N2 * M,
           B = -T * M;
-        return Hyperbolic3DPGA.fromRotor([
+        return this.cls().fromRotor([
           A * X[0] - B * X[7],
           A * X[1] + B * X[6],
           A * X[2] - B * X[5],
@@ -152,7 +388,7 @@ export function pqrMixin(
           1 / (X[0] * X[0] + X[4] * X[4] + X[5] * X[5] + X[6] * X[6]) ** 0.5;
         const B =
           (X[7] * X[0] - (X[1] * X[6] + X[2] * X[5] + X[3] * X[4])) * A * A * A;
-        return Euclidean3DPGA.fromRotor([
+        return this.cls().fromRotor([
           A * X[0],
           A * X[1] + B * X[6],
           A * X[2] + B * X[5],
@@ -170,13 +406,13 @@ export function pqrMixin(
         if (p === 3 && q === 0 && r === 1) {
           const l = B[3] * B[3] + B[4] * B[4] + B[5] * B[5];
           if (l === 0)
-            return Euclidean3DPGA.fromRotor([1, B[0], B[1], B[2], 0, 0, 0, 0]);
+            return this.cls().fromRotor([1, B[0], B[1], B[2], 0, 0, 0, 0]);
           const m = B[0] * B[5] + B[1] * B[4] + B[2] * B[3],
             a = Math.sqrt(l),
             c = Math.cos(a),
             s = Math.sin(a) / a,
             t = (m / l) * (c - s);
-          return Euclidean3DPGA.fromRotor([
+          return this.cls().fromRotor([
             c,
             s * B[0] + t * B[5],
             s * B[1] + t * B[4],
@@ -194,11 +430,11 @@ export function pqrMixin(
       rotorLog() {
         const R = this.rotor();
         if (R[0] === 1)
-          return Euclidean3DPGA.fromVector([R[1], R[2], R[3], 0, 0, 0], 2);
+          return this.cls().fromVector([R[1], R[2], R[3], 0, 0, 0], 2);
         const a = 1 / (1 - R[0] * R[0]);
         const b = Math.acos(R[0]) * Math.sqrt(a);
         const c = a * R[7] * (1 - R[0] * b);
-        return Euclidean3DPGA.fromVector(
+        return this.cls().fromVector(
           [
             c * R[6] + b * R[1],
             c * R[5] + b * R[2],
@@ -321,7 +557,7 @@ export function pqrMixin(
         const M = (2 ** 0.5 * N) / (N2 * N2 + TT);
         const A = N2 * M,
           [B1, B2, B3, B4, B5] = [-T1 * M, -T2 * M, -T3 * M, -T4 * M, -T5 * M];
-        return Conformal3DGA.fromRotor([
+        return this.cls().fromRotor([
           A * X[0] +
             B1 * X[11] -
             B2 * X[12] -
