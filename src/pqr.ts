@@ -245,6 +245,88 @@ export function pqrMixin(
     }
     return Dual;
   }
+  if (p === 0 && q === 2 && r === 0) {
+    class Quaternion extends baseClass {
+      cls() {
+        return Quaternion;
+      }
+
+      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+        if (forceBabylon) {
+          return super.sqrt(forceBabylon, numIter);
+        }
+        const result = this.clone();
+        result.s = 0;
+        const imagNorm = result.vnorm();
+        const [x, y] = complexSqrt(this.s, imagNorm);
+        if (imagNorm < 1e-5) {
+          result.rescale(0.5);
+        } else {
+          result.rescale(y / imagNorm);
+        }
+        result.s = x;
+        return result;
+      }
+
+      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+        if (forceTaylor) {
+          return super.exp(forceTaylor, numTaylorTerms);
+        }
+        const expS = Math.exp(this.s);
+        const result = this.clone();
+        result.s = 0;
+        const imagNorm = result.vnorm();
+        if (imagNorm < 1e-5) {
+          result.rescale(expS);
+        } else {
+          result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
+        }
+        result.s = expS * Math.cos(imagNorm);
+        return result;
+      }
+
+      log(): AlgebraElement {
+        const norm = this.vnorm();
+        const imag = this.clone();
+        imag.s = 0;
+        const imagNorm = imag.vnorm();
+        const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
+        result.s = Math.log(norm);
+        return result;
+      }
+
+      inverse(): AlgebraElement {
+        const conjugate = this.conjugate();
+        return conjugate.scale(1 / this.mul(conjugate).s);
+      }
+
+      static zero() {
+        return new Quaternion().fill(0);
+      }
+      static scalar(magnitude = 1): AlgebraElement {
+        return new Quaternion(baseClass.scalar(magnitude));
+      }
+      static pseudoscalar(magnitude = 1): AlgebraElement {
+        return new Quaternion(baseClass.pseudoscalar(magnitude));
+      }
+      static basisVector(...indices: number[]): AlgebraElement {
+        return new Quaternion(baseClass.basisVector(...indices));
+      }
+      static fromVector(
+        values: Iterable<number>,
+        grade?: number
+      ): AlgebraElement {
+        return new Quaternion(baseClass.fromVector(values, grade));
+      }
+      static fromRotor(values: Iterable<number>): AlgebraElement {
+        return new Quaternion(baseClass.fromRotor(values));
+      }
+      static fromGanja(values: Iterable<number>) {
+        return new Quaternion(baseClass.fromGanja(values));
+      }
+    }
+    return Quaternion;
+  }
   if (p === 4 && q === 0 && r === 0) {
     class Elliptic3DPGA extends baseClass {
       cls() {

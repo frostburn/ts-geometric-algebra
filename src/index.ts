@@ -1,4 +1,4 @@
-import {complexSqrt, eigenValues} from './utils';
+import {eigenValues} from './utils';
 import {type ElementBaseType, type AlgebraElement} from './element';
 import {pqrMixin} from './pqr';
 
@@ -527,23 +527,8 @@ export default function Algebra(
       throw new Error('Do not know how to normalize a rotor in this algebra');
     }
 
-    // TODO: Move to pqr.ts
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      if (!forceBabylon) {
-        if (p === 0 && q === 2 && r === 0) {
-          const result = this.clone();
-          result.s = 0;
-          const imagNorm = result.vnorm();
-          const [x, y] = complexSqrt(this.s, imagNorm);
-          if (imagNorm < 1e-5) {
-            result.rescale(0.5);
-          } else {
-            result.rescale(y / imagNorm);
-          }
-          result.s = x;
-          return result;
-        }
-      }
       // Not quaranteed to converge. Barely better than nothing.
       // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
       const root = this.clone();
@@ -560,23 +545,7 @@ export default function Algebra(
       return root.rotorNormalize();
     }
 
-    // TODO: Move to pqr.ts
     exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-      if (!forceTaylor) {
-        if (p === 0 && q === 2 && r === 0) {
-          const expS = Math.exp(this.s);
-          const result = this.clone();
-          result.s = 0;
-          const imagNorm = result.vnorm();
-          if (imagNorm < 1e-5) {
-            result.rescale(expS);
-          } else {
-            result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
-          }
-          result.s = expS * Math.cos(imagNorm);
-          return result;
-        }
-      }
       if (!forceTaylor) {
         // Closed form exp
         const grade2 = this.clone();
@@ -613,18 +582,7 @@ export default function Algebra(
       return this.exp();
     }
 
-    // TODO: Move to pqr.ts
     log(): AlgebraElement {
-      if (p === 0 && q === 2 && r === 0) {
-        const norm = this.vnorm();
-        const imag = this.clone();
-        imag.s = 0;
-        const imagNorm = imag.vnorm();
-        const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
-        result.s = Math.log(norm);
-        return result;
-      }
-
       const sum = this.zeroed();
       this.factorize().forEach(bi => {
         const [ci, si] = [bi.s, bi.grade(2)];
@@ -715,10 +673,8 @@ export default function Algebra(
           return this.cls().scalar(Math.pow(this.s, power));
         } else if (dimensions === 1) {
           return this.log().scale(power).exp();
-        } else if (dimensions === 2) {
-          if (q === 2) {
-            return this.log().scale(power).exp();
-          }
+        } else if (p === 0 && q === 2 && r === 0) {
+          return this.log().scale(power).exp();
         }
         let epsilon = this.sqrt();
         power *= 2;
