@@ -524,6 +524,9 @@ export default function Algebra(
     }
 
     rotorNormalize(): AlgebraElement {
+      if (dimensions <= 2) {
+        return this.normalize();
+      }
       throw new Error('Do not know how to normalize a rotor in this algebra');
     }
 
@@ -531,8 +534,7 @@ export default function Algebra(
     sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
       // Not quaranteed to converge. Barely better than nothing.
       // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-      const root = this.clone();
-      root.s += 1;
+      const root = this.plus(1);
       for (let i = 1; i < numIter; ++i) {
         root.accumulate(this.div(root)).rescale(0.5);
       }
@@ -540,16 +542,14 @@ export default function Algebra(
     }
 
     rotorSqrt(): AlgebraElement {
-      const root = this.clone();
-      root.s += 1;
+      const root = this.plus(1);
       return root.rotorNormalize();
     }
 
     exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
       if (!forceTaylor) {
         // Closed form exp
-        const grade2 = this.clone();
-        grade2.s = 0;
+        const grade2 = this.imag();
         if (grade2.isGrade(2)) {
           return grade2.split().reduce((total, simple) => {
             const square = simple.square().s;
@@ -644,8 +644,7 @@ export default function Algebra(
           let Uk = this.scale(1);
           let adjU: AlgebraElement;
           for (let k = 1; k < N; ++k) {
-            adjU = Uk.clone();
-            adjU.s -= (N / k) * Uk.s;
+            adjU = Uk.plus(-(N / k) * Uk.s);
             Uk = this.mul(adjU);
           }
           return Uk.s === 0 ? this.zeroed() : adjU!.scale(1 / Uk.s);
@@ -890,6 +889,12 @@ export default function Algebra(
       return this;
     }
 
+    imag() {
+      const result = this.clone();
+      result.s = 0;
+      return result;
+    }
+
     even() {
       const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
@@ -933,6 +938,12 @@ export default function Algebra(
     // Ganja.js compatible representation
     ganja() {
       return new baseType(indexString.map(g => this[g[0]]));
+    }
+
+    plus(scalar: number) {
+      const result = this.clone();
+      result.s += scalar;
+      return result;
     }
 
     accumulate(other: AlgebraElement) {

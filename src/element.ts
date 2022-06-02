@@ -198,6 +198,7 @@ export declare class AlgebraElement extends ElementBaseType {
   star(other: AlgebraElement): AlgebraElement; // Scalar product
 
   // Subsets
+  imag(): AlgebraElement;
   even(): AlgebraElement;
   grade(grade: number): AlgebraElement;
 
@@ -207,6 +208,7 @@ export declare class AlgebraElement extends ElementBaseType {
   ganja(): ElementBaseType;
 
   // Misc
+  plus(scalar: number): AlgebraElement;
   rescale(scalar: number): this;
   accumulate(other: AlgebraElement): this;
   split(iter?: number): AlgebraElement[];

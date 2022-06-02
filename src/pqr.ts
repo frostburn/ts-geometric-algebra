@@ -255,8 +255,7 @@ export function pqrMixin(
         if (forceBabylon) {
           return super.sqrt(forceBabylon, numIter);
         }
-        const result = this.clone();
-        result.s = 0;
+        const result = this.imag();
         const imagNorm = result.vnorm();
         const [x, y] = complexSqrt(this.s, imagNorm);
         if (imagNorm < 1e-5) {
@@ -273,8 +272,7 @@ export function pqrMixin(
           return super.exp(forceTaylor, numTaylorTerms);
         }
         const expS = Math.exp(this.s);
-        const result = this.clone();
-        result.s = 0;
+        const result = this.imag();
         const imagNorm = result.vnorm();
         if (imagNorm < 1e-5) {
           result.rescale(expS);
@@ -287,8 +285,7 @@ export function pqrMixin(
 
       log(): AlgebraElement {
         const norm = this.vnorm();
-        const imag = this.clone();
-        imag.s = 0;
+        const imag = this.imag();
         const imagNorm = imag.vnorm();
         const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
         result.s = Math.log(norm);
