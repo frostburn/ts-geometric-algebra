@@ -620,7 +620,7 @@ export default function Algebra(
       return result;
     }
 
-    rmul(other: AlgebraElement): AlgebraElement {
+    lmul(other: AlgebraElement): AlgebraElement {
       const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
@@ -660,7 +660,7 @@ export default function Algebra(
       return result;
     }
 
-    rwedge(other: AlgebraElement): AlgebraElement {
+    lwedge(other: AlgebraElement): AlgebraElement {
       const result = this.zeroed();
       for (let i = 0; i < this.length; ++i) {
         if (!this[i]) {
@@ -679,8 +679,8 @@ export default function Algebra(
       return other.dual().wedge(this.dual()).undual();
     }
 
-    rvee(other: AlgebraElement): AlgebraElement {
-      return other.dual().rwedge(this.dual()).undual();
+    lvee(other: AlgebraElement): AlgebraElement {
+      return other.dual().lwedge(this.dual()).undual();
     }
 
     rotorMean(other: AlgebraElement) {
@@ -717,8 +717,16 @@ export default function Algebra(
       return this.contract(other, left);
     }
 
+    ldotL(other: AlgebraElement) {
+      return other.contract(this, left);
+    }
+
     dotR(other: AlgebraElement) {
       return this.contract(other, right);
+    }
+
+    ldotR(other: AlgebraElement) {
+      return other.contract(this, right);
     }
 
     star(maybeOther?: AlgebraElement) {
@@ -1132,14 +1140,17 @@ export default function Algebra(
   ) as () => AlgebraElement;
 
   // We lose the option to negotiate numeric precision but gain speed
-  Result.prototype.rmul = function (other: AlgebraElement) {
+  Result.prototype.lmul = function (other: AlgebraElement) {
     return other.mul(this);
   };
-  Result.prototype.rwedge = function (other: AlgebraElement) {
+  Result.prototype.lwedge = function (other: AlgebraElement) {
     return other.wedge(this);
   };
-  Result.prototype.rvee = function (other: AlgebraElement) {
+  Result.prototype.lvee = function (other: AlgebraElement) {
     return other.vee(this);
+  };
+  Result.prototype.ldotL = function (other: AlgebraElement) {
+    return other.dotL(this);
   };
 
   return Result;

@@ -183,14 +183,14 @@ export declare class AlgebraElement extends ElementBaseType {
   add(other: AlgebraElement): AlgebraElement;
   sub(other: AlgebraElement): AlgebraElement;
   mul(other: AlgebraElement): AlgebraElement;
-  rmul(other: AlgebraElement): AlgebraElement;
+  lmul(other: AlgebraElement): AlgebraElement;
   div(other: AlgebraElement): AlgebraElement;
   ldiv(other: AlgebraElement): AlgebraElement;
   ldivs(other: AlgebraElement): AlgebraElement;
   wedge(other: AlgebraElement): AlgebraElement;
-  rwedge(other: AlgebraElement): AlgebraElement;
+  lwedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
-  rvee(other: AlgebraElement): AlgebraElement;
+  lvee(other: AlgebraElement): AlgebraElement;
   rotorMean(other: AlgebraElement): AlgebraElement;
   // Contractions
   contract(
@@ -199,7 +199,9 @@ export declare class AlgebraElement extends ElementBaseType {
   ): AlgebraElement;
   dot(other: AlgebraElement): AlgebraElement; // Symmetric contraction
   dotL(other: AlgebraElement): AlgebraElement; // Left contraction
+  ldotL(other: AlgebraElement): AlgebraElement; // Left contraction
   dotR(other: AlgebraElement): AlgebraElement; // Right contraction
+  ldotR(other: AlgebraElement): AlgebraElement; // Right contraction
   star(): AlgebraElement; // Dischord dual
   star(other: AlgebraElement): AlgebraElement; // Scalar product
 

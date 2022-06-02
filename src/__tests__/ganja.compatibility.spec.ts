@@ -138,6 +138,18 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
             expect(
               Ga.fromGanja(ganjaA.Vee(ganjaB)).closeTo(a.vee(b))
             ).toBeTruthy();
+
+            expect(
+              Ga.fromGanja(ganjaA.Map(1, 3)).closeTo(a.negateGrades(1, 3))
+            );
+
+            expect(
+              Ga.fromVector(ganjaA.Vector).closeTo(a.grade(1))
+            ).toBeTruthy();
+
+            expect(
+              Ga.fromGanja(Ganja.Bivector(...a.vector(2))).closeTo(a.grade(2))
+            ).toBeTruthy();
           }
         }
       }

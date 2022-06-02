@@ -96,7 +96,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.rev()`            | `rev(x)`              | `x.Reverse`      | Reversal of basis factors {`x.reverse` is array reversal} |
 | `x.conjugate()`      | `conjugate(x)`        | `x.Conjugate`    | Conjugation (combined involution and reversal) |
 | `x.inverse()`        | `inverse(x)`          | `x.Inverse`      | Multiplicative inverse |
-| `x.square()`         | `square(x)`           | `x.Mul(x)`       | Multiplicative squaring (optimized) |
+| `x.square()`         | `square(x)`           | `x.Mul(x)`       | Multiplicative squaring (**) |
 | `x.normalize(a?)`    | `normalize(x, a?)`    | `x.Normalize`    | `x` with norm set to `a` (default 1) |
 | `x.rotorNormalize()` | `rotorNormalize(x)`   | N/A              | Normalize rotor `x` |
 | `x.sqrt()`           | `sqrt(x)`             | N/A              | Square root. Currently reliable only in dimensions < 2 |
@@ -110,44 +110,50 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.undual()`         | `undual(x)`           | N/A              | Inverse of `x.dual()` |
 | `x.scale(a)`         | `scale(x, a)`         | `x.Scale(a)`     | Scalar multiplication |
 | `x.pow(n)`           | `pow(x, n)`           | `x.Pow(n)`       | Multiply `x` with itself `n` times |
-| `x.applyWeights(ws)` | ...                   | ...              | ... |
-| `x.negateGrades(...gs)` | ... | ... | ... |
-| `x.add(y)` | ... | ... | ... |
-| `x.sub(y)` | ... | ... | ... |
-| `x.mul(y)` | ... | ... | ... |
-| `x.rmul(y)` | ... | ... | ... |
-| `x.div(y)` | ... | ... | ... |
-| `x.ldiv(y)` | ... | ... | ... |
-| `x.ldivs(y)` | ... | ... | ... |
-| `x.wedge(y)` | ... | ... | ... |
-| `x.rwedge(y)` | ... | ... | ... |
-| `x.vee(y)` | ... | ... | ... |
-| `x.rvee(y)` | ... | ... | ... |
-| `x.rotorMean(y)` | ... | ... | ... |
-| `x.contract(y, ctn)` | ... | ... | ... |
-| `x.dot(y)` | ... | ... | ... |
-| `x.dotL(y)` | ... | ... | ... |
-| `x.dotR(y)` | ... | ... | ... |
-| `x.star(y)` | ... | ... | ... |
-| `x.imag()` | ... | ... | ... |
-| `x.even()` | ... | ... | ... |
-| `x.grade(1)` | ... | ... | ... |
-| `x.grade(2)` | ... | ... | ... |
-| `x.grade(n)` | ... | ... | ... |
-| `x.vector()` | ... | ... | ... |
-| `x.rotor()` | ... | ... | ... |
-| `x.ganja()` | ... | ... | ... |
-| `Cl.zero()` | ... | ... | ... |
-| `Cl.scalar()` | ... | ... | ... |
-| `Cl.pseudoscalar()` | ... | ... | ... |
-| `Cl.basisBlade(...idx)` | ... | ... | ... |
-| `Cl.fromVector(vs, g)` | ... | ... | ... |
-| `Cl.fromRotor(vs)` | ... | ... | ... |
-| `Cl.fromGanja(vs)` | ... | ... | ... |
-| `Cl.dimensions` | ... | ... | ... |
-| `Cl.size` | ... | ... | ... |
+| `x.applyWeights(ws)` | `applyWeights(x, ws)` | N/A              | Replace each basis factor with a weighted copy for every weight in `ws` |
+| `x.negateGrades(...gs)` | `negateGrades(x, ...gs)` | `x.Map(...gs)` | Negate the given grades |
+| `x.add(y)`           | `add(x, y)`           | `x.Add(y)`       | Component-wise addition (**) |
+| `x.sub(y)`           | `sub(x, y)`           | `x.Sub(y)`       | Component-wise subtraction (**) |
+| `x.mul(y)`           | `mul(x, y)`           | `x.Mul(y)`       | Geometric product of `x` and `y` (**) |
+| `x.lmul(y)`          | `mul(y, x)`           | `y.Mul(x)`       | Geometric product from the left (**) |
+| `x.div(y)`           | `div(x, y)`           | `x.Div(y)`       | Geometric division from the right |
+| `x.ldiv(y)`          | `mul(inverse(y), x)`  | `y.Inverse.Mul(x)` | Left inverse product |
+| `x.ldivs(y)`         | `mul(inverse(x), y)`  | `x.Inverse.Mul(y)` | Geometric division from the left |
+| `x.wedge(y)`         | `wedge(x, y)`         | `x.Wedge(y)`     | Wedge (outer) product. Metric independent (**) |
+| `x.lwedge(y)`        | `wedge(y, x)`         | `y.Wedge(x)`     | Wedge product from the left (**) |
+| `x.vee(y)`           | `vee(x, y)`           | `x.Vee(y)`       | Vee (dual) product. Metric indepentend. `vee(x, y) = undual(dual(y), dual(x))` (**) |
+| `x.lvee(y)`          | `vee(y, x)`           | `y.Vee(x)`       | Vee product from the left (**) |
+| `x.rotorMean(y)`     | `rotorMean(x, y)`     | N/A              | Geometric mean of rotors `x` and `y` |
+| `x.contract(y, ctn)` | `contract(x, y, ctn)` | N/A              | Contract `x` by `y` using criterion `ctn` |
+| `x.dot(y)`           | `dot(x, y)`           | `x.Dot(y)`       | Dot product. Symmetric criterion (**) |
+| `x.dotL(y)`          | `dotL(x, y)`          | `x.LDot(y)`      | Left contraction of `x` by `y` (**) |
+| `x.ldotL(y)`         | `dotL(y, x)`          | `y.LDot(x)`      | Left contraction of `y` by `x` (**) |
+| `x.dotR(y)`          | `dotR(x, y)`          | N/A              | Right contraction of `x` by `y` |
+| `x.ldotR(y)`         | `dotR(y, x)`          | N/A              | Right contraction of `y` by `x` |
+| `x.star(y)`          | `star(x, y)`          | N/A              | Scalar product. Nil criterion |
+| `x.imag()`           | `imag(x)`             | N/A              | Filter out grade 0 |
+| `x.even()`           | `even(x)`             | `x.Even()`       | Filter out odd grades |
+| `x.grade(n)`         | `grade(x, n)`         | `x.Grade(n)`     | Keep only grade `n` components |
+| `x.vector()`         | N/A                   | `x.Vector`       | Array of vector components |
+| `x.vector(n)`        | N/A                   | N/A              | Array of `n`-vector components |
+| `x.rotor()`          | N/A                   | N/A              | Array of components of even grade |
+| `x.ganja()`          | N/A                   | `x`              | Array of all components in lexicographic order |
+| `Cl.zero()`          | N/A                   | `Cl.Scalar(0)`   | Zero element |
+| `Cl.scalar(a?)`      | N/A                   | `Cl.Scalar(a)`   | Scalar element of size `a` (default `1`) |
+| `Cl.pseudoscalar(a?)` | N/A                  | N/A              | Pseudoscalar element of size `a` (default `1`) |
+| `Cl.basisBlade(...idx)` | N/A                | N/A              | Unit basis blade given by the product of the given basis factors |
+| `Cl.fromVector(vs)`  | N/A                   | `Cl.Vector(...vs)` | Vector element with given components (from an array) |
+| `Cl.fromVector(vs, 2)` | N/A                 | `Cl.Bivector(...vs)` | Bivector element with given components (lexicographic order) |
+| `Cl.fromVector(vs, 3)` | N/A                 | `Cl.Trivector(...vs)` | Trivector element with given components |
+| `Cl.fromVector(vs, g)` | N/A                 | `Cl.nVector(g, ...vs)` | `g`-vector element with given components |
+| `Cl.fromRotor(vs)`   | N/A                   | N/A              | Even grade element with given components |
+| `Cl.fromGanja(vs)`   | N/A                   | `new Cl(vs)`     | New element with components given in lexicographic order |
+| `Cl.dimensions`      | N/A                   | `-->` | `Math.log(Cl.describe().basis.length)/Math.log(2)` number of dimensions |
+| `Cl.size`            | N/A                   | `-->` | `Cl.describe().basis.length` algebra size |
+| `new Cl(vs)`         | N/A                   | N/A   | New element with components given in bit field order (Not recommended, use `fromGanja` instead) |
 
 (*) Only in degenerate metrics
+(**) Loop unrolled for maximum performance
 
 ### Dual Zoo
 | Object oriented      | Function Oriented     | Ganja Equivalent    | Explanation     |

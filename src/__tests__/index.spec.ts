@@ -353,18 +353,20 @@ describe('Geometric Algebra', () => {
       expect(a.dual().undual().equals(a)).toBeTruthy();
 
       // Binary
-      expect(a.mul(b).closeTo(b.rmul(a))).toBeTruthy();
-      expect(a.wedge(b).closeTo(b.rwedge(a))).toBeTruthy();
+      expect(a.mul(b).closeTo(b.lmul(a))).toBeTruthy();
+      expect(a.wedge(b).closeTo(b.lwedge(a))).toBeTruthy();
       expect(a.vee(b).closeTo(b.dual().wedge(a.dual()).undual())).toBeTruthy();
-      expect(a.vee(b).closeTo(b.rvee(a))).toBeTruthy();
+      expect(a.vee(b).closeTo(b.lvee(a))).toBeTruthy();
+      expect(a.dotL(b).closeTo(b.ldotL(a))).toBeTruthy();
+      expect(a.dotR(b).closeTo(b.ldotR(a))).toBeTruthy();
 
       // Grade sign manipulation
       expect(
         a.involute().mul(b.involute()).involute().closeTo(a.mul(b))
       ).toBeTruthy();
-      expect(a.rev().mul(b.rev()).rev().closeTo(a.rmul(b))).toBeTruthy();
+      expect(a.rev().mul(b.rev()).rev().closeTo(a.lmul(b))).toBeTruthy();
       expect(
-        a.conjugate().mul(b.conjugate()).conjugate().closeTo(a.rmul(b))
+        a.conjugate().mul(b.conjugate()).conjugate().closeTo(a.lmul(b))
       ).toBeTruthy();
       expect(a.rev().involute().equals(a.conjugate())).toBeTruthy();
 
