@@ -803,6 +803,9 @@ describe('Geometric Algebra', () => {
                 expect(
                   ei.wedge(ej.hodge()).equals(ei.dot(ej).mul(pseudoscalar))
                 ).toBeTruthy();
+                expect(
+                  ei.hodgeL().wedge(ej).equals(ei.dot(ej).mul(pseudoscalar))
+                ).toBeTruthy();
               }
             }
           }
@@ -818,16 +821,24 @@ describe('Geometric Algebra', () => {
             // Dischord dual
             expect(basis.star().isNil()).toBeFalsy();
             expect(basis.star().unstar().equals(basis)).toBeTruthy();
+            expect(basis.starL().isNil()).toBeFalsy();
+            expect(basis.starL().unstarL().equals(basis)).toBeTruthy();
 
             // Hodge
             expect(basis.hodge().isNil()).toBeFalsy();
             expect(basis.hodge().unhodge().equals(basis)).toBeTruthy();
+            expect(basis.hodgeL().isNil()).toBeFalsy();
+            expect(basis.hodgeL().unhodgeL().equals(basis)).toBeTruthy();
 
             // Oldskool
             if (r === 0) {
               expect(basis.podge().isNil()).toBeFalsy();
               expect(basis.podge().unpodge().equals(basis)).toBeTruthy();
               expect(basis.podge().equals(basis.star())).toBeTruthy();
+
+              expect(basis.podgeL().isNil()).toBeFalsy();
+              expect(basis.podgeL().unpodgeL().equals(basis)).toBeTruthy();
+              expect(basis.podgeL().equals(basis.starL())).toBeTruthy();
             }
             expect(basis.podge().equals(basis.mul(pseudoscalar))).toBeTruthy();
             const unpodge = basis.unpodge();
@@ -839,6 +850,19 @@ describe('Geometric Algebra', () => {
               if (!unpodge.isNil()) {
                 expect(unpodge.podge().equals(basis)).toBeTruthy();
                 expect(unpodge.equals(basis.unstar())).toBeTruthy();
+              }
+            }
+
+            expect(basis.podgeL().equals(pseudoscalar.mul(basis))).toBeTruthy();
+            const unpodgeL = basis.unpodgeL();
+            const expectedL = pseudoscalar.ldivs(basis);
+            if (unpodgeL.hasNaN()) {
+              expect(expectedL.hasNaN());
+            } else {
+              expect(unpodgeL.equals(expectedL)).toBeTruthy();
+              if (!unpodgeL.isNil()) {
+                expect(unpodgeL.podgeL().equals(basis)).toBeTruthy();
+                expect(unpodgeL.equals(basis.unstarL())).toBeTruthy();
               }
             }
           }

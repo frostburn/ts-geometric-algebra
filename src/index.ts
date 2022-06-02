@@ -312,6 +312,20 @@ export default function Algebra(
       }
       return result;
     }
+    podgeL(): AlgebraElement {
+      const result = this.empty();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] = this[i] * mulTable[indexMask][i];
+      }
+      return result;
+    }
+    unpodgeL(): AlgebraElement {
+      const result = this.empty();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] = this[i] / mulTable[indexMask][indexMask ^ i];
+      }
+      return result;
+    }
 
     // See star() overload for forward implementation
     unstar(): AlgebraElement {
@@ -319,6 +333,21 @@ export default function Algebra(
       for (let i = 0; i < this.length; ++i) {
         result[indexMask ^ i] =
           this[i] * (mulTable[indexMask ^ i][indexMask] || 1);
+      }
+      return result;
+    }
+    starL(): AlgebraElement {
+      const result = this.empty();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] = this[i] * (mulTable[indexMask][i] || 1);
+      }
+      return result;
+    }
+    unstarL(): AlgebraElement {
+      const result = this.empty();
+      for (let i = 0; i < this.length; ++i) {
+        result[indexMask ^ i] =
+          this[i] * (mulTable[indexMask][indexMask ^ i] || 1);
       }
       return result;
     }
@@ -338,6 +367,24 @@ export default function Algebra(
         const dualIndex = indexMask ^ i;
         result[dualIndex] =
           this[i] * (mulTable[dualIndex][indexMask] || mulTable[dualIndex][i]);
+      }
+      return result;
+    }
+    hodgeL(): AlgebraElement {
+      const result = this.empty();
+      for (let i = 0; i < this.length; ++i) {
+        const dualIndex = indexMask ^ i;
+        result[dualIndex] =
+          this[i] * (mulTable[indexMask][i] || mulTable[dualIndex][i]);
+      }
+      return result;
+    }
+    unhodgeL(): AlgebraElement {
+      const result = this.empty();
+      for (let i = 0; i < this.length; ++i) {
+        const dualIndex = indexMask ^ i;
+        result[dualIndex] =
+          this[i] * (mulTable[indexMask][dualIndex] || mulTable[i][dualIndex]);
       }
       return result;
     }

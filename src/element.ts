@@ -158,10 +158,16 @@ export declare class AlgebraElement extends ElementBaseType {
   undual(): AlgebraElement;
   podge(): AlgebraElement;
   unpodge(): AlgebraElement;
+  podgeL(): AlgebraElement;
+  unpodgeL(): AlgebraElement;
   // See star() for forward implementation
   unstar(): AlgebraElement;
+  starL(): AlgebraElement;
+  unstarL(): AlgebraElement;
   hodge(): AlgebraElement;
   unhodge(): AlgebraElement;
+  hodgeL(): AlgebraElement;
+  unhodgeL(): AlgebraElement;
 
   // Scalar operations
   scale(scalar: number): AlgebraElement;
@@ -335,15 +341,33 @@ export function podge(element: AlgebraElement): AlgebraElement {
 export function unpodge(element: AlgebraElement): AlgebraElement {
   return element.unpodge();
 }
+export function podgeL(element: AlgebraElement): AlgebraElement {
+  return element.podgeL();
+}
+export function unpodgeL(element: AlgebraElement): AlgebraElement {
+  return element.unpodgeL();
+}
 // See star overload for forward implementation
 export function unstar(element: AlgebraElement): AlgebraElement {
   return element.unstar();
+}
+export function starL(element: AlgebraElement): AlgebraElement {
+  return element.starL();
+}
+export function unstarL(element: AlgebraElement): AlgebraElement {
+  return element.unstarL();
 }
 export function hodge(element: AlgebraElement): AlgebraElement {
   return element.hodge();
 }
 export function unhodge(element: AlgebraElement): AlgebraElement {
   return element.unhodge();
+}
+export function hodgeL(element: AlgebraElement): AlgebraElement {
+  return element.hodgeL();
+}
+export function unhodgeL(element: AlgebraElement): AlgebraElement {
+  return element.unhodgeL();
 }
 
 // Scalar operations

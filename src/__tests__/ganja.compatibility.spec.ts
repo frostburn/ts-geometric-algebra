@@ -95,14 +95,10 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
             const ganjaA = new Ganja(a.ganja());
             const ganjaB = new Ganja(b.ganja());
 
-            const pseudoscalar = Ga.pseudoscalar();
-
             if (r) {
               expect(Ga.fromGanja(ganjaA.Dual).equals(a.dual())).toBeTruthy();
             } else {
-              expect(
-                Ga.fromGanja(ganjaA.Dual).closeTo(pseudoscalar.mul(a))
-              ).toBeTruthy();
+              expect(Ga.fromGanja(ganjaA.Dual).closeTo(a.starL())).toBeTruthy();
             }
 
             if (p + q + r > 0) {
