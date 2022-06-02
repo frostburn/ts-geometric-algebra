@@ -17,17 +17,17 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
     const Cl4 = Algebra(4);
     const GanjaCl4 = GanjaAlgebra(4);
 
-    const scalar = Cl4.basisVector();
-    const e0 = Cl4.basisVector(0);
-    const e1 = Cl4.basisVector(1);
-    const e2 = Cl4.basisVector(2);
-    const e3 = Cl4.basisVector(3);
-    const e01 = Cl4.basisVector(0, 1);
-    const e02 = Cl4.basisVector(0, 2);
-    const e03 = Cl4.basisVector(0, 3);
-    const e12 = Cl4.basisVector(1, 2);
-    const e13 = Cl4.basisVector(1, 3);
-    const e23 = Cl4.basisVector(2, 3);
+    const scalar = Cl4.basisBlade();
+    const e0 = Cl4.basisBlade(0);
+    const e1 = Cl4.basisBlade(1);
+    const e2 = Cl4.basisBlade(2);
+    const e3 = Cl4.basisBlade(3);
+    const e01 = Cl4.basisBlade(0, 1);
+    const e02 = Cl4.basisBlade(0, 2);
+    const e03 = Cl4.basisBlade(0, 3);
+    const e12 = Cl4.basisBlade(1, 2);
+    const e13 = Cl4.basisBlade(1, 3);
+    const e23 = Cl4.basisBlade(2, 3);
 
     const gScalar = new GanjaCl4(scalar.ganja());
     const gE0 = new GanjaCl4(e0.ganja());
@@ -58,10 +58,10 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
     const Ga = Algebra(1, 0, 1);
     const Ganja = GanjaAlgebra(1, 0, 1);
 
-    const scalar = Ga.basisVector();
-    const e0 = Ga.basisVector(0);
-    const e1 = Ga.basisVector(1);
-    const pseudoscalar = Ga.basisVector(0, 1);
+    const scalar = Ga.basisBlade();
+    const e0 = Ga.basisBlade(0);
+    const e1 = Ga.basisBlade(1);
+    const pseudoscalar = Ga.basisBlade(0, 1);
 
     const gScalar = new Ganja(scalar.ganja());
     const gE0 = new Ganja(e0.ganja());

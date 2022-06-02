@@ -224,7 +224,7 @@ export declare class AlgebraElement extends ElementBaseType {
   static zero(): AlgebraElement;
   static scalar(magnitude?: number): AlgebraElement;
   static pseudoscalar(magnitude?: number): AlgebraElement;
-  static basisVector(...indices: number[]): AlgebraElement;
+  static basisBlade(...indices: number[]): AlgebraElement;
   static fromVector(values: Iterable<number>, grade?: number): AlgebraElement;
   static fromRotor(values: Iterable<number>): AlgebraElement;
   static fromGanja(values: Iterable<number>): AlgebraElement;

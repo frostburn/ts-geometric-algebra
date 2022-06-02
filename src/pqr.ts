@@ -47,8 +47,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Scalar(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Scalar(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Scalar(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -108,8 +108,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new SplitComplex(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new SplitComplex(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new SplitComplex(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -169,8 +169,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Complex(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Complex(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Complex(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -227,8 +227,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Dual(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Dual(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Dual(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -306,8 +306,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Quaternion(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Quaternion(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Quaternion(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -371,8 +371,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Elliptic3DPGA(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Elliptic3DPGA(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Elliptic3DPGA(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -435,8 +435,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Hyperbolic3DPGA(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Hyperbolic3DPGA(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Hyperbolic3DPGA(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -534,8 +534,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Euclidean3DPGA(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Euclidean3DPGA(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Euclidean3DPGA(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,
@@ -730,8 +730,8 @@ export function pqrMixin(
       static pseudoscalar(magnitude = 1): AlgebraElement {
         return new Conformal3DGA(baseClass.pseudoscalar(magnitude));
       }
-      static basisVector(...indices: number[]): AlgebraElement {
-        return new Conformal3DGA(baseClass.basisVector(...indices));
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new Conformal3DGA(baseClass.basisBlade(...indices));
       }
       static fromVector(
         values: Iterable<number>,

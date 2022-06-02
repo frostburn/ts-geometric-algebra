@@ -28,17 +28,17 @@ describe('Geometric Algebra', () => {
   it('supports a positive metric', () => {
     const Cl3 = Algebra(3);
 
-    const scalar = Cl3.basisVector();
+    const scalar = Cl3.basisBlade();
 
-    const e0 = Cl3.basisVector(0);
-    const e1 = Cl3.basisVector(1);
-    const e2 = Cl3.basisVector(2);
+    const e0 = Cl3.basisBlade(0);
+    const e1 = Cl3.basisBlade(1);
+    const e2 = Cl3.basisBlade(2);
 
-    const e01 = Cl3.basisVector(0, 1);
-    const e02 = Cl3.basisVector(0, 2);
-    const e12 = Cl3.basisVector(1, 2);
+    const e01 = Cl3.basisBlade(0, 1);
+    const e02 = Cl3.basisBlade(0, 2);
+    const e12 = Cl3.basisBlade(1, 2);
 
-    const pseudoscalar = Cl3.basisVector(0, 1, 2);
+    const pseudoscalar = Cl3.basisBlade(0, 1, 2);
 
     expect(e0.mul(scalar).equals(e0)).toBeTruthy();
     expect(e0.mul(e0).equals(scalar)).toBeTruthy();
@@ -67,7 +67,7 @@ describe('Geometric Algebra', () => {
   it('fulfills the axioms of geometric algebra on random elements (positive metric)', () => {
     const dims = 4;
     const Cl4 = Algebra(dims);
-    const scalar = Cl4.basisVector();
+    const scalar = Cl4.basisBlade();
     const zero = Cl4.zero();
 
     function dot(a: ElementBaseType, b: ElementBaseType) {
@@ -117,7 +117,7 @@ describe('Geometric Algebra', () => {
 
   it('fulfills the axioms of geometric algebra on random elements (mixed metric)', () => {
     const Ga = Algebra(1, 2, 1);
-    const scalar = Ga.basisVector();
+    const scalar = Ga.basisBlade();
     const zero = Ga.zero();
 
     function dot(a: ElementBaseType, b: ElementBaseType) {
@@ -164,7 +164,7 @@ describe('Geometric Algebra', () => {
   it('has an outer product that fulfills the axioms of geometric algebra on random elements', () => {
     const dims = 4;
     const Cl4 = Algebra(dims);
-    const scalar = Cl4.basisVector();
+    const scalar = Cl4.basisBlade();
     const zero = Cl4.zero();
 
     for (let i = 0; i < 10; ++i) {
@@ -271,17 +271,17 @@ describe('Geometric Algebra', () => {
   it('implements the complement dual on basis vectors with a positive metric', () => {
     const Cl3 = Algebra(3);
 
-    const scalar = Cl3.basisVector();
+    const scalar = Cl3.basisBlade();
 
-    const e0 = Cl3.basisVector(0);
-    const e1 = Cl3.basisVector(1);
-    const e2 = Cl3.basisVector(2);
+    const e0 = Cl3.basisBlade(0);
+    const e1 = Cl3.basisBlade(1);
+    const e2 = Cl3.basisBlade(2);
 
-    const e01 = Cl3.basisVector(0, 1);
-    const e02 = Cl3.basisVector(0, 2);
-    const e12 = Cl3.basisVector(1, 2);
+    const e01 = Cl3.basisBlade(0, 1);
+    const e02 = Cl3.basisBlade(0, 2);
+    const e12 = Cl3.basisBlade(1, 2);
 
-    const pseudoscalar = Cl3.basisVector(0, 1, 2);
+    const pseudoscalar = Cl3.basisBlade(0, 1, 2);
 
     expect(scalar.mul(scalar.dual()).equals(pseudoscalar)).toBeTruthy();
     expect(e0.mul(e0.dual()).equals(pseudoscalar)).toBeTruthy();
@@ -307,17 +307,17 @@ describe('Geometric Algebra', () => {
   it('implements the complement dual on basis vectors with a mixed metric', () => {
     const Cl3 = Algebra(1, 1, 1);
 
-    const scalar = Cl3.basisVector();
+    const scalar = Cl3.basisBlade();
 
-    const e0 = Cl3.basisVector(0);
-    const e1 = Cl3.basisVector(1);
-    const e2 = Cl3.basisVector(2);
+    const e0 = Cl3.basisBlade(0);
+    const e1 = Cl3.basisBlade(1);
+    const e2 = Cl3.basisBlade(2);
 
-    const e01 = Cl3.basisVector(0, 1);
-    const e02 = Cl3.basisVector(0, 2);
-    const e12 = Cl3.basisVector(1, 2);
+    const e01 = Cl3.basisBlade(0, 1);
+    const e02 = Cl3.basisBlade(0, 2);
+    const e12 = Cl3.basisBlade(1, 2);
 
-    const pseudoscalar = Cl3.basisVector(0, 1, 2);
+    const pseudoscalar = Cl3.basisBlade(0, 1, 2);
 
     expect(scalar.mul(scalar.dual()).equals(pseudoscalar)).toBeTruthy();
     expect(e0.mul(e0.dual()).equals(pseudoscalar)).toBeTruthy();
@@ -433,10 +433,10 @@ describe('Geometric Algebra', () => {
 
   it('can read and write values in lexicographical order', () => {
     const Cl5 = Algebra(5);
-    const scalar = Cl5.basisVector();
+    const scalar = Cl5.basisBlade();
     const e = Array(5)
       .fill(null)
-      .map((_, i) => Cl5.basisVector(i));
+      .map((_, i) => Cl5.basisBlade(i));
 
     const seven = Cl5.fromVector([7], 0);
     expect(seven.star(scalar).s).toBe(7);
@@ -796,9 +796,9 @@ describe('Geometric Algebra', () => {
           const Ga = Algebra(p, q, r);
           const pseudoscalar = Ga.pseudoscalar();
           for (let i = 0; i < Ga.dimensions; ++i) {
-            const ei = Ga.basisVector(i);
+            const ei = Ga.basisBlade(i);
             for (let j = 0; j < Ga.dimensions; ++j) {
-              const ej = Ga.basisVector(j);
+              const ej = Ga.basisBlade(j);
               if (r === 0) {
                 expect(
                   ei.wedge(ej.hodge()).equals(ei.dot(ej).mul(pseudoscalar))

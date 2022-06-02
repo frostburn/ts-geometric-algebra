@@ -140,7 +140,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `Cl.zero()` | ... | ... | ... |
 | `Cl.scalar()` | ... | ... | ... |
 | `Cl.pseudoscalar()` | ... | ... | ... |
-| `Cl.basisVector(...idx)` | ... | ... | ... |
+| `Cl.basisBlade(...idx)` | ... | ... | ... |
 | `Cl.fromVector(vs, g)` | ... | ... | ... |
 | `Cl.fromRotor(vs)` | ... | ... | ... |
 | `Cl.fromGanja(vs)` | ... | ... | ... |

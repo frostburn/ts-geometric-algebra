@@ -278,7 +278,7 @@ export default function Algebra(
 
     // === Dual Zoo ===
 
-    // For all Ex = AlgebraClass.basisVector(...x)
+    // For all Ex = AlgebraClass.basisBlade(...x)
     // Ex.mul(Ex.dual()) === AlgebraClass.pseudoscalar()
     dual(): AlgebraElement {
       const result = this.empty();
@@ -915,7 +915,7 @@ export default function Algebra(
       return result;
     }
 
-    static basisVector(...indices: number[]): AlgebraElement {
+    static basisBlade(...indices: number[]): AlgebraElement {
       const result = AlgebraClass.zero();
       result[reduceIndices(indices)] = 1 / basisIndexMul(...indices);
       return result;
