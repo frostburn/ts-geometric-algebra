@@ -366,6 +366,7 @@ describe('Geometric Algebra', () => {
       expect(
         a.conjugate().mul(b.conjugate()).conjugate().closeTo(a.rmul(b))
       ).toBeTruthy();
+      expect(a.rev().involute().equals(a.conjugate())).toBeTruthy();
 
       // ---Vector subspace---
       const u = randomVector(Cl4);
