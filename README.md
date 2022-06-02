@@ -76,81 +76,81 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 
 ### Methods
 
-| Object oriented      | Function Oriented     | Ganja Equivalent | Explanation     |
-|----------------------|-----------------------|------------------|-----------------|
-| `x.equals(y)`        | `equals(x, y)`        | N/A              | Strict equality |
-| `x.closeTo(y, tol?)` | `closeTo(x, y, tol?)` | N/A              | Equality within given tolerance |
-| `x.hasNaN()`         | `hasNaN(x)`           | N/A              | Check for Not-a-Numbers |
-| `x.hasInfinity()`    | `hasInfinity(x)`      | N/A              | Check for (negative) infinity |
-| `x.isNil(tol?)`      | `isNil(x, tol?)`      | N/A              | Equal or close to zero |
-| `x.isGrade(g, tol?)` | `isGrade(x, g, tol?)` | N/A              | Only has components of grade `g` |
-| `x.s`                | N/A                   | `x.s`            | Scalar part (get/set) |
-| `x.ps`               | N/A                   | N/A              | Pseudoscalar part (get/set) |
-| `x.getAt(...idx)`    | N/A                   | N/A              | Metric-aware coefficient of the product of basis factors defined by `idx` |
-| `x.setAt(...idx, a)` | N/A                   | N/A              | Set coefficient of product of basis factors `idx` as `a` |
-| `x.norm()`           | `norm(x)`             | `x.Length`       | Conjugate norm (metric-aware) |
-| `x.vnorm()`          | `vnorm(x)`            | `x.VLength`      | Vector norm (ignores metric) {`x.length` is array length} |
-| `x.neg()`            | `neg(x)`              | N/A              | Negation (additive inverse) |
-| `x.cwAbs()`          | `cwAbs(x)`            | N/A              | Component-wise absolute value |
-| `x.involute()`       | `involute(x)`         | `x.Involute`     | Negation of basis factors |
-| `x.rev()`            | `rev(x)`              | `x.Reverse`      | Reversal of basis factors {`x.reverse` is array reversal} |
-| `x.conjugate()`      | `conjugate(x)`        | `x.Conjugate`    | Conjugation (combined involution and reversal) |
-| `x.inverse()`        | `inverse(x)`          | `x.Inverse`      | Multiplicative inverse |
-| `x.square()`         | `square(x)`           | `x.Mul(x)`       | Multiplicative squaring (**) |
-| `x.normalize(a?)`    | `normalize(x, a?)`    | `x.Normalize`    | `x` with norm set to `a` (default 1) |
-| `x.rotorNormalize()` | `rotorNormalize(x)`   | N/A              | Normalize rotor `x` |
-| `x.sqrt()`           | `sqrt(x)`             | N/A              | Square root. Currently reliable only in dimensions < 2 |
-| `x.rotorSqrt()`      | `rotorSqrt(x)`        | N/A              | Rotor square root. Available in certain metrics. |
-| `x.exp()`            | `exp(x)`              | `x.Exp`          | Exponential function |
-| `x.bivectorExp()`    | `bivectorExp(x)`      | `x.Exp`          | Bivector exponential function (optimized) |
-| `x.log()`            | `log(x)`              | `x.Log`          | (Motor) Logarithm. Generic `exp` inverse available only in dimensions < 2 |
-| `x.rotorLog()`       | `rotorLog(x)`         | `x.Log`          | Rotor Logarithm |
-| `x.clone()`          | `clone(x)`            | `x.Scale(1)`     | Independent copy |
-| `x.dual()`           | `dual(x)`             | `x.Dual` (*)     | Metric independent dual: `x.mul(x.dual()) = Cl.pseudoscalar()` |
-| `x.undual()`         | `undual(x)`           | N/A              | Inverse of `x.dual()` |
-| `x.scale(a)`         | `scale(x, a)`         | `x.Scale(a)`     | Scalar multiplication |
-| `x.pow(n)`           | `pow(x, n)`           | `x.Pow(n)`       | Multiply `x` with itself `n` times |
-| `x.applyWeights(ws)` | `applyWeights(x, ws)` | N/A              | Replace each basis factor with a weighted copy for every weight in `ws` |
-| `x.negateGrades(...gs)` | `negateGrades(x, ...gs)` | `x.Map(...gs)` | Negate the given grades |
-| `x.add(y)`           | `add(x, y)`           | `x.Add(y)`       | Component-wise addition (**) |
-| `x.sub(y)`           | `sub(x, y)`           | `x.Sub(y)`       | Component-wise subtraction (**) |
-| `x.mul(y)`           | `mul(x, y)`           | `x.Mul(y)`       | Geometric product of `x` and `y` (**) |
-| `x.lmul(y)`          | `mul(y, x)`           | `y.Mul(x)`       | Geometric product from the left (**) |
-| `x.div(y)`           | `div(x, y)`           | `x.Div(y)`       | Geometric division from the right |
-| `x.ldiv(y)`          | `mul(inverse(y), x)`  | `y.Inverse.Mul(x)` | Left inverse product |
-| `x.ldivs(y)`         | `mul(inverse(x), y)`  | `x.Inverse.Mul(y)` | Geometric division from the left |
-| `x.wedge(y)`         | `wedge(x, y)`         | `x.Wedge(y)`     | Wedge (outer) product. Metric independent (**) |
-| `x.lwedge(y)`        | `wedge(y, x)`         | `y.Wedge(x)`     | Wedge product from the left (**) |
-| `x.vee(y)`           | `vee(x, y)`           | `x.Vee(y)`       | Vee (dual) product. Metric indepentend. `vee(x, y) = undual(dual(y), dual(x))` (**) |
-| `x.lvee(y)`          | `vee(y, x)`           | `y.Vee(x)`       | Vee product from the left (**) |
-| `x.rotorMean(y)`     | `rotorMean(x, y)`     | N/A              | Geometric mean of rotors `x` and `y` |
-| `x.contract(y, ctn)` | `contract(x, y, ctn)` | N/A              | Contract `x` by `y` using criterion `ctn` |
-| `x.dot(y)`           | `dot(x, y)`           | `x.Dot(y)`       | Dot product. Symmetric criterion (**) |
-| `x.dotL(y)`          | `dotL(x, y)`          | `x.LDot(y)`      | Left contraction of `x` by `y` (**) |
-| `x.ldotL(y)`         | `dotL(y, x)`          | `y.LDot(x)`      | Left contraction of `y` by `x` (**) |
-| `x.dotR(y)`          | `dotR(x, y)`          | N/A              | Right contraction of `x` by `y` |
-| `x.ldotR(y)`         | `dotR(y, x)`          | N/A              | Right contraction of `y` by `x` |
-| `x.star(y)`          | `star(x, y)`          | N/A              | Scalar product. Nil criterion |
-| `x.imag()`           | `imag(x)`             | N/A              | Filter out grade 0 |
-| `x.even()`           | `even(x)`             | `x.Even()`       | Filter out odd grades |
-| `x.grade(n)`         | `grade(x, n)`         | `x.Grade(n)`     | Keep only grade `n` components |
-| `x.vector()`         | N/A                   | `x.Vector`       | Array of vector components |
-| `x.vector(n)`        | N/A                   | N/A              | Array of `n`-vector components |
-| `x.rotor()`          | N/A                   | N/A              | Array of components of even grade |
-| `x.ganja()`          | N/A                   | `x`              | Array of all components in lexicographic order |
-| `Cl.zero()`          | N/A                   | `Cl.Scalar(0)`   | Zero element |
-| `Cl.scalar(a?)`      | N/A                   | `Cl.Scalar(a)`   | Scalar element of size `a` (default `1`) |
-| `Cl.pseudoscalar(a?)` | N/A                  | N/A              | Pseudoscalar element of size `a` (default `1`) |
-| `Cl.basisBlade(...idx)` | N/A                | N/A              | Unit basis blade given by the product of the given basis factors |
-| `Cl.fromVector(vs)`  | N/A                   | `Cl.Vector(...vs)` | Vector element with given components (from an array) |
-| `Cl.fromVector(vs, 2)` | N/A                 | `Cl.Bivector(...vs)` | Bivector element with given components (lexicographic order) |
-| `Cl.fromVector(vs, 3)` | N/A                 | `Cl.Trivector(...vs)` | Trivector element with given components |
-| `Cl.fromVector(vs, g)` | N/A                 | `Cl.nVector(g, ...vs)` | `g`-vector element with given components |
-| `Cl.fromRotor(vs)`   | N/A                   | N/A              | Even grade element with given components |
-| `Cl.fromGanja(vs)`   | N/A                   | `new Cl(vs)`     | New element with components given in lexicographic order |
-| `Cl.dimensions`      | N/A                   | `-->` | `Math.log(Cl.describe().basis.length)/Math.log(2)` number of dimensions |
-| `Cl.size`            | N/A                   | `-->` | `Cl.describe().basis.length` algebra size |
-| `new Cl(vs)`         | N/A                   | N/A   | New element with components given in bit field order (Not recommended, use `fromGanja` instead) |
+| Object oriented         | Ganja Equivalent   | Explanation     |
+|-------------------------|--------------------|-----------------|
+| `x.equals(y)`           | N/A                | Strict equality |
+| `x.closeTo(y, tol?)`    | N/A                | Equality within given tolerance |
+| `x.hasNaN()`            | N/A                | Check for Not-a-Numbers |
+| `x.hasInfinity()`       | N/A                | Check for (negative) infinity |
+| `x.isNil(tol?)`         | N/A                | Equal or close to zero |
+| `x.isGrade(g, tol?)`    | N/A                | Only has components of grade `g` |
+| `x.s`                   | `x.s`              | Scalar part (get/set) |
+| `x.ps`                  | N/A                | Pseudoscalar part (get/set) |
+| `x.getAt(...idx)`       | N/A                | Metric-aware coefficient of the product of basis factors defined by `idx` |
+| `x.setAt(...idx, a)`    | N/A                | Set coefficient of product of basis factors `idx` as `a` |
+| `x.norm()`              | `x.Length`         | Conjugate norm (metric-aware) |
+| `x.vnorm()`             | `x.VLength`        | Vector norm (ignores metric) {`x.length` is array length} |
+| `x.neg()`               | N/A                | Negation (additive inverse) |
+| `x.cwAbs()`             | N/A                | Component-wise absolute value |
+| `x.involute()`          | `x.Involute`       | Negation of basis factors |
+| `x.rev()`               | `x.Reverse`        | Reversal of basis factors {`x.reverse` is array reversal} |
+| `x.conjugate()`         | `x.Conjugate`      | Conjugation (combined involution and reversal) |
+| `x.inverse()`           | `x.Inverse`        | Multiplicative inverse |
+| `x.square()`            | `x.Mul(x)`         | Multiplicative squaring (**) |
+| `x.normalize(a?)`       | `x.Normalize`      | `x` with norm set to `a` (default 1) |
+| `x.rotorNormalize()`    | N/A                | Normalize rotor `x` |
+| `x.sqrt()`              | N/A                | Square root. Currently reliable only in dimensions < 2 |
+| `x.rotorSqrt()`         | N/A                | Rotor square root. Available in certain metrics. |
+| `x.exp()`               | `x.Exp`            | Exponential function |
+| `x.bivectorExp()`       | `x.Exp`            | Bivector exponential function (optimized) |
+| `x.log()`               | `x.Log`            | (Motor) Logarithm. Generic `exp` inverse available only in dimensions < 2 |
+| `x.rotorLog()`          | `x.Log`            | Rotor Logarithm |
+| `x.clone()`             | `x.Scale(1)`       | Independent copy |
+| `x.dual()`              | `x.Dual` (*)       | Metric independent dual: `x.mul(x.dual()) = Cl.pseudoscalar()` |
+| `x.undual()`            | N/A                | Inverse of `x.dual()` |
+| `x.scale(a)`            | `x.Scale(a)`       | Scalar multiplication |
+| `x.pow(n)`              | `x.Pow(n)`         | Multiply `x` with itself `n` times |
+| `x.applyWeights(ws)`    | N/A                | Replace each basis factor with a weighted copy for every weight in `ws` |
+| `x.negateGrades(...gs)` | `x.Map(...gs)`     | Negate the given grades |
+| `x.add(y)`              | `x.Add(y)`         | Component-wise addition (**) |
+| `x.sub(y)`              | `x.Sub(y)`         | Component-wise subtraction (**) |
+| `x.mul(y)`              | `x.Mul(y)`         | Geometric product of `x` and `y` (**) |
+| `x.lmul(y)`             | `y.Mul(x)`         | Geometric product from the left (**) |
+| `x.div(y)`              | `x.Div(y)`         | Geometric division from the right |
+| `x.ldiv(y)`             | `y.Inverse.Mul(x)` | Left inverse product |
+| `x.ldivs(y)`            | `x.Inverse.Mul(y)` | Geometric division from the left |
+| `x.wedge(y)`            | `x.Wedge(y)`       | Wedge (outer) product. Metric independent (**) |
+| `x.lwedge(y)`           | `y.Wedge(x)`       | Wedge product from the left (**) |
+| `x.vee(y)`              | `x.Vee(y)`         | Vee (dual) product. Metric indepentend. `x.vee(y) = y.dual().wedge(x.dual()).undual()` (**) |
+| `x.lvee(y)`             | `y.Vee(x)`         | Vee product from the left (**) |
+| `x.rotorMean(y)`        | N/A                | Geometric mean of rotors `x` and `y` |
+| `x.contract(y, ctn)`    | N/A                | Contract `x` by `y` using criterion `ctn` |
+| `x.dot(y)`              | `x.Dot(y)`         | Dot product. Symmetric criterion (**) |
+| `x.dotL(y)`             | `x.LDot(y)`        | Left contraction of `x` by `y` (**) |
+| `x.ldotL(y)`            | `y.LDot(x)`        | Left contraction of `y` by `x` (**) |
+| `x.dotR(y)`             | N/A                | Right contraction of `x` by `y` |
+| `x.ldotR(y)`            | N/A                | Right contraction of `y` by `x` |
+| `x.star(y)`             | N/A                | Scalar product. Nil criterion |
+| `x.imag()`              | N/A                | Filter out grade 0 |
+| `x.even()`              | `x.Even()`         | Filter out odd grades |
+| `x.grade(n)`            | `x.Grade(n)`       | Keep only grade `n` components |
+| `x.vector()`            | `x.Vector`         | Array of vector components |
+| `x.vector(n)`           | N/A                | Array of `n`-vector components |
+| `x.rotor()`             | N/A                | Array of components of even grade |
+| `x.ganja()`             | `x`                | Array of all components in lexicographic order |
+| `Cl.zero()`             | `Cl.Scalar(0)`     | Zero element |
+| `Cl.scalar(a?)`         | `Cl.Scalar(a)`     | Scalar element of size `a` (default `1`) |
+| `Cl.pseudoscalar(a?)`   | N/A                | Pseudoscalar element of size `a` (default `1`) |
+| `Cl.basisBlade(...idx)` | N/A                | Unit basis blade given by the product of the given basis factors |
+| `Cl.fromVector(vs)`     | `Cl.Vector(...vs)` | Vector element with given components (from an array) |
+| `Cl.fromVector(vs, 2)`  | `Cl.Bivector(...vs)` | Bivector element with given components (lexicographic order) |
+| `Cl.fromVector(vs, 3)`  | `Cl.Trivector(...vs)` | Trivector element with given components |
+| `Cl.fromVector(vs, g)`  | `Cl.nVector(g, ...vs)` | `g`-vector element with given components |
+| `Cl.fromRotor(vs)`      | N/A                | Even grade element with given components |
+| `Cl.fromGanja(vs)`      | `new Cl(vs)`       | New element with components given in lexicographic order |
+| `Cl.dimensions`         | `-->`              | `Math.log(Cl.describe().basis.length)/Math.LN2` number of dimensions |
+| `Cl.size`               | `-->`              | `Cl.describe().basis.length` Algebra size |
+| `new Cl(vs)`            | N/A                | Not recommended, use `fromGanja` instead. New element with components given in bit field order |
 
 (*) Only in degenerate metrics
 (**) Loop unrolled for maximum performance
@@ -176,8 +176,62 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 #### Rotor operation availability
 | Metric (pqr) | Available operations |
 |--------------|----------------------|
-| p+q+r <= 2   | (all)                |
+| p+q+r <= 2   | *(all)*              |
 | 400          | `rotorSqrt`, `rotorNormalize` |
 | 310          | `rotorSqrt`, `rotorNormalize` |
 | 301          | `rotorLog`, `rotorSqrt`, `rotorNormalize` |
 | 410          | `rotorSqrt`, `rotorNormalize` |
+
+
+## Functions
+
+| Function Oriented        | Ganja Equivalent   | Explanation     |
+|--------------------------|--------------------|-----------------|
+| `equals(x, y)`           | N/A                | Strict equality |
+| `closeTo(x, y, tol?)`    | N/A                | Equality within given tolerance |
+| `hasNaN(x)`              | N/A                | Check for Not-a-Numbers |
+| `hasInfinity(x)`         | N/A                | Check for (negative) infinity |
+| `isNil(x, tol?)`         | N/A                | Equal or close to zero |
+| `isGrade(x, g, tol?)`    | N/A                | Only has components of grade `g` |
+| `norm(x)`                | `x.Length`         | Conjugate norm (metric-aware) |
+| `vnorm(x)`               | `x.VLength`        | Vector norm (ignores metric) {`x.length` is array length} |
+| `neg(x)`                 | N/A                | Negation (additive inverse) |
+| `cwAbs(x)`               | N/A                | Component-wise absolute value |
+| `involute(x)`            | `x.Involute`       | Negation of basis factors |
+| `rev(x)`                 | `x.Reverse`        | Reversal of basis factors {`x.reverse` is array reversal} |
+| `conjugate(x)`           | `x.Conjugate`      | Conjugation (combined involution and reversal) |
+| `inverse(x)`             | `x.Inverse`        | Multiplicative inverse |
+| `square(x)`              | `x.Mul(x)`         | Multiplicative squaring (**) |
+| `normalize(x, a?)`       | `x.Normalize`      | `x` with norm set to `a` (default 1) |
+| `rotorNormalize(x)`      | N/A                | Normalize rotor `x` |
+| `sqrt(x)`                | N/A                | Square root. Currently reliable only in dimensions < 2 |
+| `rotorSqrt(x)`           | N/A                | Rotor square root. Available in certain metrics. |
+| `exp(x)`                 | `x.Exp`            | Exponential function |
+| `bivectorExp(x)`         | `x.Exp`            | Bivector exponential function (optimized) |
+| `log(x)`                 | `x.Log`            | (Motor) Logarithm. Generic `exp` inverse available only in dimensions < 2 |
+| `rotorLog(x)`            | `x.Log`            | Rotor Logarithm |
+| `clone(x)`               | `x.Scale(1)`       | Independent copy |
+| `dual(x)`                | `x.Dual` (*)       | Metric independent dual: `x.mul(x.dual()) = Cl.pseudoscalar()` |
+| `undual(x)`              | N/A                | Inverse of `x.dual()` |
+| `scale(x, a)`            | `x.Scale(a)`       | Scalar multiplication |
+| `pow(x, n)`              | `x.Pow(n)`         | Multiply `x` with itself `n` times |
+| `applyWeights(x, ws)`    | N/A                | Replace each basis factor with a weighted copy for every weight in `ws` |
+| `negateGrades(x, ...gs)` | `x.Map(...gs)`     | Negate the given grades |
+| `add(x, y)`              | `x.Add(y)`         | Component-wise addition (**) |
+| `sub(x, y)`              | `x.Sub(y)`         | Component-wise subtraction (**) |
+| `mul(x, y)`              | `x.Mul(y)`         | Geometric product of `x` and `y` (**) |
+| `div(x, y)`              | `x.Div(y)`         | Geometric division from the right |
+| `wedge(x, y)`            | `x.Wedge(y)`       | Wedge (outer) product. Metric independent (**) |
+| `vee(x, y)`              | `x.Vee(y)`         | Vee (dual) product. Metric indepentend. `vee(x, y) = undual(dual(y), dual(x))` (**) |
+| `rotorMean(x, y)`        | N/A                | Geometric mean of rotors `x` and `y` |
+| `contract(x, y, ctn)`    | N/A                | Contract `x` by `y` using criterion `ctn` |
+| `dot(x, y)`              | `x.Dot(y)`         | Dot product. Symmetric criterion (**) |
+| `dotL(x, y)`             | `x.LDot(y)`        | Left contraction of `x` by `y` (**) |
+| `dotR(x, y)`             | N/A                | Right contraction of `x` by `y` |
+| `star(x, y)`             | N/A                | Scalar product. Nil criterion |
+| `imag(x)`                | N/A                | Filter out grade 0 |
+| `even(x)`                | `x.Even()`         | Filter out odd grades |
+| `grade(x, n)`            | `x.Grade(n)`       | Keep only grade `n` components |
+
+(*) Only in degenerate metrics
+(**) Loop unrolled for maximum performance
