@@ -151,7 +151,9 @@ export declare class AlgebraElement extends ElementBaseType {
   sqrt(forceBabylon?: boolean, numIter?: number): AlgebraElement;
   rotorSqrt(): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
+  bivectorExp(): AlgebraElement;
   log(): AlgebraElement;
+  rotorLog(): AlgebraElement;
   clone(): AlgebraElement;
   // Dual Zoo
   dual(): AlgebraElement;
@@ -1028,7 +1030,7 @@ export default function Algebra(
       return root.rotorNormalize();
     }
 
-    exp(forceTaylor = false, numTaylorTerms = 32) {
+    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
       if (!forceTaylor) {
         if (dimensions === 0) {
           return AlgebraClass.scalar(Math.exp(this.s));
@@ -1095,7 +1097,33 @@ export default function Algebra(
       return result;
     }
 
-    log() {
+    bivectorExp() {
+      const B = this.vector(2);
+      // Exponential of a bivector B (17 mul, 8 add, 2 div, 1 sincos, 1 sqrt)
+      if (p === 3 && q === 0 && r === 1) {
+        const l = B[3] * B[3] + B[4] * B[4] + B[5] * B[5];
+        if (l === 0)
+          return AlgebraClass.fromRotor([1, B[0], B[1], B[2], 0, 0, 0, 0]);
+        const m = B[0] * B[5] + B[1] * B[4] + B[2] * B[3],
+          a = Math.sqrt(l),
+          c = Math.cos(a),
+          s = Math.sin(a) / a,
+          t = (m / l) * (c - s);
+        return AlgebraClass.fromRotor([
+          c,
+          s * B[0] + t * B[5],
+          s * B[1] + t * B[4],
+          s * B[2] + t * B[3],
+          s * B[3],
+          s * B[4],
+          s * B[5],
+          m * s,
+        ]);
+      }
+      return this.exp();
+    }
+
+    log(): AlgebraElement {
       if (dimensions === 0) {
         return AlgebraClass.scalar(Math.log(this.s));
       } else if (dimensions === 1) {
@@ -1133,6 +1161,30 @@ export default function Algebra(
         sum.accumulate(si.scale(Math.acosh(ci) / len));
       });
       return sum;
+    }
+
+    rotorLog() {
+      const R = this.rotor();
+      // Logarithm of a rotor R (14 mul, 5 add, 1 div, 1 acos, 1 sqrt)
+      if (p === 3 && q === 0 && r === 1) {
+        if (R[0] === 1)
+          return AlgebraClass.fromVector([R[1], R[2], R[3], 0, 0, 0], 2);
+        const a = 1 / (1 - R[0] * R[0]);
+        const b = Math.acos(R[0]) * Math.sqrt(a);
+        const c = a * R[7] * (1 - R[0] * b);
+        return AlgebraClass.fromVector(
+          [
+            c * R[6] + b * R[1],
+            c * R[5] + b * R[2],
+            c * R[4] + b * R[3],
+            b * R[4],
+            b * R[5],
+            b * R[6],
+          ],
+          2
+        );
+      }
+      return this.log();
     }
 
     clone(): AlgebraElement {

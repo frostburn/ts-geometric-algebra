@@ -19,22 +19,9 @@ function randomVector(Ga: typeof AlgebraElement) {
 }
 
 function randomRotor(Ga: typeof AlgebraElement) {
-  let a: AlgebraElement;
-  let signA: number;
-  while (true) {
-    a = randomVector(Ga).normalize();
-    signA = a.square().s;
-    if (signA > 0) {
-      break;
-    }
-  }
-  let b: AlgebraElement;
-  while (true) {
-    b = randomVector(Ga).normalize();
-    if (b.square().s * signA > 0) {
-      return a.mul(b);
-    }
-  }
+  const a = randomVector(Ga);
+  const b = randomVector(Ga);
+  return a.wedge(b).bivectorExp();
 }
 
 describe('Geometric Algebra', () => {
@@ -711,7 +698,7 @@ describe('Geometric Algebra', () => {
     }
   });
 
-  it.skip('implements rotor square root in hyperbolic PGA R3,1', () => {
+  it('implements rotor square root in hyperbolic PGA R3,1', () => {
     const Ga = Algebra(3, 1, 0, Float64Array);
     for (let i = 0; i < 10; ++i) {
       const ab = randomRotor(Ga);
@@ -722,10 +709,12 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  // randomRotor doesn't produce elements that rev-square to 1
   it.skip('implements rotor square root in 3D PGA', () => {
     const Ga = Algebra(3, 0, 1, Float64Array);
     for (let i = 0; i < 10; ++i) {
       const ab = randomRotor(Ga);
+      console.log(ab.mul(ab.rev()));
       expect(ab.mul(ab.rev()).closeTo(Ga.scalar())).toBeTruthy();
 
       const sqrt = ab.rotorSqrt();
@@ -744,7 +733,7 @@ describe('Geometric Algebra', () => {
     }
   });
 
-  it.skip('implements rotor square root in 3D Conformal GA', () => {
+  it('implements rotor square root in 3D Conformal GA', () => {
     const Ga = Algebra(4, 1, 0, Float64Array);
     for (let i = 0; i < 10; ++i) {
       const ab = randomRotor(Ga);
@@ -763,6 +752,19 @@ describe('Geometric Algebra', () => {
 
       const mean = ab.rotorMean(cd);
       expect(mean.mul(mean.rev()).closeTo(Ga.scalar())).toBeTruthy();
+    }
+  });
+
+  it('implements rotor log and bivector exp in 3D PGA', () => {
+    const Ga = Algebra(3, 0, 1, Float64Array);
+    for (let i = 0; i < 10; ++i) {
+      const a = randomVector(Ga);
+      const b = randomVector(Ga);
+      const ab = a.wedge(b);
+      const rotor = ab.bivectorExp();
+      expect(rotor.mul(rotor.rev()).closeTo(Ga.scalar()));
+
+      expect(rotor.rotorLog().bivectorExp().closeTo(rotor)).toBeTruthy();
     }
   });
 
