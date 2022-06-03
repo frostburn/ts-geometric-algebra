@@ -485,18 +485,15 @@ export default function Algebra(
       // Matrix-free inverses up to 5D
       // http://repository.essex.ac.uk/17282/1/TechReport_CES-534.pdf
       switch (dimensions) {
-        // cases 0 and 1 completely covered by pqr.ts
-        case 2:
-          const conjugate = this.conjugate();
-          return conjugate.scale(1 / this.mul(conjugate).s);
+        // cases 0, 1 and 2 completely covered by pqr.ts
         case 3:
           const reverse = this.rev();
-          const involute3 = this.involute();
-          const conjugate3 = this.conjugate();
+          const involute = this.involute();
+          const conjugate = this.conjugate();
           return reverse
-            .mul(involute3)
-            .mul(conjugate3)
-            .scale(1 / this.mul(conjugate3).mul(involute3).mul(reverse).s);
+            .mul(involute)
+            .mul(conjugate)
+            .scale(1 / this.mul(conjugate).mul(involute).mul(reverse).s);
         case 4:
           const modulus = this.mul(this.conjugate());
           const n34 = modulus.negateGrades(3, 4);

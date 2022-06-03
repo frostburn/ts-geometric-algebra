@@ -1,7 +1,12 @@
 // Specialized implementations for particular metrics
 
 import {AlgebraElement} from './element';
-import {complexSqrt, splitComplexSqrt} from './utils';
+import {
+  complexLog,
+  complexSqrt,
+  splitComplexLog,
+  splitComplexSqrt,
+} from './utils';
 
 function makeSplitQuaternion(
   baseClass: typeof AlgebraElement,
@@ -111,6 +116,94 @@ function makeSplitQuaternion(
   return SplitQuaternion;
 }
 
+function makePGA1D(
+  baseClass: typeof AlgebraElement,
+  sqrt: (s: number, ps: number) => [number, number],
+  co: (x: number) => number,
+  si: (x: number) => number,
+  log: (s: number, ps: number) => [number, number]
+) {
+  class PGA1D extends baseClass {
+    cls() {
+      return PGA1D;
+    }
+
+    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+      if (forceBabylon) {
+        return super.sqrt(forceBabylon, numIter);
+      }
+      const [x, y] = sqrt(this.s, this[2]);
+      const result = this.clone();
+      result.s = x;
+      result[1] *= 0.5 / x;
+      result[2] = y;
+      result[3] *= 0.5 / x;
+      return result;
+    }
+
+    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+      if (forceTaylor) {
+        return super.exp(forceTaylor, numTaylorTerms);
+      }
+      const expS = Math.exp(this.s);
+      const sii = si(this[2]);
+      let sic;
+      if (Math.abs(this[2]) > 1e-6) {
+        sic = sii / this[2];
+      } else {
+        sic = 1 - this[2] ** 2 / 6;
+      }
+      const result = this.clone();
+      result.s = expS * co(this[2]);
+      result[1] *= expS * sic;
+      result[2] = expS * sii;
+      result[3] *= expS * sic;
+      return result;
+    }
+
+    log(): AlgebraElement {
+      const [x, y] = log(this.s, this[2]);
+      const result = this.clone();
+      result.s = x;
+      result[1] = (result[1] / this[2]) * y;
+      result[2] = y;
+      result[3] = (result[3] / this[2]) * y;
+      return result;
+    }
+
+    inverse(): AlgebraElement {
+      const conjugate = this.conjugate();
+      return conjugate.scale(1 / this.mul(conjugate).s);
+    }
+
+    static zero() {
+      return new PGA1D().fill(0);
+    }
+    static scalar(magnitude = 1): AlgebraElement {
+      return new PGA1D(baseClass.scalar(magnitude));
+    }
+    static pseudoscalar(magnitude = 1): AlgebraElement {
+      return new PGA1D(baseClass.pseudoscalar(magnitude));
+    }
+    static basisBlade(...indices: number[]): AlgebraElement {
+      return new PGA1D(baseClass.basisBlade(...indices));
+    }
+    static fromVector(
+      values: Iterable<number>,
+      grade?: number
+    ): AlgebraElement {
+      return new PGA1D(baseClass.fromVector(values, grade));
+    }
+    static fromRotor(values: Iterable<number>): AlgebraElement {
+      return new PGA1D(baseClass.fromRotor(values));
+    }
+    static fromGanja(values: Iterable<number>) {
+      return new PGA1D(baseClass.fromGanja(values));
+    }
+  }
+  return PGA1D;
+}
+
 // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
 export function pqrMixin(
   p: number,
@@ -198,8 +291,7 @@ export function pqrMixin(
       }
 
       log(): AlgebraElement {
-        const norm = Math.sqrt(this.s ** 2 - this.ps ** 2);
-        return new (this.cls())([Math.log(norm), Math.asinh(this.ps / norm)]);
+        return new (this.cls())(splitComplexLog(this.s, this.ps));
       }
 
       inverse(): AlgebraElement {
@@ -259,8 +351,7 @@ export function pqrMixin(
       }
 
       log(): AlgebraElement {
-        const norm = Math.hypot(this.s, this.ps);
-        return new (this.cls())([Math.log(norm), Math.atan2(this.ps, this.s)]);
+        return new (this.cls())(complexLog(this.s, this.ps));
       }
 
       inverse(): AlgebraElement {
@@ -440,6 +531,39 @@ export function pqrMixin(
       }
     }
     return Quaternion;
+  }
+  if (p === 1 && q === 0 && r === 1) {
+    const Euclidean1DPGA = makePGA1D(
+      baseClass,
+      splitComplexSqrt,
+      Math.cosh,
+      Math.sinh,
+      splitComplexLog
+    );
+    Object.defineProperty(Euclidean1DPGA, 'name', {value: 'Euclidean1DPGA'});
+    return Euclidean1DPGA;
+  }
+  if (p === 0 && q === 1 && r === 1) {
+    const ComplexPGA = makePGA1D(
+      baseClass,
+      complexSqrt,
+      Math.cos,
+      Math.sin,
+      complexLog
+    );
+    Object.defineProperty(ComplexPGA, 'name', {value: 'ComplexPGA'});
+    return ComplexPGA;
+  }
+  if (p === 0 && q === 0 && r === 2) {
+    const DoublePGA = makePGA1D(
+      baseClass,
+      (x, y) => [Math.sqrt(x), (0.5 * y) / x],
+      y => 1, // eslint-disable-line @typescript-eslint/no-unused-vars
+      y => y,
+      (x, y) => [Math.log(x), y / x]
+    );
+    Object.defineProperty(DoublePGA, 'name', {value: 'DoublePGS'});
+    return DoublePGA;
   }
   if (p === 4 && q === 0 && r === 0) {
     class Elliptic3DPGA extends baseClass {
