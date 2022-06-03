@@ -69,15 +69,14 @@ function makeSplitQuaternion(
     }
 
     log(): AlgebraElement {
-      const norm = this.vnorm();
-      const imag = this.imag();
+      const result = this.imag();
       const imagNorm2 = this.imagNorm2();
       const imagNorm = Math.sqrt(Math.abs(imagNorm2));
-      let result;
+      const norm = Math.sqrt(this.s ** 2 - imagNorm2);
       if (imagNorm2 < 0) {
-        result = imag.scale(Math.acos(this.s / norm) / imagNorm);
+        result.rescale(Math.atan2(imagNorm, this.s) / imagNorm);
       } else {
-        result = imag.scale(Math.acosh(this.s / norm) / imagNorm);
+        result.rescale(Math.asinh(imagNorm / norm) / imagNorm);
       }
       result.s = Math.log(norm);
       return result;
@@ -492,11 +491,10 @@ export function pqrMixin(
       }
 
       log(): AlgebraElement {
-        const norm = this.vnorm();
         const imag = this.imag();
         const imagNorm = imag.vnorm();
-        const result = imag.scale(Math.acos(this.s / norm) / imagNorm);
-        result.s = Math.log(norm);
+        const result = imag.scale(Math.atan2(imagNorm, this.s) / imagNorm);
+        result.s = Math.log(this.vnorm());
         return result;
       }
 

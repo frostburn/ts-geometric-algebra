@@ -649,15 +649,9 @@ describe('Geometric Algebra', () => {
           if (p + q + r > 2) {
             continue;
           }
-          // TODO: Fix
-          if (p === 2 || (p === 1 && q === 1)) {
-            continue;
-          }
-          // console.log(p, q, r);
           const Ga = Algebra(p, q, r);
           const a = randomElement(Ga).scale(0.1);
           const b = a.exp().log();
-          // console.log(b.exp(), a.exp());
           expect(b.exp().closeTo(a.exp())).toBeTruthy();
         }
       }
