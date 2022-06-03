@@ -815,6 +815,18 @@ export default function Algebra(
       return new baseType(indexString.map(g => this[g[0]]));
     }
 
+    grades(threshold = 0) {
+      const grades = new Set<number>();
+      for (let i = 0; i < this.length; ++i) {
+        if (Math.abs(this[indexString[i][0]]) > threshold) {
+          grades.add(indexString[i][1].length);
+        }
+      }
+      const result = [...grades.values()];
+      result.sort((a, b) => a - b);
+      return result;
+    }
+
     plus(scalar: number) {
       const result = this.clone();
       result.s += scalar;

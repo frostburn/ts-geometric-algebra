@@ -216,6 +216,7 @@ export declare class AlgebraElement extends ElementBaseType {
   ganja(): ElementBaseType;
 
   // Misc
+  grades(threshold?: number): number[];
   plus(scalar: number): AlgebraElement;
   rescale(scalar: number): this;
   accumulate(other: AlgebraElement): this;
@@ -457,4 +458,9 @@ export function even(element: AlgebraElement): AlgebraElement {
 }
 export function grade(element: AlgebraElement, grade: number): AlgebraElement {
   return element.grade(grade);
+}
+
+// Misc
+export function grades(element: AlgebraElement, threshold?: number): number[] {
+  return element.grades(threshold);
 }

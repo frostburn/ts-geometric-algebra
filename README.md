@@ -150,6 +150,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.vector(n)`           | N/A                | Array of `n`-vector components |
 | `x.rotor()`             | N/A                | Array of components of even grade |
 | `x.ganja()`             | `x`                | Array of all components in lexicographic order |
+| `x.grades(t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
 | `Cl.zero()`             | `Cl.Scalar(0)`     | Zero element |
 | `Cl.scalar(a?)`         | `Cl.Scalar(a)`     | Scalar element of size `a` (default `1`) |
 | `Cl.pseudoscalar(a?)`   | N/A                | Pseudoscalar element of size `a` (default `1`) |
@@ -244,6 +245,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `imag(x)`                | N/A                | Filter out grade 0 |
 | `even(x)`                | `x.Even()`         | Filter out odd grades |
 | `grade(x, n)`            | `x.Grade(n)`       | Keep only grade `n` components |
+| `grades(x, t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
 
 (*) Only in degenerate metrics
 (**) Loop unrolled for maximum performance

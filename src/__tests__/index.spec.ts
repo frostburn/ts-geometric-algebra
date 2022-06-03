@@ -926,4 +926,17 @@ describe('Geometric Algebra', () => {
       }
     }
   });
+
+  it('can figure out the grades of elements', () => {
+    const Cl4 = Algebra(4);
+    const a = randomVector(Cl4);
+    const b = randomVector(Cl4);
+    const aGrades = a.grades();
+    expect(aGrades.length).toBe(1);
+    expect(aGrades[0]).toBe(1);
+    const abGrades = a.mul(b).grades();
+    expect(abGrades.length).toBe(2);
+    expect(abGrades[0]).toBe(0);
+    expect(abGrades[1]).toBe(2);
+  });
 });
