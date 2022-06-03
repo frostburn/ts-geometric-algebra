@@ -2,11 +2,81 @@
 
 import {AlgebraElement} from './element';
 import {
-  complexLog,
+  Bivariate2D,
   complexSqrt,
-  splitComplexLog,
+  complexLog,
+  complexExp,
   splitComplexSqrt,
+  splitComplexExp,
+  splitComplexLog,
+  dualSqrt,
+  dualExp,
+  dualLog,
 } from './utils';
+
+function make2D(
+  baseClass: typeof AlgebraElement,
+  sqrt: Bivariate2D,
+  exp: Bivariate2D,
+  log: Bivariate2D,
+  name: string
+) {
+  class Number2D extends baseClass {
+    cls() {
+      return Number2D;
+    }
+
+    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+      if (forceBabylon) {
+        return super.sqrt(forceBabylon, numIter);
+      }
+      return new (this.cls())(sqrt(this.s, this.ps));
+    }
+
+    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+      if (forceTaylor) {
+        return super.exp(forceTaylor, numTaylorTerms);
+      }
+      return new (this.cls())(exp(this.s, this.ps));
+    }
+
+    log(): AlgebraElement {
+      return new (this.cls())(log(this.s, this.ps));
+    }
+
+    inverse(): AlgebraElement {
+      const involute = this.involute();
+      return involute.scale(1 / this.mul(involute).s);
+    }
+
+    static zero() {
+      return new Number2D().fill(0);
+    }
+    static scalar(magnitude = 1): AlgebraElement {
+      return new Number2D(baseClass.scalar(magnitude));
+    }
+    static pseudoscalar(magnitude = 1): AlgebraElement {
+      return new Number2D(baseClass.pseudoscalar(magnitude));
+    }
+    static basisBlade(...indices: number[]): AlgebraElement {
+      return new Number2D(baseClass.basisBlade(...indices));
+    }
+    static fromVector(
+      values: Iterable<number>,
+      grade?: number
+    ): AlgebraElement {
+      return new Number2D(baseClass.fromVector(values, grade));
+    }
+    static fromRotor(values: Iterable<number>): AlgebraElement {
+      return new Number2D(baseClass.fromRotor(values));
+    }
+    static fromGanja(values: Iterable<number>) {
+      return new Number2D(baseClass.fromGanja(values));
+    }
+  }
+  Object.defineProperty(Number2D, 'name', {value: name});
+  return Number2D;
+}
 
 function makeSplitQuaternion(
   baseClass: typeof AlgebraElement,
@@ -117,10 +187,11 @@ function makeSplitQuaternion(
 
 function makePGA1D(
   baseClass: typeof AlgebraElement,
-  sqrt: (s: number, ps: number) => [number, number],
+  sqrt: Bivariate2D,
   co: (x: number) => number,
   si: (x: number) => number,
-  log: (s: number, ps: number) => [number, number]
+  log: Bivariate2D,
+  name: string
 ) {
   class PGA1D extends baseClass {
     cls() {
@@ -200,6 +271,7 @@ function makePGA1D(
       return new PGA1D(baseClass.fromGanja(values));
     }
   }
+  Object.defineProperty(PGA1D, 'name', {value: name});
   return PGA1D;
 }
 
@@ -266,181 +338,27 @@ export function pqrMixin(
     return Scalar;
   }
   if (p === 1 && q === 0 && r === 0) {
-    class SplitComplex extends baseClass {
-      cls() {
-        return SplitComplex;
-      }
-
-      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-        if (forceBabylon) {
-          return super.sqrt(forceBabylon, numIter);
-        }
-        return new (this.cls())(splitComplexSqrt(this.s, this.ps));
-      }
-
-      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-        if (forceTaylor) {
-          return super.exp(forceTaylor, numTaylorTerms);
-        }
-        const expS = Math.exp(this.s);
-        return new (this.cls())([
-          expS * Math.cosh(this.ps),
-          expS * Math.sinh(this.ps),
-        ]);
-      }
-
-      log(): AlgebraElement {
-        return new (this.cls())(splitComplexLog(this.s, this.ps));
-      }
-
-      inverse(): AlgebraElement {
-        const involute = this.involute();
-        return involute.scale(1 / this.mul(involute).s);
-      }
-
-      static zero() {
-        return new SplitComplex().fill(0);
-      }
-      static scalar(magnitude = 1): AlgebraElement {
-        return new SplitComplex(baseClass.scalar(magnitude));
-      }
-      static pseudoscalar(magnitude = 1): AlgebraElement {
-        return new SplitComplex(baseClass.pseudoscalar(magnitude));
-      }
-      static basisBlade(...indices: number[]): AlgebraElement {
-        return new SplitComplex(baseClass.basisBlade(...indices));
-      }
-      static fromVector(
-        values: Iterable<number>,
-        grade?: number
-      ): AlgebraElement {
-        return new SplitComplex(baseClass.fromVector(values, grade));
-      }
-      static fromRotor(values: Iterable<number>): AlgebraElement {
-        return new SplitComplex(baseClass.fromRotor(values));
-      }
-      static fromGanja(values: Iterable<number>) {
-        return new SplitComplex(baseClass.fromGanja(values));
-      }
-    }
+    const SplitComplex = make2D(
+      baseClass,
+      splitComplexSqrt,
+      splitComplexExp,
+      splitComplexLog,
+      'SplitComplex'
+    );
     return SplitComplex;
   }
   if (p === 0 && q === 1 && r === 0) {
-    class Complex extends baseClass {
-      cls() {
-        return Complex;
-      }
-
-      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-        if (forceBabylon) {
-          return super.sqrt(forceBabylon, numIter);
-        }
-        return new (this.cls())(complexSqrt(this.s, this.ps));
-      }
-
-      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-        if (forceTaylor) {
-          return super.exp(forceTaylor, numTaylorTerms);
-        }
-        const expS = Math.exp(this.s);
-        return new (this.cls())([
-          expS * Math.cos(this.ps),
-          expS * Math.sin(this.ps),
-        ]);
-      }
-
-      log(): AlgebraElement {
-        return new (this.cls())(complexLog(this.s, this.ps));
-      }
-
-      inverse(): AlgebraElement {
-        const involute = this.involute();
-        return involute.scale(1 / this.mul(involute).s);
-      }
-
-      static zero() {
-        return new Complex().fill(0);
-      }
-      static scalar(magnitude = 1): AlgebraElement {
-        return new Complex(baseClass.scalar(magnitude));
-      }
-      static pseudoscalar(magnitude = 1): AlgebraElement {
-        return new Complex(baseClass.pseudoscalar(magnitude));
-      }
-      static basisBlade(...indices: number[]): AlgebraElement {
-        return new Complex(baseClass.basisBlade(...indices));
-      }
-      static fromVector(
-        values: Iterable<number>,
-        grade?: number
-      ): AlgebraElement {
-        return new Complex(baseClass.fromVector(values, grade));
-      }
-      static fromRotor(values: Iterable<number>): AlgebraElement {
-        return new Complex(baseClass.fromRotor(values));
-      }
-      static fromGanja(values: Iterable<number>) {
-        return new Complex(baseClass.fromGanja(values));
-      }
-    }
+    const Complex = make2D(
+      baseClass,
+      complexSqrt,
+      complexExp,
+      complexLog,
+      'Complex'
+    );
     return Complex;
   }
   if (p === 0 && q === 0 && r === 1) {
-    class Dual extends baseClass {
-      cls() {
-        return Dual;
-      }
-
-      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-        if (forceBabylon) {
-          return super.sqrt(forceBabylon, numIter);
-        }
-        const s = Math.sqrt(this.s);
-        return new (this.cls())([s, (0.5 * this.ps) / s]);
-      }
-
-      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-        if (forceTaylor) {
-          return super.exp(forceTaylor, numTaylorTerms);
-        }
-        const expS = Math.exp(this.s);
-        return new (this.cls())([expS, expS * this.ps]);
-      }
-
-      log(): AlgebraElement {
-        return new (this.cls())([Math.log(this.s), this.ps / this.s]);
-      }
-
-      inverse(): AlgebraElement {
-        const involute = this.involute();
-        return involute.scale(1 / this.mul(involute).s);
-      }
-
-      static zero() {
-        return new Dual().fill(0);
-      }
-      static scalar(magnitude = 1): AlgebraElement {
-        return new Dual(baseClass.scalar(magnitude));
-      }
-      static pseudoscalar(magnitude = 1): AlgebraElement {
-        return new Dual(baseClass.pseudoscalar(magnitude));
-      }
-      static basisBlade(...indices: number[]): AlgebraElement {
-        return new Dual(baseClass.basisBlade(...indices));
-      }
-      static fromVector(
-        values: Iterable<number>,
-        grade?: number
-      ): AlgebraElement {
-        return new Dual(baseClass.fromVector(values, grade));
-      }
-      static fromRotor(values: Iterable<number>): AlgebraElement {
-        return new Dual(baseClass.fromRotor(values));
-      }
-      static fromGanja(values: Iterable<number>) {
-        return new Dual(baseClass.fromGanja(values));
-      }
-    }
+    const Dual = make2D(baseClass, dualSqrt, dualExp, dualLog, 'Dual');
     return Dual;
   }
   if (p === 2 && q === 0 && r === 0) {
@@ -536,9 +454,9 @@ export function pqrMixin(
       splitComplexSqrt,
       Math.cosh,
       Math.sinh,
-      splitComplexLog
+      splitComplexLog,
+      'Euclidean1DPGA'
     );
-    Object.defineProperty(Euclidean1DPGA, 'name', {value: 'Euclidean1DPGA'});
     return Euclidean1DPGA;
   }
   if (p === 0 && q === 1 && r === 1) {
@@ -547,20 +465,20 @@ export function pqrMixin(
       complexSqrt,
       Math.cos,
       Math.sin,
-      complexLog
+      complexLog,
+      'ComplexPGA'
     );
-    Object.defineProperty(ComplexPGA, 'name', {value: 'ComplexPGA'});
     return ComplexPGA;
   }
   if (p === 0 && q === 0 && r === 2) {
     const DoublePGA = makePGA1D(
       baseClass,
-      (x, y) => [Math.sqrt(x), (0.5 * y) / x],
+      dualSqrt,
       y => 1, // eslint-disable-line @typescript-eslint/no-unused-vars
       y => y,
-      (x, y) => [Math.log(x), y / x]
+      dualLog,
+      'DoublePGA'
     );
-    Object.defineProperty(DoublePGA, 'name', {value: 'DoublePGS'});
     return DoublePGA;
   }
   if (p === 4 && q === 0 && r === 0) {
