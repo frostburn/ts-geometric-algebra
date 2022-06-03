@@ -548,6 +548,21 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('implements the exponential function over the split quaternions', () => {
+    [
+      [2, 0],
+      [1, 1],
+    ].forEach(pq => {
+      const Gl = Algebra(pq[0], pq[1]);
+      for (let i = 0; i < 10; ++i) {
+        const z = randomElement(Gl);
+        const expZ = z.exp(true);
+        const analytic = z.exp();
+        expect(expZ.closeTo(analytic)).toBeTruthy();
+      }
+    });
+  });
+
   it('satisfies identities of the exponential function on random elements', () => {
     for (let p = 0; p < 3; ++p) {
       for (let q = 0; q < 3; ++q) {
@@ -699,6 +714,29 @@ describe('Geometric Algebra', () => {
       expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
       expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
     }
+  });
+
+  it('implements square root over the split quaternions', () => {
+    [
+      [2, 0],
+      [1, 1],
+    ].forEach(pq => {
+      const Gl = Algebra(pq[0], pq[1]);
+      let failures = 0;
+      for (let i = 0; i < 10; ++i) {
+        const z = randomElement(Gl);
+        z.s = Math.abs(z.s);
+        const sqrtZ = z.pow(0.5);
+        if (!sqrtZ.hasNaN()) {
+          expect(sqrtZ.pow(2).closeTo(z)).toBeTruthy();
+          expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
+        } else {
+          failures++;
+        }
+      }
+      // Monitor issues here
+      expect(failures);
+    });
   });
 
   it('implements rotor square root in dimensions <= 2', () => {

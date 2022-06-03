@@ -3,6 +3,114 @@
 import {AlgebraElement} from './element';
 import {complexSqrt, splitComplexSqrt} from './utils';
 
+function makeSplitQuaternion(
+  baseClass: typeof AlgebraElement,
+  p1: number,
+  p2: number,
+  q: number
+) {
+  class SplitQuaternion extends baseClass {
+    cls() {
+      return SplitQuaternion;
+    }
+
+    imagNorm2() {
+      return this[p1] ** 2 + this[p2] ** 2 - this[q] ** 2;
+    }
+
+    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+      if (forceBabylon) {
+        return super.sqrt(forceBabylon, numIter);
+      }
+      const result = this.imag();
+      const imagNorm2 = this.imagNorm2();
+      const imagNorm = Math.sqrt(Math.abs(imagNorm2));
+      let x, y;
+      if (imagNorm2 < 0) {
+        [x, y] = complexSqrt(this.s, imagNorm);
+      } else {
+        [x, y] = splitComplexSqrt(this.s, imagNorm);
+      }
+      if (imagNorm < 1e-5) {
+        result.rescale(0.5);
+      } else {
+        result.rescale(y / imagNorm);
+      }
+      result.s = x;
+      return result;
+    }
+
+    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
+      if (forceTaylor) {
+        return super.exp(forceTaylor, numTaylorTerms);
+      }
+      const expS = Math.exp(this.s);
+      const result = this.imag();
+      const imagNorm2 = this.imagNorm2();
+      const imagNorm = Math.sqrt(Math.abs(imagNorm2));
+      if (imagNorm < 1e-5) {
+        result.rescale(expS);
+      } else if (imagNorm2 < 0) {
+        result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
+      } else {
+        result.rescale((expS * Math.sinh(imagNorm)) / imagNorm);
+      }
+      if (imagNorm2 < 0) {
+        result.s = expS * Math.cos(imagNorm);
+      } else {
+        result.s = expS * Math.cosh(imagNorm);
+      }
+      return result;
+    }
+
+    log(): AlgebraElement {
+      const norm = this.vnorm();
+      const imag = this.imag();
+      const imagNorm2 = this.imagNorm2();
+      const imagNorm = Math.sqrt(Math.abs(imagNorm2));
+      let result;
+      if (imagNorm2 < 0) {
+        result = imag.scale(Math.acos(this.s / norm) / imagNorm);
+      } else {
+        result = imag.scale(Math.acosh(this.s / norm) / imagNorm);
+      }
+      result.s = Math.log(norm);
+      return result;
+    }
+
+    inverse(): AlgebraElement {
+      const conjugate = this.conjugate();
+      return conjugate.scale(1 / this.mul(conjugate).s);
+    }
+
+    static zero() {
+      return new SplitQuaternion().fill(0);
+    }
+    static scalar(magnitude = 1): AlgebraElement {
+      return new SplitQuaternion(baseClass.scalar(magnitude));
+    }
+    static pseudoscalar(magnitude = 1): AlgebraElement {
+      return new SplitQuaternion(baseClass.pseudoscalar(magnitude));
+    }
+    static basisBlade(...indices: number[]): AlgebraElement {
+      return new SplitQuaternion(baseClass.basisBlade(...indices));
+    }
+    static fromVector(
+      values: Iterable<number>,
+      grade?: number
+    ): AlgebraElement {
+      return new SplitQuaternion(baseClass.fromVector(values, grade));
+    }
+    static fromRotor(values: Iterable<number>): AlgebraElement {
+      return new SplitQuaternion(baseClass.fromRotor(values));
+    }
+    static fromGanja(values: Iterable<number>) {
+      return new SplitQuaternion(baseClass.fromGanja(values));
+    }
+  }
+  return SplitQuaternion;
+}
+
 // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
 export function pqrMixin(
   p: number,
@@ -244,6 +352,15 @@ export function pqrMixin(
       }
     }
     return Dual;
+  }
+  if (p === 2 && q === 0 && r === 0) {
+    const SplitQuaternion = makeSplitQuaternion(baseClass, 1, 2, 3);
+    return SplitQuaternion;
+  }
+  if (p === 1 && q === 1 && r === 0) {
+    const Coquaternion = makeSplitQuaternion(baseClass, 1, 3, 2);
+    Object.defineProperty(Coquaternion, 'name', {value: 'Coquaternion'});
+    return Coquaternion;
   }
   if (p === 0 && q === 2 && r === 0) {
     class Quaternion extends baseClass {
