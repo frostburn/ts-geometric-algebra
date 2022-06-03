@@ -12,6 +12,18 @@ Ts-geometric-algebra is a Clifford Algebra Generator for TypeScript and JavaScri
 Visit [bivector.net](https://bivector.net) for our forum and chat - the perfect
 place for questions and support.
 
+## Using ts-geometric-algebra for the first time
+
+Install `ts-geometric-algebra` using npm :
+```bash
+npm install ts-geometric-algebra
+```
+
+And require it in your script :
+```javascript
+const Algebra = require('ts-geometric-algebra').default;
+```
+
 ### The Algebra Function
 
 To create an Algebra, call the `Algebra` function specifying the metric
