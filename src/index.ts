@@ -818,8 +818,8 @@ export default function Algebra(
     grades(threshold = 0) {
       const grades = new Set<number>();
       for (let i = 0; i < this.length; ++i) {
-        if (Math.abs(this[indexString[i][0]]) > threshold) {
-          grades.add(indexString[i][1].length);
+        if (Math.abs(this[i]) > threshold) {
+          grades.add(bitCount(i));
         }
       }
       const result = [...grades.values()];

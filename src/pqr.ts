@@ -12,6 +12,8 @@ import {
   dualSqrt,
   dualExp,
   dualLog,
+  sinc,
+  sinch,
 } from './utils';
 
 function make2D(
@@ -189,7 +191,7 @@ function makePGA1D(
   baseClass: typeof AlgebraElement,
   sqrt: Bivariate2D,
   co: (x: number) => number,
-  si: (x: number) => number,
+  sic: (x: number) => number,
   log: Bivariate2D,
   name: string
 ) {
@@ -216,18 +218,12 @@ function makePGA1D(
         return super.exp(forceTaylor, numTaylorTerms);
       }
       const expS = Math.exp(this.s);
-      const sii = si(this[2]);
-      let sic;
-      if (Math.abs(this[2]) > 1e-6) {
-        sic = sii / this[2];
-      } else {
-        sic = 1 - this[2] ** 2 / 6;
-      }
+      const eSic = expS * sic(this[2]);
       const result = this.clone();
       result.s = expS * co(this[2]);
-      result[1] *= expS * sic;
-      result[2] = expS * sii;
-      result[3] *= expS * sic;
+      result[1] *= eSic;
+      result[2] *= eSic;
+      result[3] *= eSic;
       return result;
     }
 
@@ -273,6 +269,104 @@ function makePGA1D(
   }
   Object.defineProperty(PGA1D, 'name', {value: name});
   return PGA1D;
+}
+
+function makeSplitQuaternionPGA(
+  baseClass: typeof AlgebraElement,
+  p1: number,
+  p2: number,
+  q: number,
+  sign: number
+) {
+  class SplitQuaternionPGA extends baseClass {
+    cls() {
+      return SplitQuaternionPGA;
+    }
+
+    imagNorm2() {
+      return this[p1] * this[p1] + this[p2] * this[p2] - this[q] * this[q];
+    }
+
+    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+      if (forceBabylon) {
+        return super.sqrt(forceBabylon, numIter);
+      }
+
+      const result = this.imag();
+      const imagNorm2 = this.imagNorm2();
+      const imagNorm = Math.sqrt(Math.abs(imagNorm2));
+      let x, y;
+      if (imagNorm2 < 0) {
+        [x, y] = complexSqrt(this.s, imagNorm);
+      } else {
+        [x, y] = splitComplexSqrt(this.s, imagNorm);
+      }
+      result.s = x;
+      let im = 0.5;
+      if (imagNorm > 1e-5) {
+        im = y / imagNorm;
+      }
+      result[2] *= im;
+      result[4] *= im;
+      result[6] *= im;
+
+      const denom =
+        x * x -
+        result[p1] * result[p1] -
+        result[p2] * result[p2] +
+        result[q] * result[q];
+      const ps =
+        (-0.5 *
+          (this[1] * result[6] +
+            this[3] * result[4] -
+            this[5] * result[2] -
+            this.ps * x)) /
+        denom;
+
+      result[1] = (0.5 * this[1] + sign * result[6] * ps) / x;
+      result[3] = (0.5 * this[3] - sign * result[4] * ps) / x;
+      result[5] = (0.5 * this[5] + result[2] * ps) / x;
+      result.ps = ps;
+
+      return result;
+    }
+
+    inverse(): AlgebraElement {
+      const reverse = this.rev();
+      const involute = this.involute();
+      const conjugate = this.conjugate();
+      return reverse
+        .mul(involute)
+        .mul(conjugate)
+        .scale(1 / this.mul(conjugate).mul(involute).mul(reverse).s);
+    }
+
+    static zero() {
+      return new SplitQuaternionPGA().fill(0);
+    }
+    static scalar(magnitude = 1): AlgebraElement {
+      return new SplitQuaternionPGA(baseClass.scalar(magnitude));
+    }
+    static pseudoscalar(magnitude = 1): AlgebraElement {
+      return new SplitQuaternionPGA(baseClass.pseudoscalar(magnitude));
+    }
+    static basisBlade(...indices: number[]): AlgebraElement {
+      return new SplitQuaternionPGA(baseClass.basisBlade(...indices));
+    }
+    static fromVector(
+      values: Iterable<number>,
+      grade?: number
+    ): AlgebraElement {
+      return new SplitQuaternionPGA(baseClass.fromVector(values, grade));
+    }
+    static fromRotor(values: Iterable<number>): AlgebraElement {
+      return new SplitQuaternionPGA(baseClass.fromRotor(values));
+    }
+    static fromGanja(values: Iterable<number>) {
+      return new SplitQuaternionPGA(baseClass.fromGanja(values));
+    }
+  }
+  return SplitQuaternionPGA;
 }
 
 // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
@@ -453,7 +547,7 @@ export function pqrMixin(
       baseClass,
       splitComplexSqrt,
       Math.cosh,
-      Math.sinh,
+      sinch,
       splitComplexLog,
       'Euclidean1DPGA'
     );
@@ -464,7 +558,7 @@ export function pqrMixin(
       baseClass,
       complexSqrt,
       Math.cos,
-      Math.sin,
+      sinc,
       complexLog,
       'ComplexPGA'
     );
@@ -475,11 +569,111 @@ export function pqrMixin(
       baseClass,
       dualSqrt,
       y => 1, // eslint-disable-line @typescript-eslint/no-unused-vars
-      y => y,
+      y => 1, // eslint-disable-line @typescript-eslint/no-unused-vars
       dualLog,
       'DoublePGA'
     );
     return DoublePGA;
+  }
+  if (p === 2 && q === 0 && r === 1) {
+    const SplitQuaternionPGA = makeSplitQuaternionPGA(baseClass, 2, 4, 6, 1);
+    return SplitQuaternionPGA;
+  }
+  if (p === 1 && q === 1 && r === 1) {
+    const CoquaternionPGA = makeSplitQuaternionPGA(baseClass, 2, 6, 4, -1);
+    Object.defineProperty(CoquaternionPGA, 'name', {value: 'CoquaternionPGA'});
+    return CoquaternionPGA;
+  }
+  if (p === 0 && q === 2 && r === 1) {
+    class QuaternionPGA extends baseClass {
+      cls() {
+        return QuaternionPGA;
+      }
+
+      imagNorm() {
+        return Math.sqrt(
+          this[2] * this[2] + this[4] * this[4] + this[6] * this[6]
+        );
+      }
+
+      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
+        if (forceBabylon) {
+          return super.sqrt(forceBabylon, numIter);
+        }
+        // Indices
+        // 0 scalar
+        // 1 e0
+        // 2 i
+        // 3 e0i
+        // 4 j
+        // 5 e0j
+        // 6 ij = k
+        // 7 e0ij = pseudoscalar
+
+        const result = this.imag();
+        const imagNorm = this.imagNorm();
+        const [x, y] = complexSqrt(this.s, imagNorm);
+        result.s = x;
+        let im = 0.5;
+        if (imagNorm > 1e-5) {
+          im = y / imagNorm;
+        }
+        result[2] *= im;
+        result[4] *= im;
+        result[6] *= im;
+
+        const ps =
+          (-0.5 *
+            (this[1] * result[6] +
+              this[3] * result[4] -
+              this[5] * result[2] -
+              this.ps * x)) /
+          (x * x + y * y);
+
+        result[1] = (0.5 * this[1] + result[6] * ps) / x;
+        result[3] = (0.5 * this[3] + result[4] * ps) / x;
+        result[5] = (0.5 * this[5] - result[2] * ps) / x;
+        result.ps = ps;
+
+        return result;
+      }
+
+      inverse(): AlgebraElement {
+        const reverse = this.rev();
+        const involute = this.involute();
+        const conjugate = this.conjugate();
+        return reverse
+          .mul(involute)
+          .mul(conjugate)
+          .scale(1 / this.mul(conjugate).mul(involute).mul(reverse).s);
+      }
+
+      static zero() {
+        return new QuaternionPGA().fill(0);
+      }
+      static scalar(magnitude = 1): AlgebraElement {
+        return new QuaternionPGA(baseClass.scalar(magnitude));
+      }
+      static pseudoscalar(magnitude = 1): AlgebraElement {
+        return new QuaternionPGA(baseClass.pseudoscalar(magnitude));
+      }
+      static basisBlade(...indices: number[]): AlgebraElement {
+        return new QuaternionPGA(baseClass.basisBlade(...indices));
+      }
+      static fromVector(
+        values: Iterable<number>,
+        grade?: number
+      ): AlgebraElement {
+        return new QuaternionPGA(baseClass.fromVector(values, grade));
+      }
+      static fromRotor(values: Iterable<number>): AlgebraElement {
+        return new QuaternionPGA(baseClass.fromRotor(values));
+      }
+      static fromGanja(values: Iterable<number>) {
+        return new QuaternionPGA(baseClass.fromGanja(values));
+      }
+    }
+    return QuaternionPGA;
   }
   if (p === 4 && q === 0 && r === 0) {
     class Elliptic3DPGA extends baseClass {

@@ -755,6 +755,38 @@ describe('Geometric Algebra', () => {
     });
   });
 
+  it('implements square root over projective quaternions', () => {
+    const Hp = Algebra(0, 2, 1);
+    for (let i = 0; i < 10; ++i) {
+      const z = randomElement(Hp);
+      expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+      expect(z.sqrt().square().closeTo(z)).toBeTruthy();
+    }
+  });
+
+  it('implements square root over projective split quaternions', () => {
+    [
+      [2, 0],
+      [1, 1],
+    ].forEach(pq => {
+      const Glp = Algebra(pq[0], pq[1], 1);
+      let failures = 0;
+      for (let i = 0; i < 10; ++i) {
+        const z = randomElement(Glp);
+        z.s = Math.abs(z.s);
+        const sqrtZ = z.pow(0.5);
+        if (!sqrtZ.hasNaN()) {
+          expect(sqrtZ.pow(2).closeTo(z)).toBeTruthy();
+          expect(z.sqrt().pow(2).closeTo(z)).toBeTruthy();
+        } else {
+          failures++;
+        }
+      }
+      // Monitor issues here
+      expect(failures);
+    });
+  });
+
   it('implements rotor square root in dimensions <= 2', () => {
     for (let p = 0; p <= 2; ++p) {
       for (let q = 0; q <= 2; ++q) {

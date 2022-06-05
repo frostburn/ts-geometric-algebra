@@ -126,3 +126,17 @@ export function splitComplexLog(x: number, y: number): [number, number] {
 export function dualLog(x: number, y: number): [number, number] {
   return [Math.log(x), y / x];
 }
+
+export function sinc(x: number) {
+  if (Math.abs(x) < 1e-6) {
+    return 1 - (x * x) / 6;
+  }
+  return Math.sin(x) / x;
+}
+
+export function sinch(x: number) {
+  if (Math.abs(x) < 1e-6) {
+    return 1 + (x * x) / 6;
+  }
+  return Math.sinh(x) / x;
+}
