@@ -1,4 +1,4 @@
-import {eigenValues} from './utils';
+import {eigenValues, sinc, sinch} from './utils';
 import {type ElementBaseType, type AlgebraElement} from './element';
 import {pqrMixin} from './pqr';
 
@@ -424,13 +424,13 @@ export default function Algebra(
           return grade2.split().reduce((total, simple) => {
             const square = simple.square().s;
             const len = Math.sqrt(Math.abs(square));
-            if (len <= 1e-5) {
+            if (len <= 1e-12) {
               simple.s += 1;
             } else if (square < 0) {
-              simple = simple.scale(Math.sin(len) / len);
+              simple = simple.scale(sinc(len));
               simple.s += Math.cos(len);
             } else {
-              simple = simple.scale(Math.sinh(len) / len);
+              simple = simple.scale(sinch(len));
               simple.s += Math.cosh(len);
             }
             return total.mul(simple);
@@ -438,31 +438,55 @@ export default function Algebra(
         }
       }
 
+      // No specific implementation found, but we can still
+      // use the fact that the scalar commutes with everything
+      let maybeImag: AlgebraElement;
+      if (forceTaylor) {
+        maybeImag = this;
+      } else {
+        maybeImag = this.imag();
+      }
+
       // Taylor series
       const result = this.cls().scalar();
       let term = this.cls().scalar();
       for (let i = 1; i < numTaylorTerms; ++i) {
-        term = term.mul(this.scale(1 / i));
+        term = term.mul(maybeImag.scale(1 / i));
         result.accumulate(term);
       }
-      return result;
+
+      if (forceTaylor) {
+        return result;
+      }
+      return result.rescale(Math.exp(this.s));
     }
 
     bivectorExp() {
       return this.exp();
     }
 
-    log(): AlgebraElement {
-      const sum = this.zeroed();
-      this.factorize().forEach(bi => {
-        const [ci, si] = [bi.s, bi.grade(2)];
-        const square = si.square().s;
-        const len = Math.sqrt(Math.abs(square));
-        if (Math.abs(square) < 1e-5) sum.accumulate(si);
-        if (square < 0) sum.accumulate(si.scale(Math.acos(ci) / len));
-        sum.accumulate(si.scale(Math.acosh(ci) / len));
-      });
-      return sum;
+    log(forceProduct = false, numProductTerms = 20): AlgebraElement {
+      if (!forceProduct && this.isGrade(2)) {
+        const sum = this.zeroed();
+        this.factorize().forEach(bi => {
+          const [ci, si] = [bi.s, bi.grade(2)];
+          const square = si.square().s;
+          const len = Math.sqrt(Math.abs(square));
+          if (Math.abs(square) < 1e-5) sum.accumulate(si);
+          if (square < 0) sum.accumulate(si.scale(Math.acos(ci) / len));
+          sum.accumulate(si.scale(Math.acosh(ci) / len));
+        });
+        return sum;
+      }
+      // Simply assumed to work for general multi vectors, someone should prove this
+      // https://www.emis.de/journals/HOA/IJMMS/2004/65-683653.pdf
+      let result = this.plus(-1);
+      let term = this.clone();
+      for (let i = 0; i < numProductTerms; ++i) {
+        term = term.sqrt();
+        result = result.mul(term.plus(1).inverse().rescale(2));
+      }
+      return result;
     }
 
     rotorLog() {

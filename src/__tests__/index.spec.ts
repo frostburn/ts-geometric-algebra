@@ -658,6 +658,23 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('implements logarithm over projective (split) quaternions', () => {
+    const pqrs: [number, number, number][] = [
+      [2, 0, 1],
+      [1, 1, 1],
+      [0, 2, 1],
+    ];
+
+    pqrs.forEach(pqr => {
+      const Hp = Algebra(...pqr);
+      for (let i = 0; i < 10; ++i) {
+        const z = randomElement(Hp);
+        z.rescale(0.25);
+        expect(z.exp().log().exp().closeTo(z.exp())).toBeTruthy();
+      }
+    });
+  });
+
   // Skipped due to unpredictable fails
   it.skip('can calculate logarithms', () => {
     let failures = 0;
