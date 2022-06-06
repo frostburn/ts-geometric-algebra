@@ -157,16 +157,17 @@ export default function Algebra(
       }
     }
 
-    cls() {
+    // This is a hack to get around TypeScript's lack of abstract static methods
+    get cls() {
       return AlgebraClass;
     }
 
     empty() {
-      return new (this.cls())();
+      return new this.cls();
     }
 
     zeroed() {
-      return this.cls().zero();
+      return this.cls.zero();
     }
 
     equals(other: AlgebraElement) {
@@ -434,7 +435,7 @@ export default function Algebra(
               simple.s += Math.cosh(len);
             }
             return total.mul(simple);
-          }, this.cls().scalar(Math.exp(this.s)));
+          }, this.cls.scalar(Math.exp(this.s)));
         }
       }
 
@@ -452,8 +453,8 @@ export default function Algebra(
       }
 
       // Taylor series
-      const result = this.cls().scalar();
-      let term = this.cls().scalar();
+      const result = this.cls.scalar();
+      let term = this.cls.scalar();
       for (let i = 1; i < numTaylorTerms; ++i) {
         term = term.mul(maybeImag.scale(1 / i));
         result.accumulate(term);
@@ -463,7 +464,7 @@ export default function Algebra(
         return result;
       }
       if (dimensions === 3) {
-        const factor = this.cls().zero();
+        const factor = this.cls.zero();
         factor.s = factor.ps = Math.exp(this.s);
         if (mulTable[indexMask][indexMask] > 0) {
           factor.s *= Math.cosh(this.ps);
@@ -512,7 +513,7 @@ export default function Algebra(
     }
 
     clone(): AlgebraElement {
-      return new (this.cls())(this);
+      return new this.cls(this);
     }
 
     negateGrades(...grades: number[]): AlgebraElement {
@@ -578,7 +579,7 @@ export default function Algebra(
     pow(power: number, splitStages = 8): AlgebraElement {
       if (power !== Math.round(power)) {
         if (dimensions === 0) {
-          return this.cls().scalar(Math.pow(this.s, power));
+          return this.cls.scalar(Math.pow(this.s, power));
         } else if (dimensions === 1) {
           return this.log().scale(power).exp();
         } else if (p === 0 && q === 2 && r === 0) {
@@ -595,7 +596,7 @@ export default function Algebra(
         return epsilon.pow(power);
       }
       if (power === 0) {
-        return this.cls().scalar();
+        return this.cls.scalar();
       }
       if (power === 1) {
         return this.clone();
@@ -604,7 +605,7 @@ export default function Algebra(
         return this.square();
       }
       if (power > 0) {
-        let result = this.cls().scalar();
+        let result = this.cls.scalar();
         let powerOfTwo = this.clone();
         while (power) {
           if (power & 1) {
@@ -924,7 +925,7 @@ export default function Algebra(
           (a, b) => Math.abs(a) - Math.abs(b)
         );
       }
-      Wi = [this.cls().scalar(), ...Wi, this.zeroed()];
+      Wi = [this.cls.scalar(), ...Wi, this.zeroed()];
       const sum = this.zeroed();
       const k2 = Math.floor(k / 2);
       const res: AlgebraElement[] = eigen.slice(1).map(v => {
@@ -951,7 +952,7 @@ export default function Algebra(
         return Mi.scale(1 / scale);
       });
       R.push(
-        R.reduce((tot, fact) => tot.mul(fact.rev()), this.cls().scalar()).mul(
+        R.reduce((tot, fact) => tot.mul(fact.rev()), this.cls.scalar()).mul(
           this
         )
       );
