@@ -445,6 +445,10 @@ export default function Algebra(
         maybeImag = this;
       } else {
         maybeImag = this.imag();
+        // In 3D the pseudoscalar always commutes
+        if (dimensions === 3) {
+          maybeImag.ps = 0;
+        }
       }
 
       // Taylor series
@@ -457,6 +461,20 @@ export default function Algebra(
 
       if (forceTaylor) {
         return result;
+      }
+      if (dimensions === 3) {
+        const factor = this.cls().zero();
+        factor.s = factor.ps = Math.exp(this.s);
+        if (mulTable[indexMask][indexMask] > 0) {
+          factor.s *= Math.cosh(this.ps);
+          factor.ps *= Math.sinh(this.ps);
+        } else if (mulTable[indexMask][indexMask] < 0) {
+          factor.s *= Math.cos(this.ps);
+          factor.ps *= Math.sin(this.ps);
+        } else {
+          factor.ps *= this.ps;
+        }
+        return result.mul(factor);
       }
       return result.rescale(Math.exp(this.s));
     }
