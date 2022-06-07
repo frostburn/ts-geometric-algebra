@@ -150,6 +150,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.vector(n)`           | N/A                | Array of `n`-vector components |
 | `x.rotor()`             | N/A                | Array of components of even grade |
 | `x.ganja()`             | `x`                | Array of all components in lexicographic order |
+| `x.invScale(y, t?)`     | N/A                | Ratio of weights between coincident `x` and `y`. Returs `NaN` if non-coincidence exteeds threshold `t`.
 | `x.grades(t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
 | `Cl.zero()`             | `Cl.Scalar(0)`     | Zero element |
 | `Cl.scalar(a?)`         | `Cl.Scalar(a)`     | Scalar element of size `a` (default `1`) |
@@ -245,7 +246,30 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `imag(x)`                | N/A                | Filter out grade 0 |
 | `even(x)`                | `x.Even()`         | Filter out odd grades |
 | `grade(x, n)`            | `x.Grade(n)`       | Keep only grade `n` components |
+| `invScale(x, y, t?)`     | N/A                | Ratio of weights between coincident `x` and `y`. Returs `NaN` if non-coincidence exteeds threshold `t`.
 | `grades(x, t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
 
 (*) Only in degenerate metrics
 (**) Loop unrolled for maximum performance
+
+## Linear equation solver
+You can solver equations of the form (for the moment pretending that javascript has scalar multiplication of arrays)
+```
+x = coeffs[0] * basis[0] + coeffs[1] * basis[1] + ... + coeffs[n-1] * basis[n-1]
+```
+for the unknown coefficients `coeffs`.
+```typescript
+const coeffs = vLinSolve(x, basis);
+```
+This comes with the added cost of algebra creation on each call. If you need to do a lot of solving create your algebra beforehand.
+```typescript
+import {Algebra, linSolve} from 'ts-geometric-algebra';
+const Grassmann = Algebra(0, 0, 3);
+const x = Grassmann.fromVector([1, 2, 3]);
+const basis = [
+  Grassmann.fromVector([1, 1, 1]),
+  Grassmann.fromVector([0, 1, -1]),
+  Grassmann.fromVector([-1, 2, -2])
+];
+const coeffs = linSolve(x, basis);  // [ 2.5, -3.5, 1.5 ]
+```

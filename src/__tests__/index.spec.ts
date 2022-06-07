@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 
-import Algebra, {AlgebraElement, ElementBaseType} from '../index';
+import Algebra, {AlgebraElement, ElementBaseType, vLinSolve} from '../index';
 
 function randomElement(Ga: typeof AlgebraElement) {
   const value: number[] = [];
@@ -987,5 +987,41 @@ describe('Geometric Algebra', () => {
     expect(abGrades.length).toBe(2);
     expect(abGrades[0]).toBe(0);
     expect(abGrades[1]).toBe(2);
+  });
+
+  it('can compare weights in a metric-free manner', () => {
+    const Grassmann = Algebra(0, 0, 3);
+    const a = Grassmann.basisBlade(0).wedge(Grassmann.basisBlade(1));
+    const b = Grassmann.basisBlade(1).wedge(Grassmann.basisBlade(0).scale(3));
+    expect(b.invScale(a)).toBe(-3);
+  });
+
+  it('can compare weights in a metric-free manner with some tolerance for error', () => {
+    const Grassmann = Algebra(0, 0, 4);
+    const a = randomElement(Grassmann);
+    const s = Math.random() - 0.5;
+    const b = a.scale(s);
+    expect(b.invScale(a, 1e-6)).toBeCloseTo(s);
+  });
+});
+
+describe('Linear combination solver', () => {
+  it('can solve a linear equation', () => {
+    const a = [1, -2, 3, 4];
+    const b = [5, 4, -3, 2];
+    const c = [1, -1, 1, -1];
+    const d = [-2, 3, -7, 2];
+
+    const x = [0, 0, 0, 0];
+    for (let i = 0; i < x.length; ++i) {
+      x[i] = a[i] * 2 + b[i] * 3 + c[i] * 4 + d[i] * 5;
+    }
+
+    const coefficients = vLinSolve(x, [a, b, c, d]);
+    expect(coefficients.length).toBe(4);
+    expect(coefficients[0]).toBe(2);
+    expect(coefficients[1]).toBe(3);
+    expect(coefficients[2]).toBe(4);
+    expect(coefficients[3]).toBe(5);
   });
 });

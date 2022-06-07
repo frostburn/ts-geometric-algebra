@@ -1,8 +1,18 @@
 import {eigenValues, sinc, sinch} from './utils';
 import {type ElementBaseType, type AlgebraElement} from './element';
 import {pqrMixin} from './pqr';
+import {linSolve} from './element';
 
 export * from './element';
+
+export function vLinSolve(x: number[], basis: number[][], threshold = 1e-6) {
+  const Grassmann = Algebra(0, 0, x.length);
+  return linSolve(
+    Grassmann.fromVector(x),
+    basis.map(b => Grassmann.fromVector(b)),
+    threshold
+  );
+}
 
 // https://stackoverflow.com/a/43122214
 function bitCount(n: number) {
@@ -53,7 +63,7 @@ function reduceIndices(indices: number[]) {
 
 const MAX_DIMENSIONS = 36;
 
-export default function Algebra(
+export function Algebra(
   p: number,
   q = 0,
   r = 0,
@@ -858,6 +868,22 @@ export default function Algebra(
       return new baseType(indexString.map(g => this[g[0]]));
     }
 
+    invScale(other: AlgebraElement, threshold = 0) {
+      let result = NaN;
+      for (let i = 0; i < this.length; ++i) {
+        if (Math.abs(other[i]) > threshold) {
+          if (isNaN(result)) {
+            result = this[i] / other[i];
+          } else {
+            if (Math.abs(1 - this[i] / other[i] / result) > threshold) {
+              return NaN;
+            }
+          }
+        }
+      }
+      return result;
+    }
+
     grades(threshold = 0) {
       const grades = new Set<number>();
       for (let i = 0; i < this.length; ++i) {
@@ -1207,3 +1233,5 @@ export default function Algebra(
 
   return Result;
 }
+
+export default Algebra;

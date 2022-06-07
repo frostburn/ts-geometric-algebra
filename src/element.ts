@@ -216,6 +216,7 @@ export declare class AlgebraElement extends ElementBaseType {
   ganja(): ElementBaseType;
 
   // Misc
+  invScale(other: AlgebraElement, threshold?: number): number;
   grades(threshold?: number): number[];
   plus(scalar: number): AlgebraElement;
   rescale(scalar: number): this;
@@ -465,6 +466,33 @@ export function grade(element: AlgebraElement, grade: number): AlgebraElement {
 }
 
 // Misc
+export function invScale(
+  a: AlgebraElement,
+  b: AlgebraElement,
+  threshold?: number
+): number {
+  return a.invScale(b, threshold);
+}
 export function grades(element: AlgebraElement, threshold?: number): number[] {
   return element.grades(threshold);
+}
+
+// Special
+export function linSolve(
+  x: AlgebraElement,
+  basis: AlgebraElement[],
+  threshold = 1e-6
+) {
+  const blade = basis.reduce(wedge);
+  const coefficients = [];
+  let sign = 1;
+  for (let i = 0; i < basis.length; ++i) {
+    const splicedBasis = [...basis];
+    splicedBasis.splice(i, 1);
+    coefficients.push(
+      x.wedge(splicedBasis.reduce(wedge)).invScale(blade, threshold) * sign
+    );
+    sign = -sign;
+  }
+  return coefficients;
 }
