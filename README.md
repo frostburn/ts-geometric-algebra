@@ -231,12 +231,13 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `pow(x, n)`              | `x.Pow(n)`         | Multiply `x` with itself `n` times |
 | `applyWeights(x, ws)`    | N/A                | Replace each basis factor with a weighted copy for every weight in `ws` |
 | `negateGrades(x, ...gs)` | `x.Map(...gs)`     | Negate the given grades |
-| `add(x, y)`              | `x.Add(y)`         | Component-wise addition (**) |
+| `add(...args)`           | `x.Add(y)`         | Component-wise addition (**) |
 | `sub(x, y)`              | `x.Sub(y)`         | Component-wise subtraction (**) |
-| `mul(x, y)`              | `x.Mul(y)`         | Geometric product of `x` and `y` (**) |
+| `mul(...args)`           | `x.Mul(y)`         | Geometric product of `x` and `y` (**) |
 | `div(x, y)`              | `x.Div(y)`         | Geometric division from the right |
-| `wedge(x, y)`            | `x.Wedge(y)`       | Wedge (outer) product. Metric independent (**) |
-| `vee(x, y)`              | `x.Vee(y)`         | Vee (dual) product. Metric indepentend. `vee(x, y) = undual(dual(y), dual(x))` (**) |
+| `ldivs(x, y)`            | `x.Inverse.Mul(y)` | Geometric division from the left |
+| `wedge(...args)`         | `x.Wedge(y)`       | Wedge (outer) product. Metric independent (**) |
+| `vee(...args)`           | `x.Vee(y)`         | Vee (dual) product. Metric indepentend. `vee(x, y) = undual(dual(y), dual(x))` (**) |
 | `rotorMean(x, y)`        | N/A                | Geometric mean of rotors `x` and `y` |
 | `contract(x, y, ctn)`    | N/A                | Contract `x` by `y` using criterion `ctn` |
 | `dot(x, y)`              | `x.Dot(y)`         | Dot product. Symmetric criterion (**) |
@@ -251,6 +252,8 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 
 (*) Only in degenerate metrics
 (**) Loop unrolled for maximum performance
+
+The functions `add`, `sub`, `mul`, `div`, `ldivs`, `wedge`, `vee` also work on the `number` type.
 
 ## Linear equation solver
 You can solver equations of the form (for the moment pretending that javascript has scalar multiplication of arrays)

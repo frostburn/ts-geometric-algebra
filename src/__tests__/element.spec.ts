@@ -1,6 +1,58 @@
 import {describe, it, expect} from 'vitest';
 import {Algebra} from '..';
-import {linSolve} from '../element';
+import {add, mul, linSolve} from '../element';
+
+describe('Addition', () => {
+  it('works on numbers', () => {
+    const a = add(1, 2, 3);
+    expect(a).toBe(6);
+  });
+
+  it('works on algebra elements', () => {
+    const Grassmann = Algebra(0, 0, 2);
+    const a = Grassmann.fromVector([1, 2]);
+    const b = Grassmann.fromVector([2, 3]);
+    const c = Grassmann.fromVector([4, 5]);
+    const d = add(a, b, c);
+    const expected = Grassmann.fromVector([7, 10]);
+    expect(d.equals(expected)).toBeTruthy();
+  });
+
+  it('works on mixed elements', () => {
+    const Grassmann = Algebra(0, 0, 2);
+    const a = Grassmann.fromVector([1, 2]);
+    const b = add(3, a, 4);
+    const expected = new Grassmann([7, 1, 2, 0]);
+    expect(b.equals(expected)).toBeTruthy();
+  });
+});
+
+describe('Multiplication', () => {
+  it('works on numbers', () => {
+    const a = mul(1, 2, 3);
+    expect(a).toBe(6);
+  });
+
+  it('works on algebra elements', () => {
+    const Cl4 = Algebra(4);
+    const a = Cl4.fromVector([1, -2, 3, 5]);
+    const b = Cl4.fromVector([2, 3, -4, 6]);
+    const c = Cl4.fromVector([4, 5, 6, -7]);
+    const d = mul(a, b, c);
+    const expected = Cl4.fromVector([59, 225, -137, -175]).add(
+      Cl4.fromVector([88, -137, 246, 359], 3)
+    );
+    expect(d.equals(expected)).toBeTruthy();
+  });
+
+  it('works on mixed elements', () => {
+    const Grassmann = Algebra(0, 0, 2);
+    const a = Grassmann.fromVector([1, 2]);
+    const b = mul(3, a, 4);
+    const expected = Grassmann.fromVector([12, 24]);
+    expect(b.equals(expected)).toBeTruthy();
+  });
+});
 
 describe('Linear combination solver', () => {
   it('can solve a linear equation', () => {

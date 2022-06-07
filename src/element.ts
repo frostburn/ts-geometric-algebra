@@ -238,6 +238,23 @@ export declare class AlgebraElement extends ElementBaseType {
   static get size(): number;
 }
 
+type ElementLike = AlgebraElement | number;
+
+function argSort(args: ElementLike[]): ElementLike[] {
+  const result = [];
+  for (let i = 0; i < args.length; ++i) {
+    if (typeof args[i] !== 'number') {
+      result.push(args[i]);
+    }
+  }
+  for (let i = 0; i < args.length; ++i) {
+    if (typeof args[i] === 'number') {
+      result.push(args[i]);
+    }
+  }
+  return result;
+}
+
 // Comparisons using two arguments
 export function equals(a: AlgebraElement, b: AlgebraElement): boolean {
   return a.equals(b);
@@ -407,26 +424,138 @@ export function negateGrades(
 }
 
 // Binary operations using two arguments
-export function add(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
-  return a.add(b);
+export function add(...args: number[]): number;
+export function add(...args: AlgebraElement[]): AlgebraElement;
+export function add(...args: ElementLike[]): AlgebraElement;
+export function add(...args: ElementLike[]): ElementLike {
+  if (!args.length) {
+    return 0;
+  }
+  args = argSort(args);
+  if (typeof args[0] === 'number') {
+    return (args as number[]).reduce((a, b) => a + b);
+  }
+  let result = args[0];
+  args.slice(1).forEach(arg => {
+    if (typeof arg === 'number') {
+      result = result.plus(arg);
+    } else {
+      result = result.add(arg);
+    }
+  });
+  return result;
 }
-export function sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+export function sub(a: number, b: number): number;
+export function sub(a: number, b: AlgebraElement): AlgebraElement;
+export function sub(a: AlgebraElement, b: number): AlgebraElement;
+export function sub(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+export function sub(a: ElementLike, b: ElementLike): ElementLike {
+  if (typeof a === 'number') {
+    if (typeof b === 'number') {
+      return a - b;
+    }
+    return b.plus(-a).neg();
+  }
+  if (typeof b === 'number') {
+    return a.plus(-b);
+  }
   return a.sub(b);
 }
-export function mul(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
-  return a.mul(b);
+export function mul(...args: number[]): number;
+export function mul(...args: AlgebraElement[]): AlgebraElement;
+export function mul(...args: ElementLike[]): AlgebraElement;
+export function mul(...args: ElementLike[]): ElementLike {
+  if (!args.length) {
+    return 1;
+  }
+  args = argSort(args);
+  if (typeof args[0] === 'number') {
+    return (args as number[]).reduce((a, b) => a * b);
+  }
+  let result = args[0];
+  args.slice(1).forEach(arg => {
+    if (typeof arg === 'number') {
+      result = result.scale(arg);
+    } else {
+      result = result.mul(arg);
+    }
+  });
+  return result;
 }
-export function div(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+export function div(a: number, b: number): number;
+export function div(a: number, b: AlgebraElement): AlgebraElement;
+export function div(a: AlgebraElement, b: number): AlgebraElement;
+export function div(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+export function div(a: ElementLike, b: ElementLike): ElementLike {
+  if (typeof a === 'number') {
+    if (typeof b === 'number') {
+      return a / b;
+    }
+    return b.inverse().rescale(a);
+  }
+  if (typeof b === 'number') {
+    return a.scale(1 / b);
+  }
   return a.div(b);
 }
-export function ldivs(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+export function ldivs(a: number, b: number): number;
+export function ldivs(a: number, b: AlgebraElement): AlgebraElement;
+export function ldivs(a: AlgebraElement, b: number): AlgebraElement;
+export function ldivs(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
+export function ldivs(a: ElementLike, b: ElementLike): ElementLike {
+  if (typeof a === 'number') {
+    if (typeof b === 'number') {
+      return b / a;
+    }
+    return b.scale(1 / a);
+  }
+  if (typeof b === 'number') {
+    return a.inverse().rescale(b);
+  }
   return a.ldivs(b);
 }
-export function wedge(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
-  return a.wedge(b);
+export function wedge(...args: number[]): number;
+export function wedge(...args: AlgebraElement[]): AlgebraElement;
+export function wedge(...args: ElementLike[]): AlgebraElement;
+export function wedge(...args: ElementLike[]): ElementLike {
+  if (!args.length) {
+    return 1;
+  }
+  args = argSort(args);
+  if (typeof args[0] === 'number') {
+    return (args as number[]).reduce((a, b) => a * b);
+  }
+  let result = args[0];
+  args.slice(1).forEach(arg => {
+    if (typeof arg === 'number') {
+      result = result.scale(arg);
+    } else {
+      result = result.wedge(arg);
+    }
+  });
+  return result;
 }
-export function vee(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
-  return a.vee(b);
+export function vee(...args: number[]): number;
+export function vee(...args: AlgebraElement[]): AlgebraElement;
+export function vee(...args: ElementLike[]): AlgebraElement;
+export function vee(...args: ElementLike[]): ElementLike {
+  if (!args.length) {
+    throw new Error('Empty vee not supported');
+  }
+  args = argSort(args);
+  if (typeof args[0] === 'number') {
+    return 0;
+  }
+  let result = args[0];
+  for (let i = 1; i < args.length; ++i) {
+    const arg = args[i];
+    if (typeof arg === 'number') {
+      return (result as any).zeroed();
+    } else {
+      result = result.vee(arg);
+    }
+  }
+  return result;
 }
 // Contractions
 export function contract(
@@ -483,14 +612,14 @@ export function linSolve(
   basis: AlgebraElement[],
   threshold = 1e-6
 ) {
-  const blade = basis.reduce(wedge);
+  const blade = wedge(...basis);
   const coefficients = [];
   let sign = 1;
   for (let i = 0; i < basis.length; ++i) {
     const splicedBasis = [...basis];
     splicedBasis.splice(i, 1);
     coefficients.push(
-      x.wedge(splicedBasis.reduce(wedge)).invScale(blade, threshold) * sign
+      x.wedge(wedge(...splicedBasis)).invScale(blade, threshold) * sign
     );
     sign = -sign;
   }
