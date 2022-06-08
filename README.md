@@ -142,7 +142,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.ldotL(y)`            | `y.LDot(x)`        | Left contraction of `y` by `x` (**) |
 | `x.dotR(y)`             | N/A                | Right contraction of `x` by `y` |
 | `x.ldotR(y)`            | N/A                | Right contraction of `y` by `x` |
-| `x.star(y)`             | N/A                | Scalar product. Nil criterion |
+| `x.dotS(y)`             | N/A                | Scalar product. Nil criterion |
 | `x.imag()`              | N/A                | Filter out grade 0 |
 | `x.even()`              | `x.Even()`         | Filter out odd grades |
 | `x.grade(n)`            | `x.Grade(n)`       | Keep only grade `n` components |
@@ -152,6 +152,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.ganja()`             | `x`                | Array of all components in lexicographic order |
 | `x.invScale(y, t?)`     | N/A                | Ratio of weights between coincident `x` and `y`. Returs `NaN` if non-coincidence exteeds threshold `t`.
 | `x.grades(t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
+| `x.star(y)`             | N/A                | Scalar product with `number` result |
 | `Cl.zero()`             | `Cl.Scalar(0)`     | Zero element |
 | `Cl.scalar(a?)`         | `Cl.Scalar(a)`     | Scalar element of size `a` (default `1`) |
 | `Cl.pseudoscalar(a?)`   | N/A                | Pseudoscalar element of size `a` (default `1`) |
@@ -243,12 +244,13 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `dot(x, y)`              | `x.Dot(y)`         | Dot product. Symmetric criterion (**) |
 | `dotL(x, y)`             | `x.LDot(y)`        | Left contraction of `x` by `y` (**) |
 | `dotR(x, y)`             | N/A                | Right contraction of `x` by `y` |
-| `star(x, y)`             | N/A                | Scalar product. Nil criterion |
+| `dotS(x, y)`             | N/A                | Scalar product. Nil criterion |
 | `imag(x)`                | N/A                | Filter out grade 0 |
 | `even(x)`                | `x.Even()`         | Filter out odd grades |
 | `grade(x, n)`            | `x.Grade(n)`       | Keep only grade `n` components |
 | `invScale(x, y, t?)`     | N/A                | Ratio of weights between coincident `x` and `y`. Returs `NaN` if non-coincidence exteeds threshold `t`.
 | `grades(x, t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
+| `star(x, y)`             | N/A                | Scalar product with `number` result |
 
 (*) Only in degenerate metrics
 (**) Loop unrolled for maximum performance

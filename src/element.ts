@@ -202,8 +202,7 @@ export declare class AlgebraElement extends ElementBaseType {
   ldotL(other: AlgebraElement): AlgebraElement; // Left contraction
   dotR(other: AlgebraElement): AlgebraElement; // Right contraction
   ldotR(other: AlgebraElement): AlgebraElement; // Right contraction
-  star(): AlgebraElement; // Dischord dual
-  star(other: AlgebraElement): AlgebraElement; // Scalar product
+  dotS(other: AlgebraElement): AlgebraElement; // Scalar product
 
   // Subsets
   imag(): AlgebraElement;
@@ -223,6 +222,8 @@ export declare class AlgebraElement extends ElementBaseType {
   accumulate(other: AlgebraElement): this;
   split(iter?: number): AlgebraElement[];
   factorize(iter?: number): AlgebraElement[];
+  star(): AlgebraElement; // Dischord dual
+  star(other: AlgebraElement): number; // Scalar product
 
   // Construction
   static zero(): AlgebraElement;
@@ -592,13 +593,8 @@ export function dotL(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
 export function dotR(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
   return a.dotR(b);
 }
-export function star(element: AlgebraElement): AlgebraElement;
-export function star(a: AlgebraElement, b: AlgebraElement): AlgebraElement;
-export function star(a: AlgebraElement, b?: AlgebraElement): AlgebraElement {
-  if (b === undefined) {
-    return a.star();
-  }
-  return a.star(b);
+export function dotS(a: AlgebraElement, b: AlgebraElement): AlgebraElement {
+  return a.dotS(b);
 }
 
 // Subsets
@@ -622,6 +618,17 @@ export function invScale(
 }
 export function grades(element: AlgebraElement, threshold?: number): number[] {
   return element.grades(threshold);
+}
+export function star(element: AlgebraElement): AlgebraElement;
+export function star(a: AlgebraElement, b: AlgebraElement): number;
+export function star(
+  a: AlgebraElement,
+  b?: AlgebraElement
+): AlgebraElement | number {
+  if (b === undefined) {
+    return a.star();
+  }
+  return a.star(b);
 }
 
 // Special

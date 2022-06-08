@@ -378,7 +378,7 @@ describe('Geometric Algebra', () => {
       expect(u.dot(v).closeTo(inner)).toBeTruthy();
       expect(u.dotL(v).closeTo(inner)).toBeTruthy();
       expect(u.dotR(v).closeTo(inner)).toBeTruthy();
-      expect(u.star(v).closeTo(inner)).toBeTruthy();
+      expect(u.dotS(v).closeTo(inner)).toBeTruthy();
       expect(
         u.wedge(v).closeTo(u.mul(v).sub(v.mul(u)).scale(0.5))
       ).toBeTruthy();
@@ -406,10 +406,10 @@ describe('Geometric Algebra', () => {
       expect(
         a
           .wedge(b)
-          .star(c)
-          .closeTo(a.star(b.dotL(c)))
+          .dotS(c)
+          .closeTo(a.dotS(b.dotL(c)))
       ).toBeTruthy();
-      expect(c.star(b.wedge(a)).closeTo(c.dotR(b).star(a))).toBeTruthy();
+      expect(c.dotS(b.wedge(a)).closeTo(c.dotR(b).dotS(a))).toBeTruthy();
       expect(a.dotL(b.dotL(c)).closeTo(a.wedge(b).dotL(c))).toBeTruthy();
       expect(
         a
@@ -441,17 +441,17 @@ describe('Geometric Algebra', () => {
       .map((_, i) => Cl5.basisBlade(i));
 
     const seven = Cl5.fromVector([7], 0);
-    expect(seven.star(scalar).s).toBe(7);
+    expect(seven.star(scalar)).toBe(7);
     const bracketSeven = seven.vector(0);
     expect(bracketSeven.length).toBe(1);
     expect(bracketSeven[0]).toBe(7);
 
     const vector = Cl5.fromVector([1, 2, 3, 4, 5]);
-    expect(vector.star(e[0]).s).toBe(1);
-    expect(vector.star(e[1]).s).toBe(2);
-    expect(vector.star(e[2]).s).toBe(3);
-    expect(vector.star(e[3]).s).toBe(4);
-    expect(vector.star(e[4]).s).toBe(5);
+    expect(vector.star(e[0])).toBe(1);
+    expect(vector.star(e[1])).toBe(2);
+    expect(vector.star(e[2])).toBe(3);
+    expect(vector.star(e[3])).toBe(4);
+    expect(vector.star(e[4])).toBe(5);
     const recovered = vector.vector();
     for (let i = 0; i < recovered.length; ++i) {
       expect(recovered[i]).toBe(i + 1);
@@ -461,16 +461,16 @@ describe('Geometric Algebra', () => {
       [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10],
       2
     );
-    expect(bivector.star(e[0].wedge(e[1])).s).toBe(1);
-    expect(bivector.star(e[0].wedge(e[2])).s).toBe(2);
-    expect(bivector.star(e[0].wedge(e[3])).s).toBe(3);
-    expect(bivector.star(e[0].wedge(e[4])).s).toBe(4);
-    expect(bivector.star(e[1].wedge(e[2])).s).toBe(5);
-    expect(bivector.star(e[1].wedge(e[3])).s).toBe(6);
-    expect(bivector.star(e[1].wedge(e[4])).s).toBe(7);
-    expect(bivector.star(e[2].wedge(e[3])).s).toBe(8);
-    expect(bivector.star(e[2].wedge(e[4])).s).toBe(9);
-    expect(bivector.star(e[3].wedge(e[4])).s).toBe(10);
+    expect(bivector.star(e[0].wedge(e[1]))).toBe(1);
+    expect(bivector.star(e[0].wedge(e[2]))).toBe(2);
+    expect(bivector.star(e[0].wedge(e[3]))).toBe(3);
+    expect(bivector.star(e[0].wedge(e[4]))).toBe(4);
+    expect(bivector.star(e[1].wedge(e[2]))).toBe(5);
+    expect(bivector.star(e[1].wedge(e[3]))).toBe(6);
+    expect(bivector.star(e[1].wedge(e[4]))).toBe(7);
+    expect(bivector.star(e[2].wedge(e[3]))).toBe(8);
+    expect(bivector.star(e[2].wedge(e[4]))).toBe(9);
+    expect(bivector.star(e[3].wedge(e[4]))).toBe(10);
     const birecovered = bivector.vector(2);
     for (let i = 0; i < birecovered.length; ++i) {
       expect(birecovered[i]).toBe(-i - 1);
@@ -1002,6 +1002,26 @@ describe('Geometric Algebra', () => {
     const s = Math.random() - 0.5;
     const b = a.scale(s);
     expect(b.invScale(a, 1e-6)).toBeCloseTo(s);
+  });
+
+  it('has a scalar product satisfying the determinant formula', () => {
+    const Ga = Algebra(2, 1, 1);
+    const a1 = randomVector(Ga);
+    const a2 = randomVector(Ga);
+    const a3 = randomVector(Ga);
+    const b1 = randomVector(Ga);
+    const b2 = randomVector(Ga);
+    const b3 = randomVector(Ga);
+
+    const A = a1.wedge(a2).wedge(a3);
+    const B = b1.wedge(b2).wedge(b3);
+
+    const determinant =
+      a1.star(b3) * (a2.star(b2) * a3.star(b1) - a2.star(b1) * a3.star(b2)) -
+      a1.star(b2) * (a2.star(b3) * a3.star(b1) - a2.star(b1) * a3.star(b3)) +
+      a1.star(b1) * (a2.star(b3) * a3.star(b2) - a2.star(b2) * a3.star(b3));
+    expect(A.star(B)).toBeCloseTo(determinant);
+    expect(A.rev().star(B.rev())).toBeCloseTo(determinant);
   });
 });
 

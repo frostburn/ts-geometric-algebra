@@ -779,15 +779,8 @@ export function Algebra(
       return other.contract(this, right);
     }
 
-    star(maybeOther?: AlgebraElement) {
-      if (maybeOther === undefined) {
-        const result = this.empty();
-        for (let i = 0; i < this.length; ++i) {
-          result[indexMask ^ i] = this[i] * (mulTable[i][indexMask] || 1);
-        }
-        return result;
-      }
-      return this.contract(maybeOther, nil);
+    dotS(other: AlgebraElement) {
+      return this.contract(other, nil);
     }
 
     // Scalar part
@@ -983,6 +976,23 @@ export function Algebra(
         )
       );
       return R;
+    }
+
+    star(): AlgebraElement; // Dischord dual
+    star(other: AlgebraElement): number; // Scalar product
+    star(maybeOther?: AlgebraElement) {
+      if (maybeOther === undefined) {
+        const result = this.empty();
+        for (let i = 0; i < this.length; ++i) {
+          result[indexMask ^ i] = this[i] * (mulTable[i][indexMask] || 1);
+        }
+        return result as AlgebraElement;
+      }
+      let result = 0;
+      for (let i = 0; i < this.length; ++i) {
+        result += this[i] * maybeOther[i] * mulTable[i][i];
+      }
+      return result;
     }
 
     static zero(): AlgebraElement {
