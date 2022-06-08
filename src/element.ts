@@ -256,14 +256,32 @@ function argSort(args: ElementLike[]): ElementLike[] {
 }
 
 // Comparisons using two arguments
-export function equals(a: AlgebraElement, b: AlgebraElement): boolean {
+export function equals(a: ElementLike, b: ElementLike): boolean {
+  if (typeof a === 'number') {
+    if (typeof b === 'number') {
+      return a === b;
+    }
+    return b.imag().isNil() && b.s === a;
+  }
+  if (typeof b === 'number') {
+    return a.imag().isNil() && a.s === b;
+  }
   return a.equals(b);
 }
 export function closeTo(
-  a: AlgebraElement,
-  b: AlgebraElement,
-  tolerance?: number
+  a: ElementLike,
+  b: ElementLike,
+  tolerance = 1e-4
 ): boolean {
+  if (typeof a === 'number') {
+    if (typeof b === 'number') {
+      return Math.abs(a - b) < tolerance;
+    }
+    return b.imag().isNil(tolerance) && Math.abs(b.s - a) < tolerance;
+  }
+  if (typeof b === 'number') {
+    return a.imag().isNil(tolerance) && Math.abs(a.s - b) < tolerance;
+  }
   return a.closeTo(b, tolerance);
 }
 

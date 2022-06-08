@@ -253,7 +253,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 (*) Only in degenerate metrics
 (**) Loop unrolled for maximum performance
 
-The functions `add`, `sub`, `mul`, `div`, `ldivs`, `wedge`, `vee` also work on the `number` type.
+The functions `equals`, `closeTo`, `add`, `sub`, `mul`, `div`, `ldivs`, `wedge`, `vee` also work on the `number` type.
 
 ## Linear equation solver
 You can solver equations of the form (for the moment pretending that javascript has scalar multiplication of arrays)

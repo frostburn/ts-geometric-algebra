@@ -1,6 +1,28 @@
 import {describe, it, expect} from 'vitest';
 import {Algebra} from '..';
-import {add, mul, linSolve} from '../element';
+import {add, mul, linSolve, equals} from '../element';
+
+describe('Testing for equality', () => {
+  it('works on numbers', () => {
+    const a = equals(1, 2);
+    expect(a).toBe(false);
+  });
+
+  it('works on algebra elements', () => {
+    const Grassmann = Algebra(0, 0, 2);
+    const a = Grassmann.fromVector([1, 2]);
+    const b = Grassmann.fromVector([2, 3]);
+    const c = equals(a, b);
+    expect(c).toBe(false);
+  });
+
+  it('works on mixed elements', () => {
+    const Grassmann = Algebra(0, 0, 2);
+    const a = Grassmann.fromVector([2], 0);
+    const b = equals(2, a);
+    expect(b).toBe(true);
+  });
+});
 
 describe('Addition', () => {
   it('works on numbers', () => {
