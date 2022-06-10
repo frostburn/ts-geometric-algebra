@@ -107,6 +107,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.involute()`          | `x.Involute`       | Negation of basis factors |
 | `x.rev()`               | `x.Reverse`        | Reversal of basis factors {`x.reverse` is array reversal} |
 | `x.conjugate()`         | `x.Conjugate`      | Conjugation (combined involution and reversal) |
+| `x.adjugate()`          | N/A                | Unscaled multiplicative inverse (suitable for int base class) |
 | `x.inverse()`           | `x.Inverse`        | Multiplicative inverse |
 | `x.square()`            | `x.Mul(x)`         | Multiplicative squaring (**) |
 | `x.normalize(a?)`       | `x.Normalize`      | `x` with norm set to `a` (default 1) |
@@ -215,6 +216,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `involute(x)`            | `x.Involute`       | Negation of basis factors |
 | `rev(x)`                 | `x.Reverse`        | Reversal of basis factors {`x.reverse` is array reversal} |
 | `conjugate(x)`           | `x.Conjugate`      | Conjugation (combined involution and reversal) |
+| `adjugate(x)`            | `x.Inverse`        | Unscaled multiplicative inverse |
 | `inverse(x)`             | `x.Inverse`        | Multiplicative inverse |
 | `square(x)`              | `x.Mul(x)`         | Multiplicative squaring (**) |
 | `normalize(x, a?)`       | `x.Normalize`      | `x` with norm set to `a` (default 1) |

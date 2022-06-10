@@ -561,6 +561,41 @@ export function Algebra(
       return result;
     }
 
+    adjugate(): AlgebraElement {
+      switch (dimensions) {
+        case 0:
+          return this.clone();
+        case 1:
+          return this.involute();
+        case 2:
+          return this.conjugate();
+        case 3:
+          return this.rev().mul(this.involute()).mul(this.conjugate());
+        case 4:
+          const conjugate = this.conjugate();
+          return conjugate.mul(this.mul(conjugate).negateGrades(3, 4));
+        case 5:
+          const civ = this.conjugate().mul(this.involute()).mul(this.rev());
+          return civ.mul(this.mul(civ).negateGrades(1, 4));
+        default:
+          // Shirokov-style adjugate
+          const N = 1 << (((dimensions + 1) / 2) | 0);
+          let Uk = this.clone();
+          let adjU = this.clone();
+          for (let k = 1; k < N; ++k) {
+            let s = Uk.s * N;
+            if (s % k !== 0) {
+              s *= k;
+              Uk.rescale(k);
+              adjU.rescale(k);
+            }
+            adjU = Uk.plus(-s / k);
+            Uk = this.mul(adjU);
+          }
+          return adjU;
+      }
+    }
+
     inverse(): AlgebraElement {
       // Matrix-free inverses up to 5D
       // http://repository.essex.ac.uk/17282/1/TechReport_CES-534.pdf
@@ -575,11 +610,10 @@ export function Algebra(
             .mul(conjugate)
             .scale(1 / this.mul(conjugate).mul(involute).mul(reverse).s);
         case 4:
-          const modulus = this.mul(this.conjugate());
+          const conjugate4 = this.conjugate();
+          const modulus = this.mul(conjugate4);
           const n34 = modulus.negateGrades(3, 4);
-          return this.conjugate()
-            .mul(n34)
-            .scale(1 / modulus.mul(n34).s);
+          return conjugate4.mul(n34).scale(1 / modulus.mul(n34).s);
         case 5:
           const civ = this.conjugate().mul(this.involute()).mul(this.rev());
           const tciv = this.mul(civ);
@@ -588,7 +622,7 @@ export function Algebra(
         default:
           // Shirokov inverse
           const N = 1 << (((dimensions + 1) / 2) | 0);
-          let Uk = this.scale(1);
+          let Uk = this.clone();
           let adjU: AlgebraElement;
           for (let k = 1; k < N; ++k) {
             adjU = Uk.plus(-(N / k) * Uk.s);

@@ -1047,6 +1047,27 @@ describe('Geometric Algebra', () => {
       expect(blade.closeTo(reblade)).toBeTruthy();
     }
   });
+
+  it('has an adjugate suitable for int base classes', () => {
+    for (let p = 0; p < 4; ++p) {
+      for (let q = 0; q < 4; ++q) {
+        for (let r = 0; r < 2; ++r) {
+          const Ga = Algebra(p, q, r, Int32Array);
+          const c = [];
+          for (let i = 0; i < Ga.size; ++i) {
+            c.push(Math.round(Math.random() * 8 - 4));
+          }
+          const a = new Ga(c);
+          const grades = a.mul(a.adjugate()).grades();
+          if (grades.length === 0) {
+            continue;
+          }
+          expect(grades.length).toBe(1);
+          expect(grades[0]).toBe(0);
+        }
+      }
+    }
+  });
 });
 
 describe('Linear combination solver', () => {

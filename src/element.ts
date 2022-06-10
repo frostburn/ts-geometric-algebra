@@ -142,6 +142,7 @@ export declare class AlgebraElement extends ElementBaseType {
   involute(): AlgebraElement;
   rev(): AlgebraElement;
   conjugate(): AlgebraElement;
+  adjugate(): AlgebraElement;
   inverse(): AlgebraElement;
   square(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
@@ -328,6 +329,9 @@ export function rev(element: AlgebraElement): AlgebraElement {
 }
 export function conjugate(element: AlgebraElement): AlgebraElement {
   return element.conjugate();
+}
+export function adjugate(element: AlgebraElement): AlgebraElement {
+  return element.adjugate();
 }
 export function inverse(element: AlgebraElement): AlgebraElement {
   return element.inverse();
