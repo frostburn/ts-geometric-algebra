@@ -21,6 +21,23 @@ function bitCount(n: number) {
   return (((n + (n >> 4)) & 0xf0f0f0f) * 0x1010101) >> 24;
 }
 
+// Split number n into powers of two such that n = f1 ^ f2 ^ ... ^ fk
+function bitSplit(n: number) {
+  if (n < 0) {
+    throw new Error('Cannot split negative bitsets');
+  }
+  const result = [];
+  let p = 1;
+  while (n) {
+    if (n & 1) {
+      result.push(p);
+    }
+    n >>= 1;
+    p <<= 1;
+  }
+  return result;
+}
+
 // https://en.wikipedia.org/wiki/Gnome_sort
 function sortSign(sequence: number[]) {
   let sign = 1;
@@ -83,6 +100,16 @@ export function Algebra(
   const dimensions = p + q + r;
   const size = 1 << dimensions;
   const indexMask = size - 1;
+
+  // Helper class used in factorization for easier inverses
+  let Euclidized: typeof AlgebraElement;
+
+  function getEuclidized() {
+    if (Euclidized === undefined) {
+      Euclidized = Algebra(dimensions, 0, 0, baseType, unroll);
+    }
+    return Euclidized;
+  }
 
   if (dimensions > MAX_DIMENSIONS) {
     throw new Error(`Maximum total number of dimensions is ${MAX_DIMENSIONS}`);
@@ -497,7 +524,7 @@ export function Algebra(
     log(forceProduct = false, numProductTerms = 20): AlgebraElement {
       if (!forceProduct && this.isGrade(2)) {
         const sum = this.zeroed();
-        this.factorize().forEach(bi => {
+        this.motorFactorize().forEach(bi => {
           const [ci, si] = [bi.s, bi.grade(2)];
           const square = si.square().s;
           const len = Math.sqrt(Math.abs(square));
@@ -902,6 +929,36 @@ export function Algebra(
       return this;
     }
 
+    bladeFactorize(): [AlgebraElement[], number] {
+      const Euclid = getEuclidized();
+      let euclid = new Euclid(this);
+      const norm = euclid.norm();
+      euclid.rescale(1 / norm);
+
+      let maxIndex = 0;
+      let maxCoordinate = euclid[0];
+      for (let i = 1; i < euclid.length; ++i) {
+        if (euclid[i] > maxCoordinate) {
+          maxIndex = i;
+          maxCoordinate = euclid[i];
+        }
+      }
+      const indices = bitSplit(maxIndex);
+      const factors = [];
+      for (let i = 0; i < indices.length - 1; ++i) {
+        const basisBlade = Euclid.zero();
+        basisBlade[i] = 1;
+        const factor = basisBlade.dotL(euclid.inverse()).dotL(euclid);
+        factor.rescale(1 / factor.norm());
+        factors.push(new this.cls(factor));
+        euclid = factor.inverse().dotL(euclid);
+      }
+      euclid.rescale(1 / euclid.norm());
+      factors.push(new this.cls(euclid));
+
+      return [factors, norm];
+    }
+
     // Bivector split - we handle all real cases, still have to add the complex cases for those exception scenarios.
     split(iter = 50) {
       const TWT = this.wedge(this);
@@ -963,7 +1020,7 @@ export function Algebra(
     }
 
     // Factorize a motor
-    factorize(iter = 50) {
+    motorFactorize(iter = 50) {
       const S = this.grade(2).split(iter);
       const R = S.slice(0, S.length - 1).map(Mi => {
         Mi.s += this.s;
@@ -1068,6 +1125,10 @@ export function Algebra(
   }
 
   const Result = pqrMixin(p, q, r, AlgebraClass);
+
+  if (p === dimensions) {
+    Euclidized = Result;
+  }
 
   if (!unroll) {
     return Result;

@@ -1023,6 +1023,30 @@ describe('Geometric Algebra', () => {
     expect(A.star(B)).toBeCloseTo(determinant);
     expect(A.rev().star(B.rev())).toBeCloseTo(determinant);
   });
+
+  it('can factorize blades', () => {
+    const Ga = Algebra(0, 1, 4);
+
+    for (let i = 0; i < 10; ++i) {
+      const a = randomVector(Ga);
+      const b = randomVector(Ga);
+      const c = randomVector(Ga);
+      const blade = a.wedge(b).wedge(c);
+
+      if (blade.isNil(1e-6)) {
+        continue;
+      }
+
+      const [factors, scale] = blade.bladeFactorize();
+
+      expect(factors.length).toBe(3);
+
+      const reblade = factors.reduce((a, b) => a.wedge(b)).rescale(scale);
+
+      expect(reblade).toBeInstanceOf(Ga);
+      expect(blade.closeTo(reblade)).toBeTruthy();
+    }
+  });
 });
 
 describe('Linear combination solver', () => {

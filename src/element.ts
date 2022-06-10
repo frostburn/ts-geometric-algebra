@@ -220,8 +220,9 @@ export declare class AlgebraElement extends ElementBaseType {
   plus(scalar: number): AlgebraElement;
   rescale(scalar: number): this;
   accumulate(other: AlgebraElement): this;
+  bladeFactorize(): [AlgebraElement[], number];
   split(iter?: number): AlgebraElement[];
-  factorize(iter?: number): AlgebraElement[];
+  motorFactorize(iter?: number): AlgebraElement[];
   star(): AlgebraElement; // Dischord dual
   star(other: AlgebraElement): number; // Scalar product
 
