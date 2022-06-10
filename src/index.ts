@@ -794,6 +794,12 @@ export function Algebra(
       return other.dual().lwedge(this.dual()).undual();
     }
 
+    delta(other: AlgebraElement, threshold = 0): AlgebraElement {
+      const product = this.mul(other);
+      const maxGrade = Math.max(0, ...product.grades(threshold));
+      return product.grade(maxGrade);
+    }
+
     rotorMean(other: AlgebraElement) {
       return this.add(other).rotorNormalize();
     }
@@ -1067,6 +1073,70 @@ export function Algebra(
         )
       );
       return R;
+    }
+
+    meetJoin(
+      other: AlgebraElement,
+      threshold = 0
+    ): [AlgebraElement, AlgebraElement] {
+      const grades = this.grades(threshold);
+      const otherGrades = other.grades(threshold);
+      if (grades.length !== 1 || otherGrades.length !== 1) {
+        throw new Error('Inputs must be blades');
+      }
+      const Euclid = getEuclidized();
+
+      let a: AlgebraElement;
+      let b: AlgebraElement;
+      let aGrade: number;
+      let bGrade: number;
+      if (grades[0] < otherGrades[0]) {
+        a = new Euclid(this);
+        b = new Euclid(other);
+        aGrade = grades[0];
+        bGrade = otherGrades[0];
+      } else {
+        a = new Euclid(other);
+        b = new Euclid(this);
+        aGrade = otherGrades[0];
+        bGrade = grades[0];
+      }
+      const d = a.delta(b, threshold);
+      const dGrade = d.grades(threshold)[0];
+      const joinGrade = (aGrade + bGrade + dGrade) / 2;
+      const meetGrade = (aGrade + bGrade - dGrade) / 2;
+
+      const factors = d.dual().bladeFactorize()[0];
+
+      let meet = Euclid.scalar();
+      let join = Euclid.pseudoscalar();
+      let mg = 0;
+      let jg = dimensions - 1;
+
+      const aInverse = a.inverse();
+      for (let i = 0; i < factors.length; ++i) {
+        const factor = factors[i];
+        const projection = factor.dotL(aInverse).dotL(a);
+        const rejection = factor.sub(projection);
+        if (!projection.isNil(threshold)) {
+          meet = meet.wedge(projection);
+          mg++;
+          if (mg === meetGrade) {
+            join = a.wedge(meet.inverse().dotL(b));
+            break;
+          }
+        }
+        if (!rejection.isNil(threshold)) {
+          join = rejection.dotL(join);
+          jg--;
+          if (jg === joinGrade) {
+            meet = b.dotL(join.inverse()).dotL(a);
+            break;
+          }
+        }
+      }
+
+      return [new this.cls(meet), new this.cls(join)];
     }
 
     star(): AlgebraElement; // Dischord dual

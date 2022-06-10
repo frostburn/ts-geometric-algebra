@@ -1033,7 +1033,7 @@ describe('Geometric Algebra', () => {
       const c = randomVector(Ga);
       const blade = a.wedge(b).wedge(c);
 
-      if (blade.isNil(1e-6)) {
+      if (blade.isNil(1e-4)) {
         continue;
       }
 
@@ -1066,6 +1066,35 @@ describe('Geometric Algebra', () => {
           expect(grades[0]).toBe(0);
         }
       }
+    }
+  });
+
+  it('can calculate the meet and join of blades', () => {
+    const Ga = Algebra(3, 2, 1);
+
+    for (let i = 0; i < 10; ++i) {
+      const a = randomVector(Ga).normalize();
+      const b = randomVector(Ga).normalize();
+      const c = randomVector(Ga).normalize();
+      const d = randomVector(Ga).normalize();
+      const bladeA = a.wedge(b).wedge(c);
+      const bladeB = c.wedge(d);
+
+      if (bladeA.isNil(1e-6) || bladeB.isNil(1e-6)) {
+        continue;
+      }
+
+      const [meet, join] = bladeA.meetJoin(bladeB, 1e-4);
+
+      expect(
+        meet.normalize().closeTo(c) || meet.neg().normalize().closeTo(c)
+      ).toBeTruthy();
+
+      let expected = bladeA.wedge(d);
+      if (expected.isNil(1e-6)) {
+        expected = bladeA;
+      }
+      expect(isNaN(join.invScale(expected, 1e-4))).toBeFalsy();
     }
   });
 });

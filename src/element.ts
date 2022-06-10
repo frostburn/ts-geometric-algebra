@@ -192,6 +192,7 @@ export declare class AlgebraElement extends ElementBaseType {
   lwedge(other: AlgebraElement): AlgebraElement;
   vee(other: AlgebraElement): AlgebraElement;
   lvee(other: AlgebraElement): AlgebraElement;
+  delta(other: AlgebraElement, threshold?: number): AlgebraElement;
   rotorMean(other: AlgebraElement): AlgebraElement;
   // Contractions
   contract(
@@ -224,6 +225,10 @@ export declare class AlgebraElement extends ElementBaseType {
   bladeFactorize(): [AlgebraElement[], number];
   split(iter?: number): AlgebraElement[];
   motorFactorize(iter?: number): AlgebraElement[];
+  meetJoin(
+    other: AlgebraElement,
+    threshold?: number
+  ): [AlgebraElement, AlgebraElement];
   star(): AlgebraElement; // Dischord dual
   star(other: AlgebraElement): number; // Scalar product
 
@@ -623,6 +628,13 @@ export function invScale(
 }
 export function grades(element: AlgebraElement, threshold?: number): number[] {
   return element.grades(threshold);
+}
+export function meetJoin(
+  a: AlgebraElement,
+  b: AlgebraElement,
+  threshold?: number
+): [AlgebraElement, AlgebraElement] {
+  return a.meetJoin(b, threshold);
 }
 export function star(element: AlgebraElement): AlgebraElement;
 export function star(a: AlgebraElement, b: AlgebraElement): number;
