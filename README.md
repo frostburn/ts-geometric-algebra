@@ -153,6 +153,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.ganja()`             | `x`                | Array of all components in lexicographic order |
 | `x.invScale(y, t?)`     | N/A                | Ratio of weights between coincident `x` and `y`. Returs `NaN` if non-coincidence exteeds threshold `t`.
 | `x.grades(t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
+| `x.meetJoin(y, t?)`     | N/A                | True (of threshold `t`) meet and join of blades `x` and `y` |
 | `x.star(y)`             | N/A                | Scalar product with `number` result |
 | `Cl.zero()`             | `Cl.Scalar(0)`     | Zero element |
 | `Cl.scalar(a?)`         | `Cl.Scalar(a)`     | Scalar element of size `a` (default `1`) |
@@ -252,6 +253,7 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `grade(x, n)`            | `x.Grade(n)`       | Keep only grade `n` components |
 | `invScale(x, y, t?)`     | N/A                | Ratio of weights between coincident `x` and `y`. Returs `NaN` if non-coincidence exteeds threshold `t`.
 | `grades(x, t?)`          | N/A                | Array of grades present in `x` exceeding threshold `t` (default `0`) |
+| `meetJoin(x, y, t?)`     | N/A                | True (of threshold `t`) meet and join of blades `x` and `y` |
 | `star(x, y)`             | N/A                | Scalar product with `number` result |
 
 (*) Only in degenerate metrics
