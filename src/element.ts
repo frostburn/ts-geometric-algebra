@@ -223,6 +223,7 @@ export declare class AlgebraElement extends ElementBaseType {
   rescale(scalar: number): this;
   accumulate(other: AlgebraElement): this;
   bladeFactorize(): [AlgebraElement[], number];
+  intBladeFactorize(): AlgebraElement[];
   split(iter?: number): AlgebraElement[];
   motorFactorize(iter?: number): AlgebraElement[];
   meetJoin(
@@ -231,6 +232,7 @@ export declare class AlgebraElement extends ElementBaseType {
   ): [AlgebraElement, AlgebraElement];
   star(): AlgebraElement; // Dischord dual
   star(other: AlgebraElement): number; // Scalar product
+  intReduce(): AlgebraElement;
 
   // Construction
   static zero(): AlgebraElement;

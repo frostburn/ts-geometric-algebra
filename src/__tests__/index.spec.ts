@@ -1069,6 +1069,41 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('can factorize integer blades', () => {
+    const Ga = Algebra(2, 2, 0, Int32Array);
+
+    for (let i = 0; i < 10; ++i) {
+      const fs: AlgebraElement[] = [];
+
+      for (let j = 0; j < 3; ++j) {
+        const f = [];
+        for (let k = 0; k < Ga.dimensions; ++k) {
+          f.push(Math.round(Math.random() * 6 - 3));
+        }
+        fs.push(Ga.fromVector(f));
+      }
+
+      const blade = fs[0].wedge(fs[1]).wedge(fs[2]);
+
+      if (blade.isNil()) {
+        continue;
+      }
+
+      const factors = blade.intBladeFactorize();
+
+      // console.log(factors);
+
+      expect(factors.length).toBe(3);
+
+      const reblade = factors.reduce((a, b) => a.wedge(b)).intReduce();
+
+      expect(reblade).toBeInstanceOf(Ga);
+
+      console.log(reblade, blade);
+      // expect(blade.closeTo(reblade)).toBeTruthy();
+    }
+  });
+
   it('can calculate the meet and join of blades', () => {
     const Ga = Algebra(3, 2, 1);
 

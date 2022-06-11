@@ -1,4 +1,4 @@
-import {eigenValues, sinc, sinch} from './utils';
+import {eigenValues, gcd, sinc, sinch} from './utils';
 import {type ElementBaseType, type AlgebraElement} from './element';
 import {pqrMixin} from './pqr';
 import {linSolve} from './element';
@@ -999,6 +999,35 @@ export function Algebra(
       return [factors, norm];
     }
 
+    intBladeFactorize(): AlgebraElement[] {
+      const Euclid = getEuclidized();
+      let euclid = new Euclid(this).intReduce();
+
+      let maxIndex = 0;
+      let maxCoordinate = euclid[0];
+      for (let i = 1; i < euclid.length; ++i) {
+        if (euclid[i] > maxCoordinate) {
+          maxIndex = i;
+          maxCoordinate = euclid[i];
+        }
+      }
+      const indices = bitSplit(maxIndex);
+      const factors = [];
+      for (let i = 0; i < indices.length - 1; ++i) {
+        const basisBlade = Euclid.zero();
+        basisBlade[indices[i]] = 1;
+        const factor = basisBlade
+          .dotL(euclid.adjugate())
+          .dotL(euclid)
+          .intReduce();
+        factors.push(new this.cls(factor));
+        euclid = factor.adjugate().dotL(euclid).intReduce();
+      }
+      factors.push(new this.cls(euclid.intReduce()));
+
+      return factors;
+    }
+
     // Bivector split - we handle all real cases, still have to add the complex cases for those exception scenarios.
     split(iter = 50) {
       const TWT = this.wedge(this);
@@ -1139,6 +1168,71 @@ export function Algebra(
       return [new this.cls(meet), new this.cls(join)];
     }
 
+    /*
+    intMeetJoin(
+      other: AlgebraElement
+    ): [AlgebraElement, AlgebraElement] {
+      const grades = this.grades();
+      const otherGrades = other.grades();
+      if (grades.length !== 1 || otherGrades.length !== 1) {
+        throw new Error('Inputs must be blades');
+      }
+      const Euclid = getEuclidized();
+
+      let a: AlgebraElement;
+      let b: AlgebraElement;
+      let aGrade: number;
+      let bGrade: number;
+      if (grades[0] < otherGrades[0]) {
+        a = new Euclid(this);
+        b = new Euclid(other);
+        aGrade = grades[0];
+        bGrade = otherGrades[0];
+      } else {
+        a = new Euclid(other);
+        b = new Euclid(this);
+        aGrade = otherGrades[0];
+        bGrade = grades[0];
+      }
+      const d = a.delta(b);
+      const dGrade = d.grades()[0];
+      const joinGrade = (aGrade + bGrade + dGrade) / 2;
+      const meetGrade = (aGrade + bGrade - dGrade) / 2;
+
+      const factors = d.dual().intBladeFactorize()[0];
+
+      let meet = Euclid.scalar();
+      let join = Euclid.pseudoscalar();
+      let mg = 0;
+      let jg = dimensions - 1;
+
+      const aInverse = a.inverse();
+      for (let i = 0; i < factors.length; ++i) {
+        const factor = factors[i];
+        const projection = factor.dotL(aInverse).dotL(a);
+        const rejection = factor.sub(projection);
+        if (!projection.isNil(threshold)) {
+          meet = meet.wedge(projection);
+          mg++;
+          if (mg === meetGrade) {
+            join = a.wedge(meet.inverse().dotL(b));
+            break;
+          }
+        }
+        if (!rejection.isNil(threshold)) {
+          join = rejection.dotL(join);
+          jg--;
+          if (jg === joinGrade) {
+            meet = b.dotL(join.inverse()).dotL(a);
+            break;
+          }
+        }
+      }
+
+      return [new this.cls(meet), new this.cls(join)];
+    }
+    */
+
     star(): AlgebraElement; // Dischord dual
     star(other: AlgebraElement): number; // Scalar product
     star(maybeOther?: AlgebraElement) {
@@ -1154,6 +1248,10 @@ export function Algebra(
         result += this[i] * maybeOther[i] * mulTable[i][i];
       }
       return result;
+    }
+
+    intReduce(): AlgebraElement {
+      return this.scale(1 / this.reduce(gcd));
     }
 
     static zero(): AlgebraElement {
