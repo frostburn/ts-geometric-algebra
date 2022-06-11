@@ -1136,7 +1136,10 @@ export function Algebra(
         }
       }
 
-      return [new this.cls(meet), new this.cls(join)];
+      return [
+        new this.cls(meet).grade(meetGrade),
+        new this.cls(join).grade(joinGrade),
+      ];
     }
 
     star(): AlgebraElement; // Dischord dual

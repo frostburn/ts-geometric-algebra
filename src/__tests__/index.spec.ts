@@ -1086,6 +1086,7 @@ describe('Geometric Algebra', () => {
 
       const [meet, join] = bladeA.meetJoin(bladeB, 1e-4);
 
+      expect(meet.grades()[0]).toBe(1);
       expect(
         meet.normalize().closeTo(c) || meet.neg().normalize().closeTo(c)
       ).toBeTruthy();
@@ -1093,6 +1094,9 @@ describe('Geometric Algebra', () => {
       let expected = bladeA.wedge(d);
       if (expected.isNil(1e-6)) {
         expected = bladeA;
+        expect(join.grades()[0]).toBe(3);
+      } else {
+        expect(join.grades()[0]).toBe(4);
       }
       expect(isNaN(join.invScale(expected, 1e-4))).toBeFalsy();
     }
@@ -1108,7 +1112,9 @@ describe('Geometric Algebra', () => {
     const syntonic = SevenLimit.fromVector([-4, 4, -1, 0]).dual();
 
     const [meet, join] = edo12.meetJoin(edo19);
+    expect(meet.grades()[0]).toBe(0);
     expect(isNaN(meet.invScale(trivial))).toBeFalsy();
+    expect(join.grades()[0]).toBe(2);
     expect(isNaN(join.invScale(meantone, 1e-6))).toBeFalsy();
 
     const [thirtyOne, jointone] = meantone.meetJoin(edo31);
@@ -1117,7 +1123,9 @@ describe('Geometric Algebra', () => {
 
     const flattone = SevenLimit.fromVector([1, 4, -9, 4, -17, -32], 2);
     const [nineteen, didymus] = flattone.meetJoin(meantone);
+    expect(nineteen.grades()[0]).toBe(1);
     expect(isNaN(nineteen.invScale(edo19, 1e-6))).toBeFalsy();
+    expect(didymus.grades()[0]).toBe(3);
     expect(isNaN(didymus.invScale(syntonic, 1e-6))).toBeFalsy();
   });
 });
