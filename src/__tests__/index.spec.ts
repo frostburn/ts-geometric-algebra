@@ -1080,7 +1080,7 @@ describe('Geometric Algebra', () => {
       const bladeA = a.wedge(b).wedge(c);
       const bladeB = c.wedge(d);
 
-      if (bladeA.isNil(1e-6) || bladeB.isNil(1e-6)) {
+      if (bladeA.isNil(1e-4) || bladeB.isNil(1e-4)) {
         continue;
       }
 
@@ -1096,6 +1096,29 @@ describe('Geometric Algebra', () => {
       }
       expect(isNaN(join.invScale(expected, 1e-4))).toBeFalsy();
     }
+  });
+
+  it('can calculate a specific meets and joins of musical significance', () => {
+    const SevenLimit = Algebra(4);
+    const edo12 = SevenLimit.fromVector([12, 19, 28, 34]);
+    const edo19 = SevenLimit.fromVector([19, 30, 44, 53]);
+    const edo31 = SevenLimit.fromVector([31, 49, 72, 87]);
+    const trivial = SevenLimit.scalar();
+    const meantone = edo12.wedge(edo19);
+    const syntonic = SevenLimit.fromVector([-4, 4, -1, 0]).dual();
+
+    const [meet, join] = edo12.meetJoin(edo19);
+    expect(isNaN(meet.invScale(trivial))).toBeFalsy();
+    expect(isNaN(join.invScale(meantone, 1e-6))).toBeFalsy();
+
+    const [thirtyOne, jointone] = meantone.meetJoin(edo31);
+    expect(isNaN(thirtyOne.invScale(edo31, 1e-6))).toBeFalsy();
+    expect(isNaN(jointone.invScale(meantone, 1e-6))).toBeFalsy();
+
+    const flattone = SevenLimit.fromVector([1, 4, -9, 4, -17, -32], 2);
+    const [nineteen, didymus] = flattone.meetJoin(meantone);
+    expect(isNaN(nineteen.invScale(edo19, 1e-6))).toBeFalsy();
+    expect(isNaN(didymus.invScale(syntonic, 1e-6))).toBeFalsy();
   });
 });
 

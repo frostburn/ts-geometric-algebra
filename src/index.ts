@@ -1090,7 +1090,7 @@ export function Algebra(
       let b: AlgebraElement;
       let aGrade: number;
       let bGrade: number;
-      if (grades[0] < otherGrades[0]) {
+      if (grades[0] <= otherGrades[0]) {
         a = new Euclid(this);
         b = new Euclid(other);
         aGrade = grades[0];
@@ -1111,7 +1111,7 @@ export function Algebra(
       let meet = Euclid.scalar();
       let join = Euclid.pseudoscalar();
       let mg = 0;
-      let jg = dimensions - 1;
+      let jg = dimensions;
 
       const aInverse = a.inverse();
       for (let i = 0; i < factors.length; ++i) {
