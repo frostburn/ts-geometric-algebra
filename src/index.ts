@@ -981,7 +981,7 @@ export function Algebra(
       const factors = [];
       for (let i = 0; i < indices.length - 1; ++i) {
         const basisBlade = Euclid.zero();
-        basisBlade[i] = 1;
+        basisBlade[indices[i]] = 1;
         const factor = basisBlade.dotL(euclid.inverse()).dotL(euclid);
         factor.rescale(1 / factor.norm());
         factors.push(new this.cls(factor));
