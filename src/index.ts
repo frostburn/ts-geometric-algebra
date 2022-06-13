@@ -492,14 +492,17 @@ export function Algebra(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      // Not quaranteed to converge. Barely better than nothing.
-      // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-      const root = this.plus(1);
+    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+      // Denman-Beavers iteration. Not guaranteed to converge.
+      // https://en.wikipedia.org/wiki/Square_root_of_a_matrix#By_Denman%E2%80%93Beavers_iteration
+      let y = this.plus(1).rescale(0.5);
+      let z = this.inverse().plus(1).rescale(0.5);
       for (let i = 1; i < numIter; ++i) {
-        root.accumulate(this.div(root)).rescale(0.5);
+        const yInv = y.inverse();
+        y = y.add(z.inverse()).rescale(0.5);
+        z = z.add(yInv).rescale(0.5);
       }
-      return root;
+      return y;
     }
 
     rotorSqrt(): AlgebraElement {

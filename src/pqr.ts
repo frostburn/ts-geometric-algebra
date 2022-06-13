@@ -28,9 +28,9 @@ function make2D(
       return Number2D;
     }
 
-    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      if (forceBabylon) {
-        return super.sqrt(forceBabylon, numIter);
+    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+      if (forceIter) {
+        return super.sqrt(forceIter, numIter);
       }
       return new this.cls(sqrt(this.s, this.ps));
     }
@@ -95,9 +95,9 @@ function makeSplitQuaternion(
       return this[p1] ** 2 + this[p2] ** 2 - this[q] ** 2;
     }
 
-    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      if (forceBabylon) {
-        return super.sqrt(forceBabylon, numIter);
+    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+      if (forceIter) {
+        return super.sqrt(forceIter, numIter);
       }
       const result = this.imag();
       const imagNorm2 = this.imagNorm2();
@@ -202,9 +202,9 @@ function makePGA1D(
       return PGA1D;
     }
 
-    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      if (forceBabylon) {
-        return super.sqrt(forceBabylon, numIter);
+    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+      if (forceIter) {
+        return super.sqrt(forceIter, numIter);
       }
       const [x, y] = sqrt(this.s, this[pq]);
       const result = this.clone();
@@ -289,9 +289,9 @@ function makeSplitQuaternionPGA(
       return this[p1] * this[p1] + this[p2] * this[p2] - this[q] * this[q];
     }
 
-    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      if (forceBabylon) {
-        return super.sqrt(forceBabylon, numIter);
+    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+      if (forceIter) {
+        return super.sqrt(forceIter, numIter);
       }
 
       const result = this.imag();
@@ -384,9 +384,9 @@ export function pqrMixin(
         return Scalar;
       }
 
-      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-        if (forceBabylon) {
-          return super.sqrt(forceBabylon, numIter);
+      sqrt(forceIter = false, numIter = 16): AlgebraElement {
+        if (forceIter) {
+          return super.sqrt(forceIter, numIter);
         }
         return this.cls.scalar(Math.sqrt(this.s));
       }
@@ -479,9 +479,9 @@ export function pqrMixin(
         return Quaternion;
       }
 
-      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-        if (forceBabylon) {
-          return super.sqrt(forceBabylon, numIter);
+      sqrt(forceIter = false, numIter = 16): AlgebraElement {
+        if (forceIter) {
+          return super.sqrt(forceIter, numIter);
         }
         const result = this.imag();
         const imagNorm = result.vnorm();
@@ -635,9 +635,9 @@ export function pqrMixin(
         );
       }
 
-      sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-        if (forceBabylon) {
-          return super.sqrt(forceBabylon, numIter);
+      sqrt(forceIter = false, numIter = 16): AlgebraElement {
+        if (forceIter) {
+          return super.sqrt(forceIter, numIter);
         }
         // Indices
         // 0 scalar
