@@ -491,15 +491,19 @@ export function Algebra(
       throw new Error('Do not know how to normalize a rotor in this algebra');
     }
 
+    // Square root of a multivector in 3D Clifford algebras
+    // 6.2 Square root by series expansion
+    // https://www.journals.vu.lt/nonlinear-analysis/article/view/16519
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sqrt(forceBabylon = false, numIter = 16): AlgebraElement {
-      // Not quaranteed to converge. Barely better than nothing.
-      // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method
-      const root = this.plus(1);
-      for (let i = 1; i < numIter; ++i) {
-        root.accumulate(this.div(root)).rescale(0.5);
+    sqrt(forceSeries = false, numTerms = 20): AlgebraElement {
+      const b = this.scale(1 / this.s).plus(-1);
+      const sum = this.cls.scalar();
+      let term = this.cls.scalar();
+      for (let i = 1; i < numTerms; ++i) {
+        term = term.mul(b).scale((3 - 2 * i) / (2 * i));
+        sum.accumulate(term);
       }
-      return root;
+      return sum.scale(Math.sqrt(this.s));
     }
 
     rotorSqrt(): AlgebraElement {

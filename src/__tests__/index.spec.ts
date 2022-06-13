@@ -818,6 +818,13 @@ describe('Geometric Algebra', () => {
     });
   });
 
+  it('implements square root', () => {
+    const Ga = Algebra(3, 2, 1);
+    const a = randomElement(Ga).scale(0.05).plus(1);
+    const b = a.square();
+    console.log(b.sqrt().square(), b);
+  });
+
   it('implements rotor square root in dimensions <= 2', () => {
     for (let p = 0; p <= 2; ++p) {
       for (let q = 0; q <= 2; ++q) {

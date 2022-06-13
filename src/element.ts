@@ -147,7 +147,7 @@ export declare class AlgebraElement extends ElementBaseType {
   square(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
   rotorNormalize(): AlgebraElement;
-  sqrt(forceBabylon?: boolean, numIter?: number): AlgebraElement;
+  sqrt(forceSeries?: boolean, numTerms?: number): AlgebraElement;
   rotorSqrt(): AlgebraElement;
   exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
   bivectorExp(): AlgebraElement;
