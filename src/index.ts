@@ -1,5 +1,9 @@
-import {eigenValues, sinc, sinch} from './utils';
-import {type ElementBaseType, type AlgebraElement} from './element';
+import {complexSqrt, eigenValues, sinc, sinch} from './utils';
+import {
+  type ElementBaseType,
+  type AlgebraElement,
+  AlgebraOptions,
+} from './element';
 import {pqrMixin} from './pqr';
 import {linSolve} from './element';
 
@@ -84,18 +88,40 @@ export function Algebra(
   p: number,
   q = 0,
   r = 0,
-  baseType: typeof ElementBaseType = Float32Array,
-  unroll = true
+  options?: AlgebraOptions
 ): typeof AlgebraElement {
+  options = options || {};
+
   const metric: number[] = [];
-  for (let i = 0; i < r; ++i) {
-    metric.push(0);
-  }
-  for (let i = 0; i < p; ++i) {
-    metric.push(1);
-  }
-  for (let i = 0; i < q; ++i) {
-    metric.push(-1);
+  if (options.metric === undefined) {
+    for (let i = 0; i < r; ++i) {
+      metric.push(0);
+    }
+    for (let i = 0; i < p; ++i) {
+      metric.push(1);
+    }
+    for (let i = 0; i < q; ++i) {
+      metric.push(-1);
+    }
+  } else {
+    let mp = 0;
+    let mq = 0;
+    let mr = 0;
+    for (let i = 0; i < options.metric.length; ++i) {
+      if (options.metric[i] > 0) {
+        metric.push(1);
+        mp++;
+      } else if (options.metric[i] < 0) {
+        metric.push(-1);
+        mq++;
+      } else {
+        metric.push(0);
+        mr++;
+      }
+    }
+    if (mp !== p || mq !== q || mr !== r) {
+      throw new Error('Re-ordered metric must match in p, q and r');
+    }
   }
   const dimensions = p + q + r;
   const size = 1 << dimensions;
@@ -106,7 +132,10 @@ export function Algebra(
 
   function getEuclidized() {
     if (Euclidized === undefined) {
-      Euclidized = Algebra(dimensions, 0, 0, baseType, unroll);
+      Euclidized = Algebra(dimensions, 0, 0, {
+        baseType: options?.baseType,
+        disableUnroll: options?.disableUnroll,
+      });
     }
     return Euclidized;
   }
@@ -115,8 +144,12 @@ export function Algebra(
     throw new Error(`Maximum total number of dimensions is ${MAX_DIMENSIONS}`);
   }
 
+  const mulTable: number[][] = [];
+
+  let basisIndexMul: (...indices: number[]) => number;
+
   // Geometric product between basis vectors
-  function basisIndexMul(...indices: number[]) {
+  function basisIndexMul_(...indices: number[]) {
     // sign incorporates Ex * Ey metric
     const sign = sortSign(indices);
     // weight incorporates Ex * Ex metric
@@ -147,14 +180,32 @@ export function Algebra(
     return basisIndexMul(...indices);
   }
 
-  // This could be turned into a bit array if memory becomes an issue
-  const mulTable: number[][] = [];
-  for (let i = 0; i < size; ++i) {
-    const row: number[] = [];
-    for (let j = 0; j < size; ++j) {
-      row.push(basisMul(i, j));
+  function basisIndexMul__(...indices: number[]): number {
+    let result = 1;
+    while (indices.length > 1) {
+      const [i, j] = indices.splice(0, 2);
+      result *= mulTable[1 << i][1 << j];
     }
-    mulTable.push(row);
+    return result;
+  }
+
+  if (options.mulTable === undefined) {
+    basisIndexMul = basisIndexMul_;
+
+    // This could be turned into a bit array if memory becomes an issue
+    for (let i = 0; i < size; ++i) {
+      const row: number[] = [];
+      for (let j = 0; j < size; ++j) {
+        row.push(basisMul(i, j));
+      }
+      mulTable.push(row);
+    }
+  } else {
+    basisIndexMul = basisIndexMul__;
+
+    for (let i = 0; i < options.mulTable.length; ++i) {
+      mulTable.push([...options.mulTable[i]]);
+    }
   }
 
   // Mapping from bit-field indices to ganja.js lexicographic order
@@ -184,6 +235,8 @@ export function Algebra(
     return 0;
   }
   indexString.sort(cmp);
+
+  const baseType: typeof ElementBaseType = options.baseType || Float32Array;
 
   class AlgebraClass extends baseType {
     constructor(values?: Iterable<number>) {
@@ -1229,6 +1282,14 @@ export function Algebra(
     static get dimensions() {
       return dimensions;
     }
+
+    static get metric() {
+      return [...metric];
+    }
+
+    static get mulTable() {
+      return mulTable.map(row => [...row]);
+    }
   }
 
   const Result = pqrMixin(p, q, r, AlgebraClass);
@@ -1237,7 +1298,7 @@ export function Algebra(
     Euclidized = Result;
   }
 
-  if (!unroll) {
+  if (options.disableUnroll) {
     return Result;
   }
 
@@ -1413,3 +1474,70 @@ export function Algebra(
 }
 
 export default Algebra;
+
+export function makeOctonion(options?: AlgebraOptions) {
+  options = options || {};
+  // prettier-ignore
+  options.mulTable = [
+    [1,  1,  1,  1,  1,  1,  1,  1],
+    [1, -1,  1, -1,  1, -1, -1,  1],
+    [1, -1, -1,  1,  1,  1, -1, -1],
+    [1,  1, -1, -1,  1, -1,  1, -1],
+    [1, -1, -1, -1, -1,  1,  1,  1],
+    [1,  1, -1,  1, -1, -1, -1,  1],
+    [1,  1,  1, -1, -1,  1, -1, -1],
+    [1, -1,  1,  1, -1, -1,  1, -1]
+  ];
+  const Octonion = Algebra(0, 3, 0, options);
+  Object.defineProperty(Octonion, 'name', {value: 'Octonion'});
+
+  Octonion.prototype.conjugate = function () {
+    return new Octonion([
+      this[0],
+      -this[1],
+      -this[2],
+      -this[3],
+      -this[4],
+      -this[5],
+      -this[6],
+      -this[7],
+    ]);
+  };
+
+  Octonion.prototype.inverse = function () {
+    const conjugate = this.conjugate();
+    return conjugate.scale(1 / this.mul(conjugate).s);
+  };
+
+  Octonion.prototype.sqrt = function () {
+    const result = this.imag();
+    const imagNorm = result.vnorm();
+    const [x, y] = complexSqrt(this.s, imagNorm);
+    if (imagNorm < 1e-5) {
+      result.rescale(0.5);
+    } else {
+      result.rescale(y / imagNorm);
+    }
+    result.s = x;
+    return result;
+  };
+
+  Octonion.prototype.exp = function () {
+    const expS = Math.exp(this.s);
+    const result = this.imag();
+    const imagNorm = result.vnorm();
+    result.rescale(expS * sinc(imagNorm));
+    result.s = expS * Math.cos(imagNorm);
+    return result;
+  };
+
+  Octonion.prototype.log = function () {
+    const imag = this.imag();
+    const imagNorm = imag.vnorm();
+    const result = imag.scale(Math.atan2(imagNorm, this.s) / imagNorm);
+    result.s = Math.log(this.vnorm());
+    return result;
+  };
+
+  return Octonion;
+}

@@ -193,7 +193,9 @@ function makePGA1D(
   co: (x: number) => number,
   sic: (x: number) => number,
   log: Bivariate2D,
-  name: string
+  name: string,
+  r = 1,
+  pq = 2
 ) {
   class PGA1D extends baseClass {
     get cls() {
@@ -204,11 +206,11 @@ function makePGA1D(
       if (forceBabylon) {
         return super.sqrt(forceBabylon, numIter);
       }
-      const [x, y] = sqrt(this.s, this[2]);
+      const [x, y] = sqrt(this.s, this[pq]);
       const result = this.clone();
       result.s = x;
-      result[1] *= 0.5 / x;
-      result[2] = y;
+      result[r] *= 0.5 / x;
+      result[pq] = y;
       result[3] *= 0.5 / x;
       return result;
     }
@@ -218,22 +220,22 @@ function makePGA1D(
         return super.exp(forceTaylor, numTaylorTerms);
       }
       const expS = Math.exp(this.s);
-      const eSic = expS * sic(this[2]);
+      const eSic = expS * sic(this[pq]);
       const result = this.clone();
-      result.s = expS * co(this[2]);
-      result[1] *= eSic;
-      result[2] *= eSic;
+      result.s = expS * co(this[pq]);
+      result[r] *= eSic;
+      result[pq] *= eSic;
       result[3] *= eSic;
       return result;
     }
 
     log(): AlgebraElement {
-      const [x, y] = log(this.s, this[2]);
+      const [x, y] = log(this.s, this[pq]);
       const result = this.clone();
       result.s = x;
-      result[1] = (result[1] / this[2]) * y;
-      result[2] = y;
-      result[3] = (result[3] / this[2]) * y;
+      result[r] = (result[r] / this[pq]) * y;
+      result[pq] = y;
+      result[3] = (result[3] / this[pq]) * y;
       return result;
     }
 
@@ -460,7 +462,14 @@ export function pqrMixin(
     return SplitQuaternion;
   }
   if (p === 1 && q === 1 && r === 0) {
-    const Coquaternion = makeSplitQuaternion(baseClass, 1, 3, 2);
+    let p1 = 1;
+    let q_ = 2;
+    if (baseClass.metric[0] < 0) {
+      p1 = 2;
+      q_ = 1;
+    }
+
+    const Coquaternion = makeSplitQuaternion(baseClass, p1, 3, q_);
     Object.defineProperty(Coquaternion, 'name', {value: 'Coquaternion'});
     return Coquaternion;
   }
@@ -493,11 +502,7 @@ export function pqrMixin(
         const expS = Math.exp(this.s);
         const result = this.imag();
         const imagNorm = result.vnorm();
-        if (imagNorm < 1e-5) {
-          result.rescale(expS);
-        } else {
-          result.rescale((expS * Math.sin(imagNorm)) / imagNorm);
-        }
+        result.rescale(expS * sinc(imagNorm));
         result.s = expS * Math.cos(imagNorm);
         return result;
       }
@@ -543,24 +548,40 @@ export function pqrMixin(
     return Quaternion;
   }
   if (p === 1 && q === 0 && r === 1) {
+    let r_ = 1;
+    let pq = 2;
+    if (baseClass.metric[0] !== 0) {
+      pq = 1;
+      r_ = 2;
+    }
     const Euclidean1DPGA = makePGA1D(
       baseClass,
       splitComplexSqrt,
       Math.cosh,
       sinch,
       splitComplexLog,
-      'Euclidean1DPGA'
+      'Euclidean1DPGA',
+      r_,
+      pq
     );
     return Euclidean1DPGA;
   }
   if (p === 0 && q === 1 && r === 1) {
+    let r_ = 1;
+    let pq = 2;
+    if (baseClass.metric[0] !== 0) {
+      pq = 1;
+      r_ = 2;
+    }
     const ComplexPGA = makePGA1D(
       baseClass,
       complexSqrt,
       Math.cos,
       sinc,
       complexLog,
-      'ComplexPGA'
+      'ComplexPGA',
+      r_,
+      pq
     );
     return ComplexPGA;
   }
@@ -576,15 +597,33 @@ export function pqrMixin(
     return DoublePGA;
   }
   if (p === 2 && q === 0 && r === 1) {
+    if (baseClass.metric[0] !== 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in p=2 r=1'
+      );
+      return baseClass;
+    }
     const SplitQuaternionPGA = makeSplitQuaternionPGA(baseClass, 2, 4, 6, 1);
     return SplitQuaternionPGA;
   }
   if (p === 1 && q === 1 && r === 1) {
+    if (baseClass.metric[0] !== 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in p=1 q=1 r=1'
+      );
+      return baseClass;
+    }
     const CoquaternionPGA = makeSplitQuaternionPGA(baseClass, 2, 6, 4, -1);
     Object.defineProperty(CoquaternionPGA, 'name', {value: 'CoquaternionPGA'});
     return CoquaternionPGA;
   }
   if (p === 0 && q === 2 && r === 1) {
+    if (baseClass.metric[0] !== 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in q=2 r=1'
+      );
+      return baseClass;
+    }
     class QuaternionPGA extends baseClass {
       get cls() {
         return QuaternionPGA;
@@ -741,6 +780,12 @@ export function pqrMixin(
     return Elliptic3DPGA;
   }
   if (p === 3 && q === 1 && r === 0) {
+    if (baseClass.metric[3] > 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in p=3 q=1'
+      );
+      return baseClass;
+    }
     class Hyperbolic3DPGA extends baseClass {
       get cls() {
         return Hyperbolic3DPGA;
@@ -805,6 +850,12 @@ export function pqrMixin(
     return Hyperbolic3DPGA;
   }
   if (p === 3 && q === 0 && r === 1) {
+    if (baseClass.metric[0] !== 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in p=3 r=1'
+      );
+      return baseClass;
+    }
     class Euclidean3DPGA extends baseClass {
       get cls() {
         return Euclidean3DPGA;
@@ -904,6 +955,12 @@ export function pqrMixin(
     return Euclidean3DPGA;
   }
   if (p === 4 && q === 1 && r === 0) {
+    if (baseClass.metric[4] > 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in p=4 q=1'
+      );
+      return baseClass;
+    }
     class Conformal3DGA extends baseClass {
       get cls() {
         return Conformal3DGA;

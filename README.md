@@ -39,12 +39,15 @@ function Algebra( p, q, r );
 An extended syntax is also available that allows you to further tweak the created Algebra.
 
 ```typescript
-function Algebra( p, q, r, baseType, unroll )
+function Algebra( p, q, r, {baseType, metric, mulTable, disableUnroll} )
   // p        = number of positive dimensions.
   // q        = optional number of negative dimensions.
   // r        = optional number of zero dimensions.
-  // baseType = Float32Array or Float64Array
-  // unroll   = (boolean) perform loop unrolling of performance critical methods
+  // baseType = Float32Array or similar
+  // metric   = basis vector inner products in custom order, must agree with p, q and r
+  // mulTable = Custom signs for the Caley table
+  // disableUnroll = (boolean) prevent loop unrolling of performance critical methods
+
 ```
 Here are some examples :
 
@@ -166,7 +169,9 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `Cl.fromRotor(vs)`      | N/A                | Even grade element with given components |
 | `Cl.fromGanja(vs)`      | `new Cl(vs)`       | New element with components given in lexicographic order |
 | `Cl.dimensions`         | `-->`              | `Math.log(Cl.describe().basis.length)/Math.LN2` number of dimensions |
-| `Cl.size`               | `-->`              | `Cl.describe().basis.length` Algebra size |
+| `Cl.size`               | `-->`              | `Cl.describe().basis.length` algebra size |
+| `Cl.metric`             | `-->`              | `Cl.describe().metric.slice(1, n+1)` basis vector metric |
+| `Cl.mulTable`           | `-->`              | Similar to `Cl.describe().mulTable` but signs only |
 | `new Cl(vs)`            | N/A                | Not recommended, use `fromGanja` instead. New element with components given in bit field order |
 
 (*) Only in degenerate metrics
@@ -281,4 +286,18 @@ const basis = [
   Grassmann.fromVector([-1, 2, -2])
 ];
 const coeffs = linSolve(x, basis);  // [ 2.5, -3.5, 1.5 ]
+```
+
+## Octonions
+While all generated geometric algebras are associative it's possible to produce non-associative algebras using custom multiplication tables.
+This package comes with a pre-configured table for Octonions and monkey-patches `conjugate`, `inverse`, `sqrt`, `exp` and `log` to work correctly.
+```typescript
+import {makeOctonion} from 'ts-geometric-algebra';
+const O = makeOctonion();
+const e1 = Octonion.basisBlade(0);
+const e2 = Octonion.basisBlade(1);
+const e4 = Octonion.basisBlade(2);
+
+e1.mul(e2).mul(e4)  // [0, 0, 0, 0, 0, 0, +1]
+e1.mul(e2.mul(e4))  // [0, 0, 0, 0, 0, 0, -1]
 ```

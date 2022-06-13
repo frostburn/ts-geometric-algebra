@@ -244,7 +244,16 @@ export declare class AlgebraElement extends ElementBaseType {
   // Algebra information
   static get dimensions(): number;
   static get size(): number;
+  static get metric(): number[];
+  static get mulTable(): number[][];
 }
+
+export type AlgebraOptions = {
+  baseType?: typeof ElementBaseType;
+  disableUnroll?: boolean;
+  metric?: number[];
+  mulTable?: number[][];
+};
 
 type ElementLike = AlgebraElement | number;
 
