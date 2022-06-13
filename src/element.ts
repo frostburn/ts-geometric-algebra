@@ -135,6 +135,8 @@ export declare class AlgebraElement extends ElementBaseType {
   // Unary scalar operations
   norm(): number;
   vnorm(): number;
+  taxicabNorm(): number;
+  maxNorm(): number;
 
   // Unary operations
   neg(): AlgebraElement;
@@ -149,7 +151,8 @@ export declare class AlgebraElement extends ElementBaseType {
   rotorNormalize(): AlgebraElement;
   sqrt(forceIter?: boolean, numIter?: number): AlgebraElement;
   rotorSqrt(): AlgebraElement;
-  exp(forceTaylor?: boolean, numTaylorTerms?: number): AlgebraElement;
+  expTaylor(numTerms?: number): AlgebraElement;
+  exp(forceSeries?: boolean, numTerms?: number): AlgebraElement;
   bivectorExp(): AlgebraElement;
   log(forceProduct?: boolean, numProductTerms?: number): AlgebraElement;
   rotorLog(): AlgebraElement;
@@ -327,6 +330,12 @@ export function norm(element: AlgebraElement): number {
 export function vnorm(element: AlgebraElement): number {
   return element.vnorm();
 }
+export function taxicabNorm(element: AlgebraElement): number {
+  return element.taxicabNorm();
+}
+export function maxNorm(element: AlgebraElement): number {
+  return element.maxNorm();
+}
 
 // Unary operations using one argument
 export function neg(element: AlgebraElement): AlgebraElement {
@@ -370,10 +379,10 @@ export function rotorSqrt(element: AlgebraElement): AlgebraElement {
 }
 export function exp(
   element: AlgebraElement,
-  forceTaylor?: boolean,
-  numTaylorTerms?: number
+  forceSeries?: boolean,
+  numTerms?: number
 ): AlgebraElement {
-  return element.exp(forceTaylor, numTaylorTerms);
+  return element.exp(forceSeries, numTerms);
 }
 export function bivectorExp(element: AlgebraElement): AlgebraElement {
   return element.bivectorExp();

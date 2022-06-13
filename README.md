@@ -105,6 +105,8 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `x.setAt(...idx, a)`    | N/A                | Set coefficient of product of basis factors `idx` as `a` |
 | `x.norm()`              | `x.Length`         | Conjugate norm (metric-aware) |
 | `x.vnorm()`             | `x.VLength`        | Vector norm (ignores metric) {`x.length` is array length} |
+| `x.taxicabNorm()`       | N/A                | L1 norm (ignores metric) |
+| `x.maxNorm()`           | N/A                | Linfinity norm (ignores metric) |
 | `x.neg()`               | N/A                | Negation (additive inverse) |
 | `x.cwAbs()`             | N/A                | Component-wise absolute value |
 | `x.involute()`          | `x.Involute`       | Negation of basis factors |
@@ -217,6 +219,8 @@ Altough not as pretty or fun as Ganja.js you have the full advantage of types an
 | `isGrade(x, g, tol?)`    | N/A                | Only has components of grade `g` |
 | `norm(x)`                | `x.Length`         | Conjugate norm (metric-aware) |
 | `vnorm(x)`               | `x.VLength`        | Vector norm (ignores metric) {`x.length` is array length} |
+| `taxicabNorm(x)`         | N/A                | L1 norm (ignores metric) |
+| `maxNorm(x)`             | N/A                | Linfinity norm (ignores metric) |
 | `neg(x)`                 | N/A                | Negation (additive inverse) |
 | `cwAbs(x)`               | N/A                | Component-wise absolute value |
 | `involute(x)`            | `x.Involute`       | Negation of basis factors |

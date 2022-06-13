@@ -327,6 +327,18 @@ export function Algebra(
       return Math.sqrt(result);
     }
 
+    taxicabNorm() {
+      let result = 0;
+      for (let i = 0; i < this.length; ++i) {
+        result += Math.abs(this[i]);
+      }
+      return result;
+    }
+
+    maxNorm() {
+      return Math.max(...this.map(c => Math.abs(c)));
+    }
+
     neg(): AlgebraElement {
       const result = this.empty();
       for (let i = 0; i < this.length; ++i) {
@@ -510,8 +522,18 @@ export function Algebra(
       return root.rotorNormalize();
     }
 
-    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-      if (!forceTaylor) {
+    expTaylor(numTerms = 32): AlgebraElement {
+      const result = this.cls.scalar();
+      let term = this.cls.scalar();
+      for (let i = 1; i < numTerms; ++i) {
+        term = term.mul(this.scale(1 / i));
+        result.accumulate(term);
+      }
+      return result;
+    }
+
+    exp(forceSeries = false, numTerms = 16): AlgebraElement {
+      if (!forceSeries) {
         // Closed form exp
         const grade2 = this.imag();
         if (grade2.isGrade(2)) {
@@ -534,28 +556,28 @@ export function Algebra(
 
       // No specific implementation found, but we can still
       // use the fact that the scalar commutes with everything
-      let maybeImag: AlgebraElement;
-      if (forceTaylor) {
-        maybeImag = this;
-      } else {
-        maybeImag = this.imag();
-        // In 3D the pseudoscalar always commutes
-        if (dimensions === 3) {
-          maybeImag.ps = 0;
-        }
+      const imag = this.imag();
+      // In 3D the pseudoscalar always commutes
+      if (dimensions === 3) {
+        imag.ps = 0;
+      }
+
+      // Taxicab isn't the correct norm to use, but it is a conservative option
+      let numSquares = 0;
+      let scale = 1;
+      let taxicab = imag.taxicabNorm();
+      while (taxicab > 1) {
+        taxicab *= 0.5;
+        scale *= 0.5;
+        numSquares++;
       }
 
       // Taylor series
-      const result = this.cls.scalar();
-      let term = this.cls.scalar();
-      for (let i = 1; i < numTaylorTerms; ++i) {
-        term = term.mul(maybeImag.scale(1 / i));
-        result.accumulate(term);
+      let result = imag.rescale(scale).expTaylor(numTerms);
+      for (let i = 0; i < numSquares; ++i) {
+        result = result.square();
       }
 
-      if (forceTaylor) {
-        return result;
-      }
       if (dimensions === 3) {
         const factor = this.cls.zero();
         factor.s = factor.ps = Math.exp(this.s);

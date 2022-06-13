@@ -526,6 +526,7 @@ describe('Geometric Algebra', () => {
       ).toBeTruthy();
       const analytic = z.exp();
       expect(expZ.closeTo(analytic)).toBeTruthy();
+      expect(z.expTaylor().closeTo(analytic)).toBeTruthy();
     }
   });
 

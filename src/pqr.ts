@@ -35,9 +35,9 @@ function make2D(
       return new this.cls(sqrt(this.s, this.ps));
     }
 
-    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-      if (forceTaylor) {
-        return super.exp(forceTaylor, numTaylorTerms);
+    exp(forceSeries = false, numTerms = 16): AlgebraElement {
+      if (forceSeries) {
+        return super.exp(forceSeries, numTerms);
       }
       return new this.cls(exp(this.s, this.ps));
     }
@@ -117,9 +117,9 @@ function makeSplitQuaternion(
       return result;
     }
 
-    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-      if (forceTaylor) {
-        return super.exp(forceTaylor, numTaylorTerms);
+    exp(forceSeries = false, numTerms = 16): AlgebraElement {
+      if (forceSeries) {
+        return super.exp(forceSeries, numTerms);
       }
       const expS = Math.exp(this.s);
       const result = this.imag();
@@ -215,9 +215,9 @@ function makePGA1D(
       return result;
     }
 
-    exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-      if (forceTaylor) {
-        return super.exp(forceTaylor, numTaylorTerms);
+    exp(forceSeries = false, numTerms = 16): AlgebraElement {
+      if (forceSeries) {
+        return super.exp(forceSeries, numTerms);
       }
       const expS = Math.exp(this.s);
       const eSic = expS * sic(this[pq]);
@@ -391,9 +391,9 @@ export function pqrMixin(
         return this.cls.scalar(Math.sqrt(this.s));
       }
 
-      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-        if (forceTaylor) {
-          return super.exp(forceTaylor, numTaylorTerms);
+      exp(forceSeries = false, numTerms = 16): AlgebraElement {
+        if (forceSeries) {
+          return super.exp(forceSeries, numTerms);
         }
         return this.cls.scalar(Math.exp(this.s));
       }
@@ -495,9 +495,9 @@ export function pqrMixin(
         return result;
       }
 
-      exp(forceTaylor = false, numTaylorTerms = 32): AlgebraElement {
-        if (forceTaylor) {
-          return super.exp(forceTaylor, numTaylorTerms);
+      exp(forceSeries = false, numTerms = 16): AlgebraElement {
+        if (forceSeries) {
+          return super.exp(forceSeries, numTerms);
         }
         const expS = Math.exp(this.s);
         const result = this.imag();
