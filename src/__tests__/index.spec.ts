@@ -689,6 +689,17 @@ describe('Geometric Algebra', () => {
     });
   });
 
+  // TODO: Check if this fails due to a bad log formula or just from the lack of terms
+  it.skip('implements logarithm over 3D Clifford Algebra', () => {
+    [Algebra(3), Algebra(1, 2)].forEach(Cl3 => {
+      for (let i = 0; i < 10; ++i) {
+        const z = randomElement(Cl3);
+        z.rescale(0.25);
+        expect(z.exp().log().exp().closeTo(z.exp())).toBeTruthy();
+      }
+    });
+  });
+
   // Skipped due to unpredictable fails
   it.skip('can calculate logarithms', () => {
     let failures = 0;
@@ -816,6 +827,16 @@ describe('Geometric Algebra', () => {
       }
       // Monitor issues here
       expect(failures);
+    });
+  });
+
+  it('implements square root in 3D Clifford Algebra', () => {
+    [Algebra(3), Algebra(1, 2)].forEach(Cl3 => {
+      for (let i = 0; i < 10; ++i) {
+        const z = randomElement(Cl3);
+        expect(z.pow(0.5).pow(2).closeTo(z)).toBeTruthy();
+        expect(z.sqrt().square().closeTo(z)).toBeTruthy();
+      }
     });
   });
 
@@ -1069,7 +1090,7 @@ describe('Geometric Algebra', () => {
       for (let q = 0; q < 4; ++q) {
         for (let r = 0; r < 2; ++r) {
           const Ga = Algebra(p, q, r, {baseType: Int32Array});
-          const c = [];
+          const c: number[] = [];
           for (let i = 0; i < Ga.size; ++i) {
             c.push(Math.round(Math.random() * 8 - 4));
           }

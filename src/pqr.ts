@@ -371,6 +371,126 @@ function makeSplitQuaternionPGA(
   return SplitQuaternionPGA;
 }
 
+// https://arxiv.org/abs/2003.06873
+function make3D(
+  baseClass: typeof AlgebraElement,
+  p1: number,
+  p2: number,
+  p3: number,
+  q1: number,
+  q2: number,
+  q3: number,
+  name: string
+) {
+  class Clifford3D extends baseClass {
+    get cls() {
+      return Clifford3D;
+    }
+
+    sqrtScalars(signT = 1, signS = 1): [number, number] {
+      const bS =
+        this[0] * this[0] -
+        this[p1] * this[p1] -
+        this[p2] * this[p2] -
+        this[p3] * this[p3] +
+        this[q1] * this[q1] +
+        this[q2] * this[q2] +
+        this[q3] * this[q3] -
+        this[7] * this[7];
+      const bI =
+        2 *
+        (this[p3] * this[q1] -
+          this[p2] * this[q2] +
+          this[p1] * this[q3] -
+          this[0] * this[7]);
+      const sD = Math.hypot(bS, bI);
+      let t, T;
+      if (sD > bS) {
+        t = 0.25 * (this[7] + signT * Math.sqrt(0.5 * (sD - bS)));
+        T = 0.25 * ((signT * bI) / Math.sqrt(2 * (sD - bS)) - this[0]);
+      } else {
+        t = 0.25 * this[7];
+        T = 0.25 * (signT * Math.sqrt(bS) - this[0]);
+      }
+      const t2 = Math.hypot(t, T);
+      const s = signS * Math.sqrt(t2 - T);
+      const S = t / s;
+      return [s, S];
+    }
+
+    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+      if (forceIter) {
+        return super.sqrt(forceIter, numIter);
+      }
+      const b1 = this[p1];
+      const b2 = this[p2];
+      const b3 = this[p3];
+      const b12 = this[q1];
+      const b13 = this[q2];
+      const b23 = this[q3];
+      const [s, S] = this.sqrtScalars();
+      const s2 = 0.5 / (s * s + S * S);
+      const v1 = (b1 * s + b23 * S) * s2;
+      const v2 = (b2 * s - b13 * S) * s2;
+      const v3 = (b3 * s + b12 * S) * s2;
+      const V1 = (b23 * s - b1 * S) * s2;
+      const V2 = -(b13 * s + b2 * S) * s2;
+      const V3 = (b12 * s - b3 * S) * s2;
+
+      const coords = Array(8).fill(0);
+      coords[0] = s;
+      coords[p1] = v1;
+      coords[p2] = v2;
+      coords[p3] = v3;
+      coords[q1] = V3;
+      coords[q2] = -V2;
+      coords[q3] = V1;
+      coords[7] = S;
+
+      return new this.cls(coords);
+    }
+
+    inverse(): AlgebraElement {
+      const reverse = this.rev();
+      const involute = this.involute();
+      const conjugate = this.conjugate();
+      return reverse
+        .mul(involute)
+        .mul(conjugate)
+        .scale(1 / this.mul(conjugate).mul(involute).mul(reverse).s);
+    }
+
+    static zero() {
+      return new Clifford3D().fill(0);
+    }
+    static scalar(magnitude = 1): AlgebraElement {
+      return new Clifford3D(baseClass.scalar(magnitude));
+    }
+    static pseudoscalar(magnitude = 1): AlgebraElement {
+      return new Clifford3D(baseClass.pseudoscalar(magnitude));
+    }
+    static basisBlade(...indices: number[]): AlgebraElement {
+      return new Clifford3D(baseClass.basisBlade(...indices));
+    }
+    static fromVector(
+      values: Iterable<number>,
+      grade?: number
+    ): AlgebraElement {
+      return new Clifford3D(baseClass.fromVector(values, grade));
+    }
+    static fromRotor(values: Iterable<number>): AlgebraElement {
+      return new Clifford3D(baseClass.fromRotor(values));
+    }
+    static fromGanja(values: Iterable<number>) {
+      return new Clifford3D(baseClass.fromGanja(values));
+    }
+  }
+
+  Object.defineProperty(Clifford3D, 'name', {value: name});
+
+  return Clifford3D;
+}
+
 // https://www.researchgate.net/publication/360528787_Normalization_Square_Roots_and_the_Exponential_and_Logarithmic_Maps_in_Geometric_Algebras_of_Less_than_6D
 export function pqrMixin(
   p: number,
@@ -713,6 +833,18 @@ export function pqrMixin(
       }
     }
     return QuaternionPGA;
+  }
+  if (p === 3 && q === 0 && r === 0) {
+    return make3D(baseClass, 1, 2, 4, 3, 5, 6, 'Elliptic2DPGA');
+  }
+  if (p === 1 && q === 2 && r === 0) {
+    if (baseClass.metric[0] < 0) {
+      console.warn(
+        'Custom metric order not supported for specialization in p=1 q=2 r=0'
+      );
+      return baseClass;
+    }
+    return make3D(baseClass, 1, 5, 3, 4, 2, 6, 'Clifford3D');
   }
   if (p === 4 && q === 0 && r === 0) {
     class Elliptic3DPGA extends baseClass {
