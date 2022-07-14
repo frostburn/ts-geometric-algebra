@@ -1,14 +1,13 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "./src",
     "outDir": "dist",
     "strict": true,
     "moduleResolution": "node",
     "module": "CommonJS"
   },
   "include": [
-    "src/index.ts",
-    "src/__benchmarks__/versus.ganja.ts"
+    "src/index.ts"
   ]
 }

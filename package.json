@@ -4,11 +4,11 @@
   "description": "TypeScript Geometric Algebra generator",
   "license": "MIT",
   "author": "Lumi Pakkanen",
-  "main": "dist/src/index",
+  "main": "dist/index",
   "files": [
     "dist"
   ],
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/frostburn/ts-geometric-algebra.git"
@@ -42,7 +42,7 @@
     "pretest": "npm run compile",
     "posttest": "npm run lint",
     "test": "vitest",
-    "prebenchmark": "npm run compile",
-    "benchmark": "node dist/src/__benchmarks__/versus.ganja.js"
+    "prebenchmark": "tsc -p tsconfig-benchmark.json",
+    "benchmark": "node benchmarks/__benchmarks__/versus.ganja.js"
   }
 }
