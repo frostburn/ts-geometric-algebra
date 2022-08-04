@@ -24,7 +24,7 @@ function make2D(
   name: string
 ) {
   class Number2D extends baseClass {
-    get cls() {
+    get algebra() {
       return Number2D;
     }
 
@@ -32,18 +32,18 @@ function make2D(
       if (forceIter) {
         return super.sqrt(forceIter, numIter);
       }
-      return new this.cls(sqrt(this.s, this.ps));
+      return new this.algebra(sqrt(this.s, this.ps));
     }
 
     exp(forceSeries = false, numTerms = 16): AlgebraElement {
       if (forceSeries) {
         return super.exp(forceSeries, numTerms);
       }
-      return new this.cls(exp(this.s, this.ps));
+      return new this.algebra(exp(this.s, this.ps));
     }
 
     log(): AlgebraElement {
-      return new this.cls(log(this.s, this.ps));
+      return new this.algebra(log(this.s, this.ps));
     }
 
     inverse(): AlgebraElement {
@@ -87,7 +87,7 @@ function makeSplitQuaternion(
   q: number
 ) {
   class SplitQuaternion extends baseClass {
-    get cls() {
+    get algebra() {
       return SplitQuaternion;
     }
 
@@ -198,7 +198,7 @@ function makePGA1D(
   pq = 2
 ) {
   class PGA1D extends baseClass {
-    get cls() {
+    get algebra() {
       return PGA1D;
     }
 
@@ -281,7 +281,7 @@ function makeSplitQuaternionPGA(
   sign: number
 ) {
   class SplitQuaternionPGA extends baseClass {
-    get cls() {
+    get algebra() {
       return SplitQuaternionPGA;
     }
 
@@ -383,7 +383,7 @@ function make3D(
   name: string
 ) {
   class Clifford3D extends baseClass {
-    get cls() {
+    get algebra() {
       return Clifford3D;
     }
 
@@ -447,7 +447,7 @@ function make3D(
       coords[q3] = V1;
       coords[7] = S;
 
-      return new this.cls(coords);
+      return new this.algebra(coords);
     }
 
     inverse(): AlgebraElement {
@@ -500,7 +500,7 @@ export function pqrMixin(
 ): typeof AlgebraElement {
   if (p === 0 && q === 0 && r === 0) {
     class Scalar extends baseClass {
-      get cls() {
+      get algebra() {
         return Scalar;
       }
 
@@ -508,22 +508,22 @@ export function pqrMixin(
         if (forceIter) {
           return super.sqrt(forceIter, numIter);
         }
-        return this.cls.scalar(Math.sqrt(this.s));
+        return this.algebra.scalar(Math.sqrt(this.s));
       }
 
       exp(forceSeries = false, numTerms = 16): AlgebraElement {
         if (forceSeries) {
           return super.exp(forceSeries, numTerms);
         }
-        return this.cls.scalar(Math.exp(this.s));
+        return this.algebra.scalar(Math.exp(this.s));
       }
 
       log(): AlgebraElement {
-        return this.cls.scalar(Math.log(this.s));
+        return this.algebra.scalar(Math.log(this.s));
       }
 
       inverse(): AlgebraElement {
-        return this.cls.scalar(1 / this.s);
+        return this.algebra.scalar(1 / this.s);
       }
 
       static zero() {
@@ -595,7 +595,7 @@ export function pqrMixin(
   }
   if (p === 0 && q === 2 && r === 0) {
     class Quaternion extends baseClass {
-      get cls() {
+      get algebra() {
         return Quaternion;
       }
 
@@ -745,7 +745,7 @@ export function pqrMixin(
       return baseClass;
     }
     class QuaternionPGA extends baseClass {
-      get cls() {
+      get algebra() {
         return QuaternionPGA;
       }
 
@@ -848,7 +848,7 @@ export function pqrMixin(
   }
   if (p === 4 && q === 0 && r === 0) {
     class Elliptic3DPGA extends baseClass {
-      get cls() {
+      get algebra() {
         return Elliptic3DPGA;
       }
 
@@ -872,7 +872,7 @@ export function pqrMixin(
         const M = (2 ** 0.5 * N) / (N2 * N2 - T * T);
         const A = N2 * M,
           B = -T * M;
-        return this.cls.fromRotor([
+        return this.algebra.fromRotor([
           A * X[0] + B * X[7],
           A * X[1] - B * X[6],
           A * X[2] + B * X[5],
@@ -919,7 +919,7 @@ export function pqrMixin(
       return baseClass;
     }
     class Hyperbolic3DPGA extends baseClass {
-      get cls() {
+      get algebra() {
         return Hyperbolic3DPGA;
       }
 
@@ -942,7 +942,7 @@ export function pqrMixin(
         const M = (2 ** 0.5 * N) / (N2 * N2 + T * T);
         const A = N2 * M,
           B = -T * M;
-        return this.cls.fromRotor([
+        return this.algebra.fromRotor([
           A * X[0] - B * X[7],
           A * X[1] + B * X[6],
           A * X[2] - B * X[5],
@@ -989,7 +989,7 @@ export function pqrMixin(
       return baseClass;
     }
     class Euclidean3DPGA extends baseClass {
-      get cls() {
+      get algebra() {
         return Euclidean3DPGA;
       }
 
@@ -1001,7 +1001,7 @@ export function pqrMixin(
           1 / (X[0] * X[0] + X[4] * X[4] + X[5] * X[5] + X[6] * X[6]) ** 0.5;
         const B =
           (X[7] * X[0] - (X[1] * X[6] + X[2] * X[5] + X[3] * X[4])) * A * A * A;
-        return this.cls.fromRotor([
+        return this.algebra.fromRotor([
           A * X[0],
           A * X[1] + B * X[6],
           A * X[2] + B * X[5],
@@ -1019,13 +1019,13 @@ export function pqrMixin(
         if (p === 3 && q === 0 && r === 1) {
           const l = B[3] * B[3] + B[4] * B[4] + B[5] * B[5];
           if (l === 0)
-            return this.cls.fromRotor([1, B[0], B[1], B[2], 0, 0, 0, 0]);
+            return this.algebra.fromRotor([1, B[0], B[1], B[2], 0, 0, 0, 0]);
           const m = B[0] * B[5] + B[1] * B[4] + B[2] * B[3],
             a = Math.sqrt(l),
             c = Math.cos(a),
             s = Math.sin(a) / a,
             t = (m / l) * (c - s);
-          return this.cls.fromRotor([
+          return this.algebra.fromRotor([
             c,
             s * B[0] + t * B[5],
             s * B[1] + t * B[4],
@@ -1043,11 +1043,11 @@ export function pqrMixin(
       rotorLog() {
         const R = this.rotor();
         if (R[0] === 1)
-          return this.cls.fromVector([R[1], R[2], R[3], 0, 0, 0], 2);
+          return this.algebra.fromVector([R[1], R[2], R[3], 0, 0, 0], 2);
         const a = 1 / (1 - R[0] * R[0]);
         const b = Math.acos(R[0]) * Math.sqrt(a);
         const c = a * R[7] * (1 - R[0] * b);
-        return this.cls.fromVector(
+        return this.algebra.fromVector(
           [
             c * R[6] + b * R[1],
             c * R[5] + b * R[2],
@@ -1094,7 +1094,7 @@ export function pqrMixin(
       return baseClass;
     }
     class Conformal3DGA extends baseClass {
-      get cls() {
+      get algebra() {
         return Conformal3DGA;
       }
 
@@ -1176,7 +1176,7 @@ export function pqrMixin(
         const M = (2 ** 0.5 * N) / (N2 * N2 + TT);
         const A = N2 * M,
           [B1, B2, B3, B4, B5] = [-T1 * M, -T2 * M, -T3 * M, -T4 * M, -T5 * M];
-        return this.cls.fromRotor([
+        return this.algebra.fromRotor([
           A * X[0] +
             B1 * X[11] -
             B2 * X[12] -

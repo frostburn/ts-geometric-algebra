@@ -113,6 +113,9 @@ export declare class ElementBaseType {
 }
 
 export declare class AlgebraElement extends ElementBaseType {
+  // Class access
+  get algebra(): typeof AlgebraElement;
+
   // Comparisons
   equals(other: AlgebraElement): boolean;
   closeTo(other: AlgebraElement, tolerance?: number): boolean;
