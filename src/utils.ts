@@ -140,3 +140,20 @@ export function sinch(x: number) {
   }
   return Math.sinh(x) / x;
 }
+
+/**
+ * Greatest common divisor of two integers.
+ * @param a The first integer.
+ * @param b The second integer.
+ * @returns The largest integer that divides a and b.
+ */
+export function gcd(a: number, b: number): number {
+  if (!a) return b;
+  if (!b) return a;
+  while (true) {
+    a %= b;
+    if (!a) return b;
+    b %= a;
+    if (!b) return a;
+  }
+}

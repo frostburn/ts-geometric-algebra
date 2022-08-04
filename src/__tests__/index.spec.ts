@@ -1085,6 +1085,77 @@ describe('Geometric Algebra', () => {
     }
   });
 
+  it('can factorize integer blades (two factors)', () => {
+    const Ga = Algebra(1, 2, 1, {baseType: Int16Array});
+
+    for (let i = 0; i < 10; ++i) {
+      const a = Ga.fromVector([
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+      ]);
+      const b = Ga.fromVector([
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+      ]);
+
+      const blade = a.wedge(b);
+      if (blade.isNil()) {
+        continue;
+      }
+
+      const [factors, scale] = blade.integerBladeFactorize();
+
+      const reblade = factors.reduce((a, b) => a.wedge(b)).rescale(scale);
+
+      expect(reblade).toBeInstanceOf(Ga);
+      expect(blade.equals(reblade)).toBeTruthy();
+    }
+  });
+
+  it('can factorize integer blades (three factors)', () => {
+    const Ga = Algebra(1, 2, 2, {baseType: Int32Array});
+
+    for (let i = 0; i < 10; ++i) {
+      const a = Ga.fromVector([
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+      ]);
+      const b = Ga.fromVector([
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+      ]);
+      const c = Ga.fromVector([
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+      ]);
+
+      const blade = a.wedge(b).wedge(c);
+      if (blade.isNil()) {
+        continue;
+      }
+
+      const [factors, scale] = blade.integerBladeFactorize();
+
+      const reblade = factors.reduce((a, b) => a.wedge(b)).rescale(scale);
+
+      expect(reblade).toBeInstanceOf(Ga);
+      expect(blade.equals(reblade)).toBeTruthy();
+    }
+  });
+
   it('has an adjugate suitable for int base classes', () => {
     for (let p = 0; p < 4; ++p) {
       for (let q = 0; q < 4; ++q) {

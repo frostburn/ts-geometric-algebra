@@ -226,6 +226,7 @@ export declare class AlgebraElement extends ElementBaseType {
   rescale(scalar: number): this;
   accumulate(other: AlgebraElement): this;
   bladeFactorize(): [AlgebraElement[], number];
+  integerBladeFactorize(): [AlgebraElement[], number];
   split(iter?: number): AlgebraElement[];
   motorFactorize(iter?: number): AlgebraElement[];
   meetJoin(

@@ -1,4 +1,4 @@
-import {complexSqrt, eigenValues, sinc, sinch} from './utils';
+import {complexSqrt, eigenValues, gcd, sinc, sinch} from './utils';
 import {
   type ElementBaseType,
   type AlgebraElement,
@@ -1075,6 +1075,262 @@ export function Algebra(
       factors.push(new this.cls(euclid));
 
       return [factors, norm];
+    }
+
+    integerBladeFactorize(patience = 100): [AlgebraElement[], number] {
+      const Euclid = getEuclidized();
+      let euclid = new Euclid(this);
+      const scalarFactor = euclid.reduce(gcd);
+      if (!scalarFactor) {
+        return [[], 0];
+      }
+      euclid.rescale(1 / scalarFactor);
+
+      const grades = euclid.grades();
+      if (grades.length > 1) {
+        throw new Error('Element not of single grade');
+      }
+      let grade = grades[0];
+
+      const components = Array(dimensions);
+
+      const factors: AlgebraElement[] = [];
+      let scale = 0.6;
+      while (scale < patience) {
+        if (grade === 1) {
+          factors.push(new this.cls(euclid));
+          return [factors, scalarFactor];
+        }
+
+        // Simplify remaining wedge
+        let done = false;
+        let complexity = euclid.taxicabNorm();
+        while (!done) {
+          done = true;
+          for (const factor of factors) {
+            let candidate = euclid.add(factor);
+            let candidateComplexity = candidate.taxicabNorm();
+            if (candidateComplexity < complexity) {
+              euclid = candidate;
+              complexity = candidateComplexity;
+              done = false;
+              continue;
+            }
+            candidate = euclid.sub(factor);
+            candidateComplexity = candidate.taxicabNorm();
+            if (candidateComplexity < complexity) {
+              euclid = candidate;
+              complexity = candidateComplexity;
+              done = false;
+            }
+          }
+        }
+
+        for (let i = 0; i < dimensions; ++i) {
+          components[i] = Math.round(Math.random() * 2 * scale - scale);
+        }
+        const vector = Euclid.fromVector(components);
+        const vFactor = vector.reduce(gcd);
+        if (!vFactor) {
+          continue;
+        }
+        if (vector.wedge(euclid).isNil()) {
+          const factorCandidate = vector;
+          factorCandidate.rescale(1 / vFactor);
+          while (true) {
+            for (let i = 0; i < dimensions; ++i) {
+              components[i] = Math.round(Math.random() * 2 * scale - scale);
+            }
+            const hyperCandidate = Euclid.fromVector(components).dotL(euclid);
+            const hFactor = hyperCandidate.reduce(gcd);
+            if (!hFactor) {
+              continue;
+            }
+            hyperCandidate.rescale(1 / hFactor);
+            if (factorCandidate.wedge(hyperCandidate).equals(euclid)) {
+              factors.push(new this.cls(factorCandidate));
+              euclid = hyperCandidate;
+              grade--;
+            } else if (
+              factorCandidate.wedge(hyperCandidate.neg()).equals(euclid)
+            ) {
+              factors.push(new this.cls(factorCandidate));
+              euclid = hyperCandidate.neg();
+              grade--;
+            }
+            break;
+          }
+        } else {
+          const hyperCandidate = vector.dotL(euclid);
+          const hFactor = hyperCandidate.reduce(gcd);
+          if (!hFactor) {
+            continue;
+          }
+          hyperCandidate.rescale(1 / hFactor);
+
+          const normal = Euclid.zero();
+          for (let i = 0; i < size; ++i) {
+            if (bitCount(i) === grade - 1) {
+              normal[i] = Math.round(Math.random() * 2 * scale - scale);
+            }
+          }
+          const factorCandidate = normal.dotL(euclid);
+          const fFactor = factorCandidate.reduce(gcd);
+          if (!fFactor) {
+            continue;
+          }
+          factorCandidate.rescale(1 / fFactor);
+          if (factorCandidate.wedge(hyperCandidate).equals(euclid)) {
+            factors.push(new this.cls(factorCandidate));
+            euclid = hyperCandidate;
+            grade--;
+          } else if (
+            factorCandidate.wedge(hyperCandidate.neg()).equals(euclid)
+          ) {
+            factors.push(new this.cls(factorCandidate));
+            euclid = hyperCandidate.neg();
+            grade--;
+          }
+        }
+        scale += 0.1;
+      }
+      throw new Error('Factorization failed');
+      /*
+      scale = 0.6;
+      while (scale < patience) {
+        const candidates = [];
+        while (candidates.length < grade) {
+          for (let i = 0; i < dimensions; ++i) {
+            components[i] = Math.round(Math.random() * 2 * scale - scale);
+          }
+          const candidate = Euclid.fromVector(components);
+          if (candidate.wedge(euclid).isNil()) {
+            candidates.push(candidate);
+          }
+        }
+        if (candidates.reduce((a, b) => a.wedge(b)).equals(euclid)) {
+          return [factors.concat(candidates.map(c => new this.cls(c))), scalarFactor];
+        }
+        scale += 0.1;
+      }
+      throw new Error('Factorization failed');
+      */
+    }
+
+    integerBladeFactorize_(): [AlgebraElement[], number] {
+      const Euclid = getEuclidized();
+      let euclid = new Euclid(this);
+      const scalarFactor = euclid.reduce(gcd);
+      if (!scalarFactor) {
+        return [[], 0];
+      }
+      euclid.rescale(1 / scalarFactor);
+
+      const grades = euclid.grades();
+      if (grades.length > 1) {
+        throw new Error('Element not of single grade');
+      }
+      let grade = grades[0];
+
+      const factors = [];
+      while (true) {
+        if (grade === 1) {
+          factors.push(new this.cls(euclid));
+          return [factors, scalarFactor];
+        }
+        let done = false;
+        // Try basic factors
+        for (let i = 0; i < size; ++i) {
+          if (bitCount(i) !== grade - 1) {
+            continue;
+          }
+          const basisBlade = Euclid.zero();
+          basisBlade[i] = 1;
+          const factorCandidate = basisBlade.dotL(euclid);
+          const fScalar = factorCandidate.reduce(gcd);
+          if (!fScalar) {
+            continue;
+          }
+          factorCandidate.rescale(1 / fScalar);
+          for (let j = 0; j < dimensions; ++j) {
+            const basisVector = Euclid.basisBlade(j);
+            const hyperCandidate = basisVector.dotL(euclid);
+            const hScalar = hyperCandidate.reduce(gcd);
+            if (!hScalar) {
+              continue;
+            }
+            if (factorCandidate.wedge(hyperCandidate).equals(euclid)) {
+              factors.push(new this.cls(factorCandidate));
+              euclid = hyperCandidate;
+              done = true;
+              break;
+            }
+            if (factorCandidate.wedge(hyperCandidate.neg()).equals(euclid)) {
+              factors.push(new this.cls(factorCandidate));
+              euclid = hyperCandidate.neg();
+              done = true;
+              break;
+            }
+          }
+          if (done) {
+            break;
+          }
+        }
+        if (!done) {
+          // Try more complex factors
+          for (let i = 0; i < size; ++i) {
+            if (bitCount(i) !== grade - 1) {
+              continue;
+            }
+            for (let j = i + 1; j < size; ++j) {
+              if (bitCount(j) !== grade - 1) {
+                continue;
+              }
+              const blade = Euclid.zero();
+              blade[i] = 1;
+              blade[j] = -1;
+              const factorCandidate = blade.dotL(euclid);
+              const fScalar = factorCandidate.reduce(gcd);
+              if (!fScalar) {
+                continue;
+              }
+              factorCandidate.rescale(1 / fScalar);
+              for (let k = 0; k < dimensions; ++k) {
+                for (let l = k + 1; l < dimensions; ++l) {
+                  const vector = Euclid.basisBlade(k);
+                  vector[1 << l] -= 1;
+                  const hyperCandidate = vector.dotL(euclid);
+                  const hScalar = hyperCandidate.reduce(gcd);
+                  if (!hScalar) {
+                    continue;
+                  }
+                  if (factorCandidate.wedge(hyperCandidate).equals(euclid)) {
+                    factors.push(new this.cls(factorCandidate));
+                    euclid = hyperCandidate;
+                    done = true;
+                    break;
+                  }
+                  if (
+                    factorCandidate.wedge(hyperCandidate.neg()).equals(euclid)
+                  ) {
+                    factors.push(new this.cls(factorCandidate));
+                    euclid = hyperCandidate.neg();
+                    done = true;
+                    break;
+                  }
+                }
+                if (done) break;
+              }
+              if (done) break;
+            }
+            if (done) break;
+          }
+        }
+        if (!done) {
+          throw new Error('Factorization failed');
+        }
+        grade--;
+      }
     }
 
     // Bivector split - we handle all real cases, still have to add the complex cases for those exception scenarios.
