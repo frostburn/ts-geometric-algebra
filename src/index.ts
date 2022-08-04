@@ -503,8 +503,7 @@ export function Algebra(
       throw new Error('Do not know how to normalize a rotor in this algebra');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sqrt(forceIter = false, numIter = 16): AlgebraElement {
+    sqrtIter(numIter = 16): AlgebraElement {
       // Denman-Beavers iteration. Not guaranteed to converge.
       // https://en.wikipedia.org/wiki/Square_root_of_a_matrix#By_Denman%E2%80%93Beavers_iteration
       let y = this.plus(1).rescale(0.5);
@@ -515,6 +514,10 @@ export function Algebra(
         z = z.add(yInv).rescale(0.5);
       }
       return y;
+    }
+
+    sqrt(): AlgebraElement {
+      return this.sqrtIter();
     }
 
     rotorSqrt(): AlgebraElement {
@@ -532,26 +535,24 @@ export function Algebra(
       return result;
     }
 
-    exp(forceSeries = false, numTerms = 16): AlgebraElement {
-      if (!forceSeries) {
-        // Closed form exp
-        const grade2 = this.imag();
-        if (grade2.isGrade(2)) {
-          return grade2.split().reduce((total, simple) => {
-            const square = simple.square().s;
-            const len = Math.sqrt(Math.abs(square));
-            if (len <= 1e-12) {
-              simple.s += 1;
-            } else if (square < 0) {
-              simple = simple.scale(sinc(len));
-              simple.s += Math.cos(len);
-            } else {
-              simple = simple.scale(sinch(len));
-              simple.s += Math.cosh(len);
-            }
-            return total.mul(simple);
-          }, this.algebra.scalar(Math.exp(this.s)));
-        }
+    exp(): AlgebraElement {
+      // Closed form exp
+      const grade2 = this.imag();
+      if (grade2.isGrade(2)) {
+        return grade2.split().reduce((total, simple) => {
+          const square = simple.square().s;
+          const len = Math.sqrt(Math.abs(square));
+          if (len <= 1e-12) {
+            simple.s += 1;
+          } else if (square < 0) {
+            simple = simple.scale(sinc(len));
+            simple.s += Math.cos(len);
+          } else {
+            simple = simple.scale(sinch(len));
+            simple.s += Math.cosh(len);
+          }
+          return total.mul(simple);
+        }, this.algebra.scalar(Math.exp(this.s)));
       }
 
       // No specific implementation found, but we can still
@@ -573,6 +574,7 @@ export function Algebra(
       }
 
       // Taylor series
+      const numTerms = 16;
       let result = imag.rescale(scale).expTaylor(numTerms);
       for (let i = 0; i < numSquares; ++i) {
         result = result.square();
@@ -599,8 +601,20 @@ export function Algebra(
       return this.exp();
     }
 
-    log(forceProduct = false, numProductTerms = 20): AlgebraElement {
-      if (!forceProduct && this.isGrade(2)) {
+    // Simply assumed to work for general multi vectors, someone should prove this
+    // https://www.emis.de/journals/HOA/IJMMS/2004/65-683653.pdf
+    logSeries(numProductTerms = 20) {
+      let result = this.plus(-1);
+      let term = this.clone();
+      for (let i = 0; i < numProductTerms; ++i) {
+        term = term.sqrt();
+        result = result.mul(term.plus(1).inverse().rescale(2));
+      }
+      return result;
+    }
+
+    log(): AlgebraElement {
+      if (this.isGrade(2)) {
         const sum = this.zeroed();
         this.motorFactorize().forEach(bi => {
           const [ci, si] = [bi.s, bi.grade(2)];
@@ -612,15 +626,7 @@ export function Algebra(
         });
         return sum;
       }
-      // Simply assumed to work for general multi vectors, someone should prove this
-      // https://www.emis.de/journals/HOA/IJMMS/2004/65-683653.pdf
-      let result = this.plus(-1);
-      let term = this.clone();
-      for (let i = 0; i < numProductTerms; ++i) {
-        term = term.sqrt();
-        result = result.mul(term.plus(1).inverse().rescale(2));
-      }
-      return result;
+      return this.logSeries();
     }
 
     rotorLog() {
