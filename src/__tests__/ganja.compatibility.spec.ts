@@ -97,8 +97,6 @@ describe('TS-Geometric-Algebra Ganja.js compatibility', () => {
 
             if (r) {
               expect(Ga.fromGanja(ganjaA.Dual).equals(a.dual())).toBeTruthy();
-            } else {
-              expect(Ga.fromGanja(ganjaA.Dual).closeTo(a.starL())).toBeTruthy();
             }
 
             if (p + q + r > 0) {
