@@ -9,6 +9,8 @@ import {linSolve} from './element';
 
 export * from './element';
 
+export {decomposeQR, matrixMul, eigenValues} from './utils';
+
 export function vLinSolve(x: number[], basis: number[][], threshold = 1e-6) {
   const Grassmann = Algebra(0, 0, x.length);
   return linSolve(

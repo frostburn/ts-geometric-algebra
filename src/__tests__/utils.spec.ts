@@ -1,5 +1,11 @@
 import {describe, it, expect} from 'vitest';
-import {decomposeQR, eigenValues, matrixCloseTo} from '../utils';
+import {
+  decomposeQR,
+  eigenValues,
+  forwardSubstitute,
+  matrixCloseTo,
+  matrixMul,
+} from '../utils';
 
 describe('QR decomposition', () => {
   it('decomposes a matrix to a known result', () => {
@@ -48,5 +54,27 @@ describe('Eigenvalue solver', () => {
       }
     });
     expect(result.length).toBe(0);
+  });
+});
+
+describe('Forward substitution', () => {
+  it('solves a linear equation', () => {
+    const L = [
+      [1, 0, 0],
+      [2, 3, 0],
+      [4, 5, 6],
+    ];
+    const b = [7, 8, 9];
+    const x = forwardSubstitute(L, b);
+
+    expect(x[0]).toBe(7);
+    expect(x[1]).toBe(-2);
+    expect(x[2]).toBe(-1.5);
+
+    const product = matrixMul(L, [[x[0]], [x[1]], [x[2]]]);
+
+    expect(product[0][0]).toBe(b[0]);
+    expect(product[1][0]).toBe(b[1]);
+    expect(product[2][0]).toBe(b[2]);
   });
 });

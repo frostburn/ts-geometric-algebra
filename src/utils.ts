@@ -1,3 +1,4 @@
+// TODO: Support non-square?
 export function decomposeQR(matrix: number[][]) {
   const [m, n] = [matrix.length, matrix[0].length];
   const qr = matrix.map(row => [...row]);
@@ -58,8 +59,8 @@ export function matrixCloseTo(A: number[][], B: number[][], tolerance = 1e-5) {
   return true;
 }
 
-function mul(A: number[][], B: number[][]) {
-  const res = A.map(r => Array(r.length).fill(0));
+export function matrixMul(A: number[][], B: number[][]) {
+  const res = A.map(() => Array(B[0].length).fill(0));
   for (let i = 0; i < A.length; ++i)
     for (let j = 0; j < B.length; ++j)
       for (let k = 0; k < B[0].length; ++k) res[i][k] += A[i][j] * B[j][k];
@@ -69,9 +70,29 @@ function mul(A: number[][], B: number[][]) {
 export function eigenValues(matrix: number[][], numIter = 50) {
   for (let i = 0; i < numIter; ++i) {
     const [Q, R] = decomposeQR(matrix);
-    matrix = mul(R, Q);
+    matrix = matrixMul(R, Q);
   }
   return matrix.map((x, i) => x[i]);
+}
+
+/**
+ * Solve for `x` in `Lx = b`, where L is lower triangular
+ * @param L Lower triangular matrix
+ * @param b Vector
+ * @returns Solution `x` of `Lx = b`
+ */
+export function forwardSubstitute(L: number[][], b: number[]) {
+  const result = [];
+
+  for (let i = 0; i < b.length; ++i) {
+    let numerator = b[i];
+    for (let j = 0; j < i; ++j) {
+      numerator -= L[i][j] * result[j];
+    }
+    result.push(numerator / L[i][i]);
+  }
+
+  return result;
 }
 
 export function copysign(x: number, y: number) {
