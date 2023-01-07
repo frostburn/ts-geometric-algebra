@@ -113,6 +113,9 @@ export declare class ElementBaseType {
 }
 
 export declare class AlgebraElement extends ElementBaseType {
+  // Class access
+  get algebra(): typeof AlgebraElement;
+
   // Comparisons
   equals(other: AlgebraElement): boolean;
   closeTo(other: AlgebraElement, tolerance?: number): boolean;
@@ -149,12 +152,14 @@ export declare class AlgebraElement extends ElementBaseType {
   square(): AlgebraElement;
   normalize(newNorm?: number): AlgebraElement;
   rotorNormalize(): AlgebraElement;
-  sqrt(forceIter?: boolean, numIter?: number): AlgebraElement;
+  sqrtIter(numIter?: number): AlgebraElement;
+  sqrt(): AlgebraElement;
   rotorSqrt(): AlgebraElement;
   expTaylor(numTerms?: number): AlgebraElement;
-  exp(forceSeries?: boolean, numTerms?: number): AlgebraElement;
+  exp(): AlgebraElement;
   bivectorExp(): AlgebraElement;
-  log(forceProduct?: boolean, numProductTerms?: number): AlgebraElement;
+  logSeries(numProductTerms?: number): AlgebraElement;
+  log(): AlgebraElement;
   rotorLog(): AlgebraElement;
   clone(): AlgebraElement;
   // Dual Zoo
@@ -377,22 +382,14 @@ export function sqrt(element: AlgebraElement): AlgebraElement {
 export function rotorSqrt(element: AlgebraElement): AlgebraElement {
   return element.rotorSqrt();
 }
-export function exp(
-  element: AlgebraElement,
-  forceSeries?: boolean,
-  numTerms?: number
-): AlgebraElement {
-  return element.exp(forceSeries, numTerms);
+export function exp(element: AlgebraElement): AlgebraElement {
+  return element.exp();
 }
 export function bivectorExp(element: AlgebraElement): AlgebraElement {
   return element.bivectorExp();
 }
-export function log(
-  element: AlgebraElement,
-  forceProduct?: boolean,
-  numProductTerms?: number
-): AlgebraElement {
-  return element.log(forceProduct, numProductTerms);
+export function log(element: AlgebraElement): AlgebraElement {
+  return element.log();
 }
 export function rotorLog(element: AlgebraElement): AlgebraElement {
   return element.rotorLog();
