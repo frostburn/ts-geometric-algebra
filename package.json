@@ -26,12 +26,12 @@
   ],
   "devDependencies": {
     "@types/benchmark": "^2.1.2",
-    "@types/node": "^18.8.5",
+    "@types/node": "^18.11.18",
     "benchmark": "^2.1.4",
     "ganja.js": "^1.0.204",
     "gts": "^3.1.1",
-    "typescript": "^4.8.4",
-    "vitest": "^0.24.3"
+    "typescript": "^4.9.4",
+    "vitest": "^0.24.5"
   },
   "scripts": {
     "lint": "gts lint",
