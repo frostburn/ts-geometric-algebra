@@ -1,4 +1,4 @@
-import {complexSqrt, eigenValues, sinc, sinch} from './utils';
+import {complexSqrt, sinc, sinch} from './utils';
 import {
   type ElementBaseType,
   type AlgebraElement,
@@ -6,6 +6,7 @@ import {
 } from './element';
 import {pqrMixin} from './pqr';
 import {linSolve} from './element';
+import {eigs} from 'mathjs';
 
 export * from './element';
 
@@ -1084,7 +1085,7 @@ export function Algebra(
     }
 
     // Bivector split - we handle all real cases, still have to add the complex cases for those exception scenarios.
-    split(iter = 50) {
+    split() {
       const TWT = this.wedge(this);
       if (TWT.vnorm() < 1e-5) return [this.clone()]; // bivector was simple.
       const k = Math.floor(dimensions / 2);
@@ -1121,7 +1122,7 @@ export function Algebra(
           }
           matrix.push(row);
         }
-        eigen = eigenValues(matrix, iter).sort(
+        eigen = (eigs(matrix).values as number[]).sort(
           (a, b) => Math.abs(a) - Math.abs(b)
         );
       }

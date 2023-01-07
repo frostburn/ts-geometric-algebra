@@ -44,5 +44,8 @@
     "test": "vitest",
     "prebenchmark": "tsc -p tsconfig-benchmark.json",
     "benchmark": "node benchmarks/__benchmarks__/versus.ganja.js"
+  },
+  "dependencies": {
+    "mathjs": "^11.5.0"
   }
 }
