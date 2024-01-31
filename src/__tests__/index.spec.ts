@@ -503,7 +503,7 @@ describe('Geometric Algebra', () => {
     const Complex = Algebra(0, 1);
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(Complex);
-      const expZ = z.exp(true);
+      const expZ = z.exp();
       expect(expZ.s).toBeCloseTo(Math.exp(z.s) * Math.cos(z.ps));
       expect(expZ.ps).toBeCloseTo(Math.exp(z.s) * Math.sin(z.ps));
       const analytic = z.exp();
@@ -515,7 +515,7 @@ describe('Geometric Algebra', () => {
     const H = Algebra(0, 2);
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(H);
-      const expZ = z.exp(true);
+      const expZ = z.exp();
       const imagZ = z.sub(z.grade(0));
       expect(expZ.s).toBeCloseTo(Math.exp(z.s) * Math.cos(imagZ.norm()));
       const imagExpZ = expZ.sub(expZ.grade(0));
@@ -534,7 +534,7 @@ describe('Geometric Algebra', () => {
     const Hyper = Algebra(1);
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(Hyper);
-      const expZ = z.exp(true);
+      const expZ = z.exp();
       expect(expZ.s).toBeCloseTo(Math.exp(z.s) * Math.cosh(z.ps));
       expect(expZ.ps).toBeCloseTo(Math.exp(z.s) * Math.sinh(z.ps));
       const analytic = z.exp();
@@ -546,7 +546,7 @@ describe('Geometric Algebra', () => {
     const Dual = Algebra(0, 0, 1);
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(Dual);
-      const expZ = z.exp(true);
+      const expZ = z.exp();
       expect(expZ.s).toBeCloseTo(Math.exp(z.s));
       expect(expZ.ps).toBeCloseTo(Math.exp(z.s) * z.ps);
       const analytic = z.exp();
@@ -562,7 +562,7 @@ describe('Geometric Algebra', () => {
       const Gl = Algebra(pq[0], pq[1]);
       for (let i = 0; i < 10; ++i) {
         const z = randomElement(Gl);
-        const expZ = z.exp(true);
+        const expZ = z.exp();
         const analytic = z.exp();
         expect(expZ.closeTo(analytic)).toBeTruthy();
       }
@@ -571,7 +571,7 @@ describe('Geometric Algebra', () => {
     const Glm = Algebra(1, 1, 0, {metric: [-1, 1]});
     for (let i = 0; i < 10; ++i) {
       const z = randomElement(Glm);
-      const expZ = z.exp(true);
+      const expZ = z.exp();
       const analytic = z.exp();
       expect(expZ.closeTo(analytic)).toBeTruthy();
     }

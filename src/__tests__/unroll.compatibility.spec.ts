@@ -16,7 +16,10 @@ describe('TS-Geometric-Algebra unroll compatibility', () => {
       for (let q = 0; q < 3; ++q) {
         for (let r = 0; r < 2; ++r) {
           const Ga = Algebra(p, q, r);
-          const RolledGa = Algebra(p, q, r, Float32Array, false);
+          const RolledGa = Algebra(p, q, r, {
+            baseType: Float32Array,
+            disableUnroll: true,
+          });
 
           for (let i = 0; i < 10; ++i) {
             const a = randomElement(Ga);
