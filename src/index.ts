@@ -1,9 +1,5 @@
 import {complexSqrt, sinc, sinch} from './utils';
-import {
-  type ElementBaseType,
-  type AlgebraElement,
-  AlgebraOptions,
-} from './element';
+import {type ElementBaseType, AlgebraElement, AlgebraOptions} from './element';
 import {pqrMixin} from './pqr';
 import {linSolve} from './element';
 import {eigs} from 'mathjs';
@@ -250,7 +246,7 @@ export function Algebra(
 
     // This is a hack to get around TypeScript's lack of abstract static methods
     get algebra() {
-      return AlgebraClass;
+      return this.constructor as typeof AlgebraElement;
     }
 
     empty() {
